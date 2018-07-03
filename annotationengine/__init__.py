@@ -27,7 +27,7 @@ def types():
 
 @app.route("/annotation", methods=["POST"])
 def import_annotations():
-    if request.method == "PUT":
+    if request.method == "POST":
         # iterate through annotations in json posted
         for annotation in request.data:
             schema = get_schema(annotation['type'])
