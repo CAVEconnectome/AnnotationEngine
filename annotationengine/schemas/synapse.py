@@ -1,10 +1,11 @@
-from annotationengine.schemas.base import SpatialAnnotation
+from annotationengine.schemas.base import SpatialPoint, SpatialAnnotation
 import marshmallow as mm
+from marshmallow import validate
+
 
 class SynapseSchema(SpatialAnnotation):
+    points = mm.fields.Nested(SpatialPoint,
+                              validate=validate.Length(equal=3),
+                              many=True,
+                              description="spatial points for this annotation")
 
-    @mm.post_load
-    def validate_synapse(item):
-        if len(item['points'] != 3):
-            raise mm.ValidationError('A synapse must contain 3 points\
-                                      (pre, center, post)')

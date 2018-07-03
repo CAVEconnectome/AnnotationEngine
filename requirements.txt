@@ -1,4 +1,4 @@
-marshmallow==3.0.0b11
+marshmallow>=2.9.0
 numpy
 Flask
 marshmallow-jsonschema

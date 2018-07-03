@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify  # , render_template  # , render_template
+from flask import Flask, request, jsonify
+# , render_template  # , render_template
 from annotationengine.config import configure_app
 from annotationengine.utils import get_instance_folder_path
 from marshmallow_jsonschema import JSONSchema
@@ -33,16 +34,33 @@ def import_annotations():
             result = schema.load(annotation)
             assert(len(result.errors) == 0)
 
-    return "posted! {}".format(request.data)
+            # get a new unique ID for this annotation
+            result['id'] = 99999
+
+            # put it in the database
+
+    return jsonify(result.data)
 
 
 @app.route("/annotation/<id>", methods=["GET", "PUT", "DELETE"])
 def get_annotation(id):
     if request.method == "PUT":
-        return "put: {}".format(id)
+        json_d = request.data
+        schema = get_schema(json_d['type'])()
+        result = schema.load(json_d)
+        assert(len(result.errors) == 0)
+        result['id'] = id
+        # TODO put this updated annotation into data into the database
+        return jsonify(schema.dump(result))
+
     if request.method == "DELETE":
+        # TODO delete this annotation from the database
         return "deleted: {}".format(id)
     if request.method == "GET":
+        # TODO retrieve this annotation from the database
+        # ann = ?????
+        # schema = get_schema(ann['type'])()
+        # return jsonify(schema.dump(ann))
         return "get: {}".format(id)
 
 
@@ -50,9 +68,10 @@ def get_annotation(id):
 def get_valid_types():
     return jsonify(get_types())
 
+
 @app.route("/types/<type>/schema")
 def get_type_schema(type):
-    schema = get_schema(type)
-    print(schema)
+    schema = get_schema(type)()
     json_schema = JSONSchema()
-    return jsonify(json_schema.dump(schema))
+    js = json_schema.dump(schema)
+    return jsonify(js.data)

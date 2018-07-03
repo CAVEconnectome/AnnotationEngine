@@ -1,5 +1,3 @@
-from flask
-
 def AnnotationEngineException(Exception):
     ''' generic error in annotation engine '''
     pass
