@@ -1,4 +1,5 @@
 import marshmallow as mm
+from annotationengine.cloudvolume import lookup_supervoxel
 
 
 class AnnotationSchema(mm.Schema):
@@ -27,7 +28,13 @@ class SpatialPoint(mm.Schema):
                               required=True,
                               description="spatial position \
                                           x,y,z of annotation")
-    supervoxel_id = mm.fields.Int(description="supervoxel id of this point")
+    supervoxel_id = mm.fields.Int(missing=mm.missing,
+                                  description="supervoxel id of this point")
+
+    @mm.post_load
+    def convert_point(self, item):
+        if item['supervoxel_id'] == mm.missing:
+            item['supervoxel_id'] = lookup_supervoxel(*item['position'])
 
 
 class SpatialAnnotation(AnnotationSchema):

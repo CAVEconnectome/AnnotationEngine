@@ -1,15 +1,15 @@
 # Define the application directory
 import os
+from annotationengine.utils import get_app_base_path
 
 
 class BaseConfig(object):
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     # Statement for enabling the development environment
     DEBUG = True
-
-    CV_VOLUME_PATH = "gs://neuroglancer/basil_v0/son_of_alignment/\
-                      v3.04_cracks_only_normalized_rechunked"
-    CV_SEGMENTATION_PATH = "gs://neuroglancer/basil_v0/basil_full/seg-aug"
+    proj_dir = os.path.split(get_app_base_path())[0]
+    CV_SEGMENTATION_PATH = "file://./data/segmentation"\
+                           .format(proj_dir)
     NEUROGLANCER_URL = "https://neuroglancer-demo.appspot.com"
 
 
