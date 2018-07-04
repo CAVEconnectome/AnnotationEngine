@@ -8,3 +8,7 @@ class SynapseSchema(SpatialAnnotation):
                               validate=validate.Length(equal=3),
                               many=True,
                               description="spatial points for this annotation")
+
+    @mm.post_load
+    def validate_type(self, item):
+        assert item['type'] == 'synapse'

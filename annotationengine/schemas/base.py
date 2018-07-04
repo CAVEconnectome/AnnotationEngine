@@ -47,7 +47,7 @@ class SpatialPoint(mm.Schema):
 
     @mm.post_load
     def convert_point(self, item):
-        if item['supervoxel_id'] == mm.missing:
+        if 'supervoxel_id' not in item.keys():
             item['supervoxel_id'] = lookup_supervoxel(*item['position'])
 
 

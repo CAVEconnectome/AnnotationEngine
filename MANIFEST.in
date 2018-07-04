@@ -1,0 +1,2 @@
+recursive-include annotationengine *.bsh
+include LICENSE.txt *requirements.txt README.rst

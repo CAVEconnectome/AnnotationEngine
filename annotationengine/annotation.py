@@ -1,12 +1,13 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
 from annotationengine.schemas import get_schema, get_types
-from annotationengine.database import get_db
+from annotationengine.database import get_db, DBMSAnnotationNotFound
 from marshmallow_jsonschema import JSONSchema
+import json
 
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
 
-@bp.route("/")
+@bp.route("")
 def get_valid_types():
     return jsonify(get_types())
 
@@ -16,17 +17,14 @@ def import_annotations(annotation_type):
     if request.method == "POST":
         db = get_db()
         # iterate through annotations in json posted
-        for annotation in request.data:
-            assert(annotation['type'] == annotation_type)
-            schema = get_schema(annotation['type'])
-            result = schema.load(annotation)
-            assert(len(result.errors) == 0)
-
+        schema = get_schema(annotation_type)
+        result = schema.load(json.loads(request.data), many=True)
+        assert(len(result.errors) == 0)
+        for annotation in result.data:
             # get a new unique ID for this annotation
-            result.data['id'] = db.get_new_id()
-
+            annotation['oid'] = db.get_new_id(annotation_type)
             # put it in the database
-            db.save_annotation(result.data)
+            db.save_annotation(annotation)
 
         return jsonify(result.data)
 
@@ -35,24 +33,26 @@ def import_annotations(annotation_type):
 def get_annotation(annotation_type, oid):
     db = get_db()
     if request.method == "PUT":
-        json_d = request.data
+        json_d = json.loads(request.data)
         schema = get_schema(annotation_type)
         result = schema.load(json_d)
+        print(result)
         assert(len(result.errors) == 0)
-        assert(result.data['type'] == annotation_type)
-        result.data['oid'] = oid
+        result.data['oid'] = int(oid)
         db.save_annotation(result.data)
-        return jsonify(schema.dump(result))
+        return jsonify(schema.dump(result.data))
 
     if request.method == "DELETE":
-        db.delete_annotation(annotation_type, oid)
+        db.delete_annotation(annotation_type, int(oid))
         return "deleted: {}".format(oid)
 
     if request.method == "GET":
-        ann = db.get_annotation(annotation_type, oid)
-        schema = get_schema(annotation_type)
-        return jsonify(schema.dump(ann))
-        return "get: {}".format(id)
+        try:
+            ann = db.get_annotation(annotation_type, int(oid))
+            schema = get_schema(annotation_type)
+            return jsonify(schema.dump(ann)[0])
+        except DBMSAnnotationNotFound:
+            abort(404)
 
 
 @bp.route("/<annotation_type>/schema")

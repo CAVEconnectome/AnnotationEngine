@@ -4,9 +4,9 @@ import cloudvolume
 
 class MyCloudVolume(cloudvolume.CloudVolume):
 
-    def lookup_voxel(self, x, y, z):
+    def lookup_supervoxel(self, x, y, z):
         voxel = self[x, y, z]
-        return voxel
+        return int(voxel[0, 0, 0, 0])
 
 
 def get_cv():

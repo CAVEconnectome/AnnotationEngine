@@ -23,8 +23,11 @@ def find_version(*file_paths):
 with open('requirements.txt', 'r') as f:
     required = f.read().splitlines()
 
+with open('test_requirements.txt', 'r') as f:
+    test_required = f.read().splitlines()
+
 setup(
-    version=find_version("synapsedb", "__init__.py"),
+    version=find_version("annotationengine", "__init__.py"),
     name='annotationengine',
     description='a service for storing arbitrary annotation data '
                 'on EM volumes stored in a cloud volume ',
@@ -33,5 +36,7 @@ setup(
     url='https://github.com/fcollman/AnnotationEngine',
     packages=['annotationengine'],
     include_package_data=True,
-    install_requires=required
+    install_requires=required,
+    setup_requires=['pytest-runner'],
+    tests_require=test_required,
 )
