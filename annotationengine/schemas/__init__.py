@@ -12,7 +12,7 @@ def get_types():
 
 def get_schema(type):
     try:
-        return type_mapping[type]
+        return type_mapping[type]()
     except KeyError:
         msg = 'type {} is not a known annotation type'.format(type)
         raise UnknownTypeException(msg)

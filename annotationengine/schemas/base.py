@@ -1,10 +1,11 @@
 import marshmallow as mm
-from annotationengine.cloudvolume import lookup_supervoxel
+from annotationengine.voxel import lookup_supervoxel
 
 
 class IdSchema(mm.Schema):
     '''schema with a unique identifier'''
-    id = mm.fields.Int(description='identifier for annotation, unique in type')
+    oid = mm.fields.Int(description='identifier for annotation, '
+                                    'unique in type')
 
 
 class AnnotationSchema(mm.Schema):

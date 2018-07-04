@@ -1,11 +1,18 @@
-from annotationengine import app
+from flask import current_app, g
 import cloudvolume
 
-cv_seg = cloudvolume.CloudVolume(app.config['CV_SEGMENTATION_PATH'],
-                                 mip=0,
-                                 fill_missing=True)
+
+class MyCloudVolume(cloudvolume.CloudVolume):
+
+    def lookup_voxel(self, x, y, z):
+        voxel = self[x, y, z]
+        return voxel
 
 
-def lookup_supervoxel(x, y, z):
-    supervoxel_id = cv_seg[x, y, z]
-    return supervoxel_id
+def get_cv():
+    if 'cv' not in g:
+        cv_path = current_app.config['CV_SEGMENTATION_PATH']
+        g.cv = MyCloudVolume(cv_path,
+                             mip=0,
+                             fill_missing=True)
+    return g.cv
