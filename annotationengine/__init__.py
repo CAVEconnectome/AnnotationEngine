@@ -20,11 +20,6 @@ def index():
     return "hello world"
 
 
-@app.route("/")
-def types():
-    return "hello annotations"
-
-
 @app.route("/annotation", methods=["POST"])
 def import_annotations():
     if request.method == "POST":
