@@ -57,3 +57,13 @@ def test_synapse(client, app):
     # test that we get 404 when we try to get it again
     response = client.get(url)
     assert(response.status_code == 404)
+
+    # test that we get 404 when we try to delete it again
+    response = client.delete(url)
+    assert(response.status_code == 404)
+
+
+def test_get_schema(app, client):
+    response = client.get('/annotation/synapse/schema')
+    assert(response.status_code == 200)
+    assert(len(response.data) > 0)

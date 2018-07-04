@@ -1,14 +1,8 @@
 from flask import g
+from annotationengine.errors import AnnotationNotFoundException
 # this are things I am imaging sven will implement
 # they are simply stubbed here
-
-
-class DBMSException(Exception):
-    ''' generic database exception '''
-
-
-class DBMSAnnotationNotFound(DBMSException):
-    ''' annotation not in database '''
+# perhaps this will remain as a wrapper around his interface
 
 
 class DBMS(object):
@@ -33,7 +27,7 @@ class DBMS(object):
         try:
             self.annotations[table].pop(oid)
         except KeyError:
-            raise DBMSAnnotationNotFound
+            raise AnnotationNotFoundException
 
     def save_annotation(self, annotation):
         self.annotations[annotation['type']][annotation['oid']] = annotation
@@ -42,7 +36,7 @@ class DBMS(object):
         try:
             return self.annotations[table][oid]
         except KeyError:
-            raise DBMSAnnotationNotFound
+            raise AnnotationNotFoundException
 
 
 def get_db():
