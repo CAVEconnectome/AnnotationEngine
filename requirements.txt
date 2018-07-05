@@ -2,3 +2,4 @@ marshmallow>=2.9.0
 numpy
 Flask
 marshmallow-jsonschema
+cloud-volume
