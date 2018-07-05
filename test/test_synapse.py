@@ -23,7 +23,7 @@ def test_synapse(client, app):
     response_d = json.loads(response.data)
     assert('oid' in response_d[0].keys())
     assert(len(response_d[0]['points']) == 3)
-    assert(response_d[0]['points'][0]['supervoxel_id'] == 33)
+    assert(response_d[0]['points'][0]['supervoxel_id'] == 5)
 
     # test that it is now in the database
     with app.app_context():
@@ -67,3 +67,4 @@ def test_get_schema(app, client):
     response = client.get('/annotation/synapse/schema')
     assert(response.status_code == 200)
     assert(len(response.data) > 0)
+    # TODO make a better test
