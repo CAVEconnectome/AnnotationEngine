@@ -11,7 +11,7 @@ def cv(N=64, blockN=16):
     block_per_row = N / blockN
     
     tempdir = tempfile.mkdtemp()
-    path = "file://{}".format(tempdir)
+    path = "file:/{}".format(tempdir)
   
     info = cloudvolume.CloudVolume.create_new_info(
         num_channels=1,
