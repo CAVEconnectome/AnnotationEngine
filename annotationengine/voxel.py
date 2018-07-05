@@ -1,5 +1,5 @@
 from flask import Blueprint
-from annotationengine.cloudvolume import get_cv
+from annotationengine.cv import get_cv
 
 bp = Blueprint("voxel", __name__, url_prefix="/voxel")
 
