@@ -8,8 +8,12 @@ class BaseConfig(object):
     # Statement for enabling the development environment
     DEBUG = True
     proj_dir = os.path.split(get_app_base_path())[0]
-    CV_SEGMENTATION_PATH = "file://{}/data/segmentation"\
-                           .format(proj_dir)
+    DATASETS = [{
+        'name': 'demo',
+        'CV_SEGMENTATION_PATH': "file://{}/data/segmentation"
+        .format(proj_dir)
+    }]
+
     NEUROGLANCER_URL = "https://neuroglancer-demo.appspot.com"
 
 

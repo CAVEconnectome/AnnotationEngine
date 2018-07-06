@@ -1,13 +1,16 @@
-from annotationengine.schemas.base import SpatialPoint, SpatialAnnotation
+from annotationengine.schemas.base import BoundSpatialPoint, \
+    SpatialPoint, \
+    AnnotationSchema
 import marshmallow as mm
-from marshmallow import validate
 
 
-class SynapseSchema(SpatialAnnotation):
-    points = mm.fields.Nested(SpatialPoint,
-                              validate=validate.Length(equal=3),
-                              many=True,
-                              description="spatial points for this annotation")
+class SynapseSchema(AnnotationSchema):
+    pre_pt = mm.fields.Nested(BoundSpatialPoint,
+                              description="presynaptic point")
+    ctr_pt = mm.fields.Nested(SpatialPoint,
+                              description="central point")
+    post_pt = mm.fields.Nested(BoundSpatialPoint,
+                               description="presynaptic point")
 
     @mm.post_load
     def validate_type(self, item):

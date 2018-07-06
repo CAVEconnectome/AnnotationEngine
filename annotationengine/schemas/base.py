@@ -36,30 +36,26 @@ class ReferenceTagAnnotation(ReferenceAnnotation, TagAnnotation):
 
 
 class SpatialPoint(mm.Schema):
-    '''a position in the segmented volume with an associated supervoxel id'''
+    '''a position in the segmented volume '''
     position = mm.fields.List(mm.fields.Float,
                               required=True,
                               validate=mm.validate.Length(equal=3),
                               description='spatial position '
                                           'x,y,z of annotation')
+
+
+class BoundSpatialPoint(SpatialPoint):
+    ''' a position in the segmented volume that is associated with an object'''
     supervoxel_id = mm.fields.Int(missing=mm.missing,
                                   description="supervoxel id of this point")
 
     @mm.post_load
     def convert_point(self, item):
         if 'supervoxel_id' not in item.keys():
-            item['supervoxel_id'] = lookup_supervoxel(*item['position'])
-
-
-class SpatialAnnotation(IdAnnotationSchema):
-    ''' a superclass of all annotations that involve 1 or more points'''
-    points = mm.fields.Nested(SpatialPoint,
-                              many=True,
-                              description="spatial points for this annotation")
-
-
-class TaggedSpatialAnnotation(SpatialAnnotation, TagAnnotation):
-    ''' spatial annotation with a tag '''
+            dataset = self.context.get('dataset', None)
+            if dataset is not None:
+                item['supervoxel_id'] = lookup_supervoxel(dataset,
+                                                          *item['position'])
 
 
 # root_id = mm.fields.Int(missing=mm.missing,

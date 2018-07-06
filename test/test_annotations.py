@@ -1,6 +1,12 @@
 import json
 
 
+def test_annotation_dataset(client, test_dataset):
+    url = '/annotation/datasets/{}'
+    response = client.get(url)
+    assert(response.status_code == 200)
+
+
 def test_post_bad_type(client, test_dataset):
     junk_d = {
         'type': 'junk_annotation',
