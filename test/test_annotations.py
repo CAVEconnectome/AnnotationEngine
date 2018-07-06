@@ -1,23 +1,12 @@
 import json
 
 
-def test_types(client):
-    response = client.get('/annotation')
-    assert response.status_code == 200
-    assert len(json.loads(response.data)) == 1
-
-
-def test_bad_schema(client):
-    response = client.get('/annotation/not_a_type/schema')
-    print(response.data)
-    assert(response.status_code == 404)
-
-
-def test_post_bad_type(client):
+def test_post_bad_type(client, test_dataset):
     junk_d = {
         'type': 'junk_annotation',
         'tag': 'junk'
     }
-    response = client.post('/annotation/junk_annotation',
+    url = '/annotation/dataset/{}/junk_annotation'.format(test_dataset)
+    response = client.post(url,
                            data=json.dumps(junk_d))
     assert(response.status_code == 404)

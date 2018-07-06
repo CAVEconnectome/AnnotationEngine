@@ -9,21 +9,21 @@ import shutil
 @pytest.fixture
 def cv(N=64, blockN=16):
     block_per_row = N / blockN
-    
+
     tempdir = tempfile.mkdtemp()
     path = "file:/{}".format(tempdir)
-  
+
     info = cloudvolume.CloudVolume.create_new_info(
         num_channels=1,
         layer_type='segmentation',
-        data_type='uint64',  
+        data_type='uint64',
         encoding='raw',
         resolution=[4, 4, 40],  # Voxel scaling, units are in nanometers
         voxel_offset=[0, 0, 0],  # x,y,z offset in voxels from the origin
         # Pick a convenient size for your underlying chunk representation
         # Powers of two are recommended, doesn't need to cover image exactly
         chunk_size=[64, 64, 64],  # units are voxels
-        volume_size=[N, N, N],  
+        volume_size=[N, N, N],
     )
     vol = cloudvolume.CloudVolume(path, info=info)
     vol.commit_info()
@@ -43,11 +43,21 @@ def cv(N=64, blockN=16):
 
 
 @pytest.fixture
-def app(cv):
+def test_dataset():
+    return 'test'
+
+
+@pytest.fixture
+def app(cv, test_dataset):
     app = create_app(
         {
             'TESTING': True,
-            'CV_SEGMENTATION_PATH': cv
+            'DATASETS': [
+                {
+                    'name': test_dataset,
+                    'CV_SEGMENTATION_PATH': cv
+                }
+            ]
         }
     )
     yield app
