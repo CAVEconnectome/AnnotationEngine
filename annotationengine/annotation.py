@@ -69,9 +69,9 @@ def import_annotations(dataset, annotation_type):
             annotations.append((supervoxels, blob))
         print("dataset", dataset, "annotation_type", annotation_type)
         uids = db.insert_annotations(dataset,
-                                     user_id,
                                      annotation_type,
-                                     annotations)
+                                     annotations,
+                                     user_id)
 
         return jsonify(uids.tolist())
 
