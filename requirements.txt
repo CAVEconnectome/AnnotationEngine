@@ -3,3 +3,5 @@ numpy
 Flask
 marshmallow-jsonschema
 cloud-volume
+dynamicannotationdb
+google
