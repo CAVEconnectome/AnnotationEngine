@@ -34,5 +34,5 @@ def create_app(test_config=None):
                     print('creating table {}:{}'.format(dataset['name'],
                                                         type_))
                 else:
-                    print('table exists {} {}'.format(dataset['name'],type_))
+                    print('table exists {} {}'.format(dataset['name'], type_))
     return app

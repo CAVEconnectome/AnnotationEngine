@@ -4,24 +4,29 @@ from annotationengine.database import get_db
 from annotationengine.dataset import get_datasets, get_dataset_db
 from annotationengine.errors import AnnotationNotFoundException, \
     UnknownAnnotationTypeException
-
+import numpy as np
 import json
 
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
 
-def collect_supervoxels(d, svids=None):
+def collect_supervoxels(d):
+    svid_set = collect_supervoxels_recursive(d)
+    return np.array(list(svid_set), dtype=np.uint64)
+
+
+def collect_supervoxels_recursive(d, svids=None):
     if svids is None:
         svids = set()
     for k, v in d.items():
         if k == 'supervoxel_id':
             svids.add(v)
         if type(v) is dict:
-            svids = collect_supervoxels(v, svids)
+            svids = collect_supervoxels_recursive(v, svids)
     return svids
 
 
-@bp.route("/dataset")
+@bp.route("/datasets")
 def get_annotation_datasets():
     return get_datasets()
 
@@ -60,11 +65,11 @@ def import_annotations(dataset, annotation_type):
 
         user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                      request.remote_addr))
-        print('existing tables',db.get_existing_tables())
+        print('existing tables', db.get_existing_tables())
 
         annotations = []
         for ann in result.data:
-            supervoxels = list(collect_supervoxels(ann))
+            supervoxels = collect_supervoxels(ann)
             blob = json.dumps(schema.dump(ann).data)
             annotations.append((supervoxels, blob))
         print("dataset", dataset, "annotation_type", annotation_type)
@@ -73,13 +78,15 @@ def import_annotations(dataset, annotation_type):
                                      annotations,
                                      user_id)
 
-        return jsonify(uids.tolist())
+        return jsonify(np.uint64(uids).tolist())
 
 
 @bp.route("/dataset/<dataset>/<annotation_type>/<oid>",
           methods=["GET", "PUT", "DELETE"])
 def get_annotation(dataset, annotation_type, oid):
     db = get_db()
+    user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
+                                                 request.remote_addr))
     if request.method == "PUT":
         json_d = json.loads(request.data)
         try:
@@ -91,25 +98,24 @@ def get_annotation(dataset, annotation_type, oid):
         if len(result.errors) > 0:
             abort(422, result.errors)
 
-        user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
-                                                     request.remote_addr))
         ann = result.data
-        ann.pop('oid', None)
-        annotations = [(collect_supervoxels(result.data),
-                        oid,
+        annotations = [(int(oid),
+                        collect_supervoxels(result.data),
                         json.dumps(schema.dump(ann).data))]
 
         success = db.update_annotations(dataset,
-                                        user_id,
                                         annotation_type,
-                                        annotations)
+                                        annotations,
+                                        user_id)
 
         return jsonify(success)
 
     if request.method == "DELETE":
+
         success = db.delete_annotations(dataset,
                                         annotation_type,
-                                        [int(oid)])
+                                        [int(oid)],
+                                        user_id)
         if success[0]:
             return jsonify(success[0])
         else:

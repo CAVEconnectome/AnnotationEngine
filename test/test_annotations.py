@@ -2,7 +2,7 @@ import json
 
 
 def test_annotation_dataset(client, test_dataset):
-    url = '/annotation/datasets/{}'
+    url = '/annotation/dataset/{}'
     response = client.get(url)
     assert(response.status_code == 200)
 

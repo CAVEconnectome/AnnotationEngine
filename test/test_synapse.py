@@ -31,7 +31,7 @@ def test_synapse(client, app, test_dataset):
         db = get_db()
         synapse_r = db.get_annotation(test_dataset,
                                       'synapse',
-                                      response_d[0])
+                                      oid)
         assert(synapse_r is not None)
         synapse = json.loads(synapse_r)
         assert(synapse['pre_pt']['supervoxel_id'] == 5)
@@ -42,7 +42,7 @@ def test_synapse(client, app, test_dataset):
     response = client.get(url)
     assert(response.status_code == 200)
     synapse_d = json.loads(response.data)
-    assert(synapse_d['oid'] == response_d[0]['oid'])
+    assert(synapse_d['pre_pt']['supervoxel_id'] == 5)
 
     # now lets modify it and update it with put
     synapse_d['pre_pt']['position'] = [31, 30, 0]
@@ -54,9 +54,9 @@ def test_synapse(client, app, test_dataset):
         db = get_db()
         synapse = db.get_annotation(test_dataset,
                                     'synapse',
-                                    response_d[0]['oid'])
-        assert(synapse['oid'] == response_d[0]['oid'])
-        assert(synapse['pre_pt']['position'] == [31, 30, 0])
+                                    oid)
+        synapse = json.loads(synapse)
+        assert(synapse['pre_pt']['position'] == [31.0, 30.0, 0.0])
 
     # test that we can delete it
     response = client.delete(url)
