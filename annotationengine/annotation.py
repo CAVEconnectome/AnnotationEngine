@@ -60,14 +60,14 @@ def import_annotations(dataset, annotation_type):
 
         user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                      request.remote_addr))
-        print('result.data', result.data)
+        print('existing tables',db.get_existing_tables())
 
         annotations = []
         for ann in result.data:
             supervoxels = list(collect_supervoxels(ann))
             blob = json.dumps(schema.dump(ann).data)
             annotations.append((supervoxels, blob))
-
+        print("dataset", dataset, "annotation_type", annotation_type)
         uids = db.insert_annotations(dataset,
                                      user_id,
                                      annotation_type,

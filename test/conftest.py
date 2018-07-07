@@ -4,7 +4,7 @@ import cloudvolume
 import numpy as np
 import tempfile
 import shutil
-import os
+
 
 @pytest.fixture
 def cv(N=64, blockN=16):
@@ -49,7 +49,6 @@ def test_dataset():
 
 @pytest.fixture
 def app(cv, test_dataset):
-    #os.environ["BIGTABLE_EMULATOR_HOST"] = 'localhost'
     app = create_app(
         {
             'TESTING': True,
