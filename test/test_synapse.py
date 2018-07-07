@@ -11,11 +11,11 @@ def test_synapse(client, app, test_dataset):
             },
         'ctr_pt':
             {
-                'position': [31, 31, 0],
+                'position': [32, 32, 0],
             },
         'post_pt':
             {
-                'position': [31, 31, 0],
+                'position': [33, 33, 0],
             }
     }
     url = '/annotation/dataset/{}/synapse'.format(test_dataset)

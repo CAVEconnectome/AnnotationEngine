@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, abort
 from annotationengine.schemas import get_schema, get_schemas
 from annotationengine.database import get_db
-from annotationengine.dataset import get_datasets
+from annotationengine.dataset import get_datasets, get_dataset_db
 from annotationengine.errors import AnnotationNotFoundException, \
     UnknownAnnotationTypeException
 
@@ -26,8 +26,9 @@ def get_annotation_datasets():
     return get_datasets()
 
 
-def get_schema_with_context(annotation_type, cv):
-    context = {'cv': cv}
+def get_schema_with_context(annotation_type, dataset):
+    dataset_db = get_dataset_db()
+    context = {'cloudvolume': dataset_db.get_cloudvolume(dataset)}
     Schema = get_schema(annotation_type)
     schema = Schema(context=context)
     return schema
@@ -59,8 +60,13 @@ def import_annotations(dataset, annotation_type):
 
         user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                      request.remote_addr))
-        annotations = [(collect_supervoxels(ann),
-                        json.dumps(schema.dump(ann))) for ann in result.data]
+        print('result.data', result.data)
+
+        annotations = []
+        for ann in result.data:
+            supervoxels = list(collect_supervoxels(ann))
+            blob = json.dumps(schema.dump(ann).data)
+            annotations.append((supervoxels, blob))
 
         uids = db.insert_annotations(dataset,
                                      user_id,

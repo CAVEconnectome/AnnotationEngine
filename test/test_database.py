@@ -11,5 +11,5 @@ def test_db(app):
         for dataset in dataset_db.get_dataset_names():
             print(db._annotation_tables.keys())
             tables = db.get_existing_annotation_types(dataset)
-            for type_ in types: 
+            for type_ in types:
                 assert(type_ in tables)

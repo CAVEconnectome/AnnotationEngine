@@ -1,5 +1,4 @@
 import marshmallow as mm
-from annotationengine.voxel import lookup_supervoxel
 
 
 class IdSchema(mm.Schema):
@@ -52,12 +51,7 @@ class BoundSpatialPoint(SpatialPoint):
     @mm.post_load
     def convert_point(self, item):
         if 'supervoxel_id' not in item.keys():
-            dataset = self.context.get('dataset', None)
-            if dataset is not None:
-                item['supervoxel_id'] = lookup_supervoxel(dataset,
-                                                          *item['position'])
-
-
-# root_id = mm.fields.Int(missing=mm.missing,
-#                         description='root id associated with'
-#                                     'this supervoxel')
+            cv = self.context.get('cloudvolume', None)
+            if cv is not None:
+                svid = cv.lookup_supervoxel(*item['position'])
+                item['supervoxel_id'] = svid

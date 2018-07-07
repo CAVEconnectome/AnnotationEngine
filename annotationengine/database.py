@@ -76,10 +76,10 @@ class AnnotationMetaDB(object):
                         self.ID + len(annotations),
                         dtype=np.uint64)
         table = self._annotation_tables[dataset_name][annotation_type]
-        print('annotations',annotations)
+        print('annotations', annotations)
         for oid, annotation in zip(ids, annotations):
             table[oid] = annotation[1]
-        print(table)
+        print('self.annotation_tables', self._annotation_tables)
         return ids
 
     def delete_annotations(self,

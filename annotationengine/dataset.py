@@ -27,6 +27,13 @@ class DataSetStore():
     def get_dataset_names(self):
         return [d['name'] for d in self.datasets]
 
+    def get_cloudvolume(self, dataset):
+        try:
+            return self.cvd[dataset]
+        except KeyError:
+            msg = 'dataset {} not found'.format(dataset)
+            raise DataSetNotFoundException(msg)
+
     def get_dataset(self, dataset):
         try:
             return next(d for d in self.datasets if d['name'] == dataset)
@@ -35,11 +42,7 @@ class DataSetStore():
             raise DataSetNotFoundException(msg)
 
     def lookup_supervoxel(self, dataset, x, y, z):
-        try:
-            cv = self.cvd[dataset]
-        except KeyError:
-            msg = 'dataset {} not found'.format(dataset)
-            raise DataSetNotFoundException(msg)
+        cv = self.get_cloudvolume[dataset]
         return cv.lookup_supervoxel(x, y, z)
 
 
