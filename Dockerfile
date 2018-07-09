@@ -5,7 +5,6 @@ RUN apt-get update && \
     apt-get install -y build-essential nginx supervisor && \
     conda install numpy && \
     pip install --upgrade pip && \
-    pip install neuroglancer && \
     python setup.py install && \
     pip install flask && \
     pip install -r /tmp/requirements.txt && \
@@ -15,8 +14,7 @@ RUN apt-get update && \
 RUN conda update -n base conda
 RUN conda install -c conda-forge uwsgi 
 
-ENV ANNOTATION_ENGINE_SETTINGS /synapsedb/synapsedb/instance/dev_config.py
-
+ENV ANNOTATION_ENGINE_SETTINGS /annotationengine/annotationengine/instance/dev_config.py
 
 # Copy the Nginx global conf
 COPY ./docker/nginx.conf /etc/nginx/
