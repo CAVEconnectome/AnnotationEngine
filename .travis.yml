@@ -8,7 +8,8 @@ python:
 install:
   - pip install -r test_requirements.txt
   - pip install tenacity==4.4.0 dill
-  - python setup.py install
+  - pip install git+https://github.com/seung-lab/DynamicAnnotationDB.git#egg=dynamicannotationdb
+  - pip install -r requirements.txt
   - gcloud version || true
   - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
   # Add gcloud to $PATH
