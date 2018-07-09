@@ -14,8 +14,7 @@ def get_client(config):
     if config.get('emulate', False):
         credentials = DoNothingCreds()
     else:
-        project_id, credentials = default_creds()
-
+        credentials, project_id = default_creds()
     client = bigtable.Client(admin=True, project=project_id)
     return client
 

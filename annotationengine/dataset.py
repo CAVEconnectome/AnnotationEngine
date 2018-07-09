@@ -42,7 +42,7 @@ class DataSetStore():
             raise DataSetNotFoundException(msg)
 
     def lookup_supervoxel(self, dataset, x, y, z):
-        cv = self.get_cloudvolume[dataset]
+        cv = self.get_cloudvolume(dataset)
         return cv.lookup_supervoxel(x, y, z)
 
 

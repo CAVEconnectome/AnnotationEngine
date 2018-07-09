@@ -47,9 +47,13 @@ class BoundSpatialPoint(SpatialPoint):
     ''' a position in the segmented volume that is associated with an object'''
     supervoxel_id = mm.fields.Int(missing=mm.missing,
                                   description="supervoxel id of this point")
+    root_id = mm.fields.Int(description="root id of the bound point")
 
     @mm.post_load
     def convert_point(self, item):
+        if not self.context.get('materialized'):
+            item.pop('root_id', None)
+
         if 'supervoxel_id' not in item.keys():
             cv = self.context.get('cloudvolume', None)
             if cv is not None:

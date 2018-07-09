@@ -16,7 +16,8 @@ class BaseConfig(object):
 
     NEUROGLANCER_URL = "https://neuroglancer-demo.appspot.com"
     BIGTABLE_CONFIG = {
-        'instance_id': 'pychunkedgraph'
+        'instance_id': 'pychunkedgraph',
+        'project_id': 'demo'
     }
 
 

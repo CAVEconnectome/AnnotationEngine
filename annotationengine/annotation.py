@@ -44,13 +44,9 @@ def get_annotation_types(dataset):
     return get_schemas()
 
 
-@bp.route("/dataset/<dataset>/<annotation_type>", methods=["GET", "POST"])
+@bp.route("/dataset/<dataset>/<annotation_type>", methods=["POST"])
 def import_annotations(dataset, annotation_type):
     db = get_db()
-
-    if request.method == "GET":
-        ids = db.get_annotation_ids(dataset, annotation_type)
-        return jsonify(ids)
 
     if request.method == "POST":
         # iterate through annotations in json posted
@@ -65,7 +61,6 @@ def import_annotations(dataset, annotation_type):
 
         user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                      request.remote_addr))
-        print('existing tables', db.get_existing_tables())
 
         annotations = []
         for ann in result.data:
@@ -73,11 +68,12 @@ def import_annotations(dataset, annotation_type):
             blob = json.dumps(schema.dump(ann).data)
             annotations.append((supervoxels, blob))
         print("dataset", dataset, "annotation_type", annotation_type)
+        print("inserting", blob, 'sv_ids', supervoxels)
         uids = db.insert_annotations(dataset,
                                      annotation_type,
                                      annotations,
                                      user_id)
-
+        print("uids", uids)
         return jsonify(np.uint64(uids).tolist())
 
 
@@ -99,7 +95,7 @@ def get_annotation(dataset, annotation_type, oid):
             abort(422, result.errors)
 
         ann = result.data
-        annotations = [(int(oid),
+        annotations = [(np.uint64(oid),
                         collect_supervoxels(result.data),
                         json.dumps(schema.dump(ann).data))]
 
@@ -114,7 +110,7 @@ def get_annotation(dataset, annotation_type, oid):
 
         success = db.delete_annotations(dataset,
                                         annotation_type,
-                                        [int(oid)],
+                                        np.array([int(oid)], np.uint64),
                                         user_id)
         if success[0]:
             return jsonify(success[0])
@@ -122,17 +118,15 @@ def get_annotation(dataset, annotation_type, oid):
             abort(404)
 
     if request.method == "GET":
-        try:
-            ann = db.get_annotation(dataset,
-                                    annotation_type,
-                                    int(oid))
-            if ann is None:
-                msg = 'annotation {} ({}) not in {}'
-                msg = msg.format(oid, annotation_type, dataset)
-                abort(404, msg)
-            schema = get_schema_with_context(annotation_type, dataset)
-            ann = json.loads(ann)
-            ann['oid'] = oid
-            return jsonify(schema.dump(ann)[0])
-        except AnnotationNotFoundException:
-            abort(404)
+        ann = db.get_annotation(dataset,
+                                annotation_type,
+                                int(oid))
+        if ann is None:
+            msg = 'annotation {} ({}) not in {}'
+            msg = msg.format(oid, annotation_type, dataset)
+            abort(404, msg)
+        schema = get_schema_with_context(annotation_type, dataset)
+        ann = json.loads(ann)
+        ann['oid'] = oid
+        return jsonify(schema.dump(ann)[0])
+

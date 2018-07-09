@@ -2,6 +2,18 @@ import json
 from annotationengine.database import get_db
 
 
+def test_junk_synapse(client, test_dataset):
+    junk_d = {
+        'type': 'synapse',
+        'pt_prt': {
+            'position': [4, 4, 0]
+        }
+    }
+    synapse_url = '/annotation/dataset/{}/synapse'.format(test_dataset)
+    response = client.post(synapse_url, json=junk_d)
+    assert response.status_code == 422
+
+
 def test_synapse(client, app, test_dataset):
     synapse_d = {
         'type': 'synapse',
@@ -18,8 +30,8 @@ def test_synapse(client, app, test_dataset):
                 'position': [33, 33, 0],
             }
     }
-    url = '/annotation/dataset/{}/synapse'.format(test_dataset)
-    response = client.post(url,
+    synapse_url = '/annotation/dataset/{}/synapse'.format(test_dataset)
+    response = client.post(synapse_url,
                            data=json.dumps([synapse_d]))
     assert response.status_code == 200
     response_d = json.loads(response.data)
@@ -44,10 +56,26 @@ def test_synapse(client, app, test_dataset):
     synapse_d = json.loads(response.data)
     assert(synapse_d['pre_pt']['supervoxel_id'] == 5)
 
+    # # test that we can search for it
+    # TODO implement this feature
+    # response = client.get(synapse_url)
+    # assert (response.status_code == 200)
+    # assert (oid in response.json)
+
     # now lets modify it and update it with put
     synapse_d['pre_pt']['position'] = [31, 30, 0]
-    response = client.put(url, data=json.dumps(synapse_d))
+    response = client.put(url, json=synapse_d)
     assert(response.status_code == 200)
+
+    # test that updating it with bad data fails
+    junk_d = {
+        'type': 'synapse',
+        'pt_prt': {
+            'position': [4, 4, 0]
+        }
+    }
+    response = client.put(url, json=junk_d)
+    assert response.status_code == 422
 
     # test that it is now changed in the database
     with app.app_context():
@@ -57,6 +85,10 @@ def test_synapse(client, app, test_dataset):
                                     oid)
         synapse = json.loads(synapse)
         assert(synapse['pre_pt']['position'] == [31.0, 30.0, 0.0])
+        print('ann_ids in 10:', db.get_annotation_ids_from_sv(
+            test_dataset, 'synapse', 10))
+        print('ann_ids in 6:', db.get_annotation_ids_from_sv(
+            test_dataset, 'synapse', 5))
 
     # test that we can delete it
     response = client.delete(url)

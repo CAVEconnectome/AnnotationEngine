@@ -5,10 +5,13 @@ from annotationengine.errors import DataSetNotFoundException
 bp = Blueprint("voxel", __name__, url_prefix="/voxel")
 
 
-@bp.route("/dataset/<dataset>,<x>_<y>_<z>")
+@bp.route("/dataset/<dataset>/<x>_<y>_<z>")
 def lookup_supervoxel(dataset, x, y, z):
     cv = get_dataset_db()
     try:
-        return jsonify(cv.lookup_supervoxel(dataset, x, y, z))
+        return jsonify(cv.lookup_supervoxel(dataset,
+                                            int(x),
+                                            int(y),
+                                            int(z)))
     except DataSetNotFoundException:
         abort(404)

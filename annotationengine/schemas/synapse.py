@@ -6,11 +6,11 @@ import marshmallow as mm
 
 
 class SynapseSchema(AnnotationSchema):
-    pre_pt = mm.fields.Nested(BoundSpatialPoint,
+    pre_pt = mm.fields.Nested(BoundSpatialPoint, required=True,
                               description="presynaptic point")
-    ctr_pt = mm.fields.Nested(SpatialPoint,
+    ctr_pt = mm.fields.Nested(SpatialPoint, required=True,
                               description="central point")
-    post_pt = mm.fields.Nested(BoundSpatialPoint,
+    post_pt = mm.fields.Nested(BoundSpatialPoint, required=True,
                                description="presynaptic point")
 
     @mm.post_load

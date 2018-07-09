@@ -39,4 +39,5 @@ setup(
     install_requires=required,
     setup_requires=['pytest-runner'],
     tests_require=test_required,
+    dependency_links=["git+ssh://git@github.com/fcollman/DynamicAnnotationDB.git#egg=dynamicannotationdb"]
 )
