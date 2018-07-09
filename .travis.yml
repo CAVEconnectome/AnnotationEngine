@@ -8,7 +8,6 @@ python:
 install:
   - pip install -r test_requirements.txt
   - python setup.py install
-script:
   - gcloud version || true
   - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
   # Add gcloud to $PATH
@@ -16,7 +15,9 @@ script:
   - gcloud version
   - gcloud components update
   - gcloud components install beta
+before_script:
+  - gcloud beta emulators bigtable start
+script:
   - export BIGTABLE_EMULATOR_HOST=localhost:8086
-  - gcloud beta emulators bigtable start && python setup.py pytest
-
+  - python setup.py pytest
   
