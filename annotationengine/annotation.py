@@ -118,7 +118,7 @@ def get_annotation(dataset, annotation_type, oid):
             abort(404)
 
     if request.method == "GET":
-        ann = db.get_annotation(dataset,
+        ann = db.get_annotation_data(dataset,
                                 annotation_type,
                                 int(oid))
         if ann is None:

@@ -41,7 +41,7 @@ def test_synapse(client, app, test_dataset):
     # test that it is now in the database
     with app.app_context():
         db = get_db()
-        synapse_r = db.get_annotation(test_dataset,
+        synapse_r = db.get_annotation_data(test_dataset,
                                       'synapse',
                                       oid)
         assert(synapse_r is not None)
@@ -80,9 +80,9 @@ def test_synapse(client, app, test_dataset):
     # test that it is now changed in the database
     with app.app_context():
         db = get_db()
-        synapse = db.get_annotation(test_dataset,
-                                    'synapse',
-                                    oid)
+        synapse = db.get_annotation_data(test_dataset,
+                                         'synapse',
+                                         oid)
         synapse = json.loads(synapse)
         assert(synapse['pre_pt']['position'] == [31.0, 30.0, 0.0])
         print('ann_ids in 10:', db.get_annotation_ids_from_sv(
