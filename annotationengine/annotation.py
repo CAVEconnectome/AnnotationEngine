@@ -2,8 +2,7 @@ from flask import Blueprint, jsonify, request, abort
 from annotationengine.schemas import get_schema, get_schemas
 from annotationengine.database import get_db
 from annotationengine.dataset import get_datasets, get_dataset_db
-from annotationengine.errors import AnnotationNotFoundException, \
-    UnknownAnnotationTypeException
+from annotationengine.errors import UnknownAnnotationTypeException
 import numpy as np
 import json
 
@@ -119,8 +118,8 @@ def get_annotation(dataset, annotation_type, oid):
 
     if request.method == "GET":
         ann = db.get_annotation_data(dataset,
-                                annotation_type,
-                                int(oid))
+                                     annotation_type,
+                                     int(oid))
         if ann is None:
             msg = 'annotation {} ({}) not in {}'
             msg = msg.format(oid, annotation_type, dataset)
@@ -129,4 +128,3 @@ def get_annotation(dataset, annotation_type, oid):
         ann = json.loads(ann)
         ann['oid'] = oid
         return jsonify(schema.dump(ann)[0])
-

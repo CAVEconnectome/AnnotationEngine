@@ -42,8 +42,8 @@ def test_synapse(client, app, test_dataset):
     with app.app_context():
         db = get_db()
         synapse_r = db.get_annotation_data(test_dataset,
-                                      'synapse',
-                                      oid)
+                                           'synapse',
+                                           oid)
         assert(synapse_r is not None)
         synapse = json.loads(synapse_r)
         assert(synapse['pre_pt']['supervoxel_id'] == 5)

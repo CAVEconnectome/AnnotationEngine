@@ -5,7 +5,6 @@ RUN apt-get update && \
     apt-get install -y build-essential nginx supervisor && \
     conda install numpy && \
     pip install --upgrade pip && \
-    python setup.py install && \
     pip install flask && \
     pip install -r /tmp/requirements.txt && \
     apt-get remove -y build-essential && apt autoremove -y && \

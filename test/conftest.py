@@ -44,7 +44,6 @@ def cv(N=64, blockN=16):
 
 @pytest.fixture
 def test_dataset():
-    
     return 'test'
 
 
