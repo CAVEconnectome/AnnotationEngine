@@ -18,7 +18,7 @@ install:
   - gcloud components update
   - gcloud components install beta
 before_script:
-  - gcloud beta emulators bigtable start
+  - gcloud beta emulators bigtable start &
 script:
   - export BIGTABLE_EMULATOR_HOST=localhost:8086
   - python setup.py pytest
