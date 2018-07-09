@@ -28,7 +28,9 @@ COPY ./docker/supervisord.conf /etc/supervisord.conf
 # Add demo app
 COPY . /annotationengine
 WORKDIR /annotationengine
+
 RUN python setup.py install
 RUN useradd -ms /bin/bash nginx
+RUN mkdir -p /home/nginx/.cloudvolume/secrets && chown -R nginx /home/nginx
 EXPOSE 80
 CMD ["/usr/bin/supervisord","-c","/etc/supervisord.conf"]

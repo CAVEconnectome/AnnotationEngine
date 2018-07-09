@@ -108,3 +108,5 @@ data/
 .DS_Store
 
 test-reports/
+client-secret.json
+credentials.tar.gz
