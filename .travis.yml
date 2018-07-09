@@ -6,9 +6,22 @@ python:
   - "3.6"
   - "3.6-dev" # 3.6 development branch
 install:
-  - pip install -r requirements.txt
   - pip install -r test_requirements.txt
+  - wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-207.0.0-linux-x86_64.tar.gz
+  - tar -xvf google-cloud-sdk-207.0.0-linux-x86_64.tar.gz
+  - ./google-cloud-sdk-207/install.sh
+  - 
+  - python setup.py install
+
 script:
-  - python setup.py pytest
-cache:
-  - pip: true
+  - gcloud version || true
+  - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
+  # Add gcloud to $PATH
+  - source /home/travis/google-cloud-sdk/path.bash.inc
+  - gcloud version
+  - gcloud components update
+  - gcloud components install beta
+  - export BIGTABLE_EMULATOR_HOST=localhost:8086
+  - gcloud beta emulators bigtable start && python setup.py pytest
+
+  
