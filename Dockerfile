@@ -6,6 +6,7 @@ RUN apt-get update && \
     conda install numpy && \
     pip install --upgrade pip && \
     pip install flask && \
+    pip install git+https://github.com/seung-lab/DynamicAnnotationDB.git#egg=dynamicannotationdb && \
     pip install -r /tmp/requirements.txt && \
     apt-get remove -y build-essential && apt autoremove -y && \
     rm -rf /root/.cache && \
