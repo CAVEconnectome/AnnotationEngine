@@ -10,6 +10,7 @@ git clone https://github.com/fcollman/AnnotationEngine.git
 cd AnnotationEngine
 python setup.py install
 ```
+Presently only python 3.6 is supported and tested.
 
 # Configuration
 DynamicAnnotationDb depends upon Google BigTable, so in order to run, you must configure your environment to be able to connect to your google account, so setup the google SDK on your system. 
