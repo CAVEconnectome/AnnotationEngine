@@ -24,9 +24,8 @@ install:
   - mkdir -p .cloudvolume/secrets
   - cp client-secret.json .cloudvolume/secrets/google-secret.json
   - gcloud auth activate-service-account --key-file client-secret.json
-before_script:
-  - gcloud beta emulators bigtable start &
 script:
+  - gcloud beta emulators bigtable start
   - export BIGTABLE_EMULATOR_HOST=localhost:8086
   - python setup.py pytest
 cache:
