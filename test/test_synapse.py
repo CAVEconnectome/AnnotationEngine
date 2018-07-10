@@ -1,7 +1,3 @@
-import json
-from annotationengine.database import get_db
-
-
 def test_junk_synapse(client, test_dataset):
     junk_d = {
         'type': 'synapse',
@@ -39,16 +35,6 @@ def test_synapse(client, app, test_dataset):
     oid = response_d[0]
     assert(type(oid) == int)
 
-    # test that it is now in the database
-    with app.app_context():
-        db = get_db()
-        synapse_r = db.get_annotation_data(test_dataset,
-                                           'synapse',
-                                           oid)
-        assert(synapse_r is not None)
-        synapse = json.loads(synapse_r)
-        assert(synapse['pre_pt']['supervoxel_id'] == 5)
-
     url = '/annotation/dataset/{}/synapse/{}'.format(test_dataset,
                                                      oid)
     # test that the client can retreive it
@@ -78,18 +64,11 @@ def test_synapse(client, app, test_dataset):
     response = client.put(url, json=junk_d)
     assert response.status_code == 422
 
-    # test that it is now changed in the database
-    with app.app_context():
-        db = get_db()
-        synapse = db.get_annotation_data(test_dataset,
-                                         'synapse',
-                                         oid)
-        synapse = json.loads(synapse)
-        assert(synapse['pre_pt']['position'] == [31.0, 30.0, 0.0])
-        print('ann_ids in 10:', db.get_annotation_ids_from_sv(
-            test_dataset, 'synapse', 10))
-        print('ann_ids in 6:', db.get_annotation_ids_from_sv(
-            test_dataset, 'synapse', 5))
+    # test that it is changed when we get it again
+    response = client.get(url)
+    assert(response.status_code == 200)
+    synapse_d = response.json
+    assert(synapse_d['pre_pt']['position'] == [31, 30, 0])
 
     # test that we can delete it
     response = client.delete(url)
