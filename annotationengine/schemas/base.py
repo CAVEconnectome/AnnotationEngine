@@ -36,10 +36,10 @@ class ReferenceTagAnnotation(ReferenceAnnotation, TagAnnotation):
 
 class SpatialPoint(mm.Schema):
     '''a position in the segmented volume '''
-    position = mm.fields.List(mm.fields.Float,
+    position = mm.fields.List(mm.fields.Int,
                               required=True,
                               validate=mm.validate.Length(equal=3),
-                              description='spatial position '
+                              description='spatial position in voxels of'
                                           'x,y,z of annotation')
 
 
