@@ -29,4 +29,4 @@ script:
 cache:
   - pip: true
   directories:
-  - $HOME/google-cloud-sdk/
+    - $HOME/google-cloud-sdk/
