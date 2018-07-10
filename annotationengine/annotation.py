@@ -5,6 +5,7 @@ from annotationengine.dataset import get_datasets, get_dataset_db
 from annotationengine.errors import UnknownAnnotationTypeException
 import numpy as np
 import json
+from functools import partial
 
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
@@ -30,9 +31,18 @@ def get_annotation_datasets():
     return get_datasets()
 
 
+def bsp_import_fn(cv, item):
+    item.pop('root_id', None)
+    svid = cv.lookup_supervoxel(*item['position'])
+    item['supervoxel_id'] = svid
+
+
 def get_schema_with_context(annotation_type, dataset):
     dataset_db = get_dataset_db()
-    context = {'cloudvolume': dataset_db.get_cloudvolume(dataset)}
+    cv = dataset_db.get_cloudvolume(dataset)
+    myp = partial(bsp_import_fn, cv)
+
+    context = {'bsp_fn': myp}
     Schema = get_schema(annotation_type)
     schema = Schema(context=context)
     return schema

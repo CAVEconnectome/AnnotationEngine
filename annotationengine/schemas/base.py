@@ -51,11 +51,6 @@ class BoundSpatialPoint(SpatialPoint):
 
     @mm.post_load
     def convert_point(self, item):
-        if not self.context.get('materialized'):
-            item.pop('root_id', None)
-
-        if 'supervoxel_id' not in item.keys():
-            cv = self.context.get('cloudvolume', None)
-            if cv is not None:
-                svid = cv.lookup_supervoxel(*item['position'])
-                item['supervoxel_id'] = svid
+        bsp_fn = self.context.get('bsp_fn', None)
+        if bsp_fn is not None:
+            bsp_fn(item)
