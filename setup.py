@@ -25,7 +25,7 @@ with open('requirements.txt', 'r') as f:
 
 with open('test_requirements.txt', 'r') as f:
     test_required = f.read().splitlines()
-dynannodb_git_url = 'git+https://github.com/seung-lab/DynamicAnnotationDB.git\
+dynannodb_git_url = 'git+https://github.com/fcollman/DynamicAnnotationDB.git\
 #egg=dynamicannotationdb'
 
 setup(
