@@ -33,7 +33,7 @@ def bigtable_emulator(request):
         stdout=subprocess.PIPE)
     bt_emul_host = bt_env_init.stdout.decode(
         "utf-8").strip().split('=')[-1]
-    os.environ["BIGTABLE_EMULATOR_HOST"] = bt_emul_host
+    os.environ["BIGTABLE_EMULATOR_HOST"] = "localhost:8086"
     startup_msg = "Waiting for BigTables Emulator to start up at {}..."
     print(startup_msg.format(bt_emul_host), end='')
     c = bigtable.Client(project='', credentials=DoNothingCreds(), admin=True)
