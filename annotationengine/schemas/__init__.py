@@ -1,8 +1,7 @@
 from flask import Blueprint, jsonify, abort
 from marshmallow_jsonschema import JSONSchema
-from annotationengine.errors import UnknownAnnotationTypeException
-from annotationengine.schemas.schema_db import get_schema, get_types
-
+from emannotationschemas.errors import UnknownAnnotationTypeException
+from emannotationschemas import get_schema, get_types
 
 bp = Blueprint("schema", __name__, url_prefix="/schema")
 
