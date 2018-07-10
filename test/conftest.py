@@ -49,7 +49,7 @@ def bigtable_emulator(request):
             elif e.code() == grpc.StatusCode.UNAVAILABLE:
                 sleep(1)
             retries -= 1
-            print(".", end='')
+            print(".")
     if retries == 0:
         print("\nCouldn't start Bigtable Emulator."
               " Make sure it is setup correctly.")
