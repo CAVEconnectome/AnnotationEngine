@@ -35,7 +35,7 @@ def bigtable_emulator(request):
         "utf-8").strip().split('=')[-1]
     os.environ["BIGTABLE_EMULATOR_HOST"] = "localhost:8086"
     startup_msg = "Waiting for BigTables Emulator to start up at {}..."
-    print(startup_msg.format(bt_emul_host), end='')
+    print(startup_msg.format(os.environ["BIGTABLE_EMULATOR_HOST"]))
     c = bigtable.Client(project='', credentials=DoNothingCreds(), admin=True)
     retries = 5
     while retries > 0:
