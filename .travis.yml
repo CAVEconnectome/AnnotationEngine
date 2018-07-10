@@ -21,10 +21,13 @@ install:
 - gcloud components update
 - gcloud components install beta
 - tar -xzf credentials.tar.gz
+- mkdir -p .cloudvolume/secrets
+- cp client-secret.json .cloudvolume/secrets/google-secret.json
 - gcloud auth activate-service-account --key-file client-secret.json
 before_script:
 - gcloud beta emulators bigtable start &
 script:
 - export BIGTABLE_EMULATOR_HOST=localhost:8086
+- export 
 - python setup.py pytest
 

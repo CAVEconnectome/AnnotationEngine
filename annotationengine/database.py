@@ -15,7 +15,9 @@ def get_client(config):
         credentials = DoNothingCreds()
     else:
         credentials, project_id = default_creds()
-    client = bigtable.Client(admin=True, project=project_id)
+    client = bigtable.Client(admin=True,
+                             project=project_id,
+                             credentials=credentials)
     return client
 
 
