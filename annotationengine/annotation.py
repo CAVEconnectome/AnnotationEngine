@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, abort
 from annotationengine.schemas import get_schema, get_schemas
 from annotationengine.database import get_db
 from annotationengine.dataset import get_datasets, get_dataset_db
-from annotationengine.errors import UnknownAnnotationTypeException
+from emannotationschemas.errors import UnknownAnnotationTypeException
 import numpy as np
 import json
 from functools import partial
