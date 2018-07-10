@@ -16,10 +16,23 @@ from signal import SIGTERM
 @pytest.fixture(scope='session', autouse=True)
 def bigtable_emulator(request):
     # setup Emulator
-    bigtables_emulator = subprocess.Popen(["gcloud", "beta", "emulators", "bigtable", "start"], preexec_fn=os.setsid, stdout=subprocess.PIPE)
+    bigtables_emulator = subprocess.Popen(["gcloud",
+                                           "beta",
+                                           "emulators",
+                                           "bigtable",
+                                           "start"],
+                                          preexec_fn=os.setsid,
+                                          stdout=subprocess.PIPE)
 
-    bt_env_init = subprocess.run(["gcloud", "beta", "emulators", "bigtable",  "env-init"], stdout=subprocess.PIPE)
-    os.environ["BIGTABLE_EMULATOR_HOST"] = bt_env_init.stdout.decode("utf-8").strip().split('=')[-1]
+    bt_env_init = subprocess.run(
+        ["gcloud",
+         "beta",
+         "emulators",
+         "bigtable",
+         "env-init"],
+        stdout=subprocess.PIPE)
+    os.environ["BIGTABLE_EMULATOR_HOST"] = bt_env_init.stdout.decode(
+        "utf-8").strip().split('=')[-1]
 
     print("Waiting for BigTables Emulator to start up...", end='')
     c = bigtable.Client(project='', credentials=DoNothingCreds(), admin=True)
@@ -28,7 +41,8 @@ def bigtable_emulator(request):
         try:
             c.list_instances()
         except exceptions._Rendezvous as e:
-            if e.code() == grpc.StatusCode.UNIMPLEMENTED:  # Good error - means emulator is up!
+            # Good error - means emulator is up!
+            if e.code() == grpc.StatusCode.UNIMPLEMENTED:
                 print(" Ready!")
                 break
             elif e.code() == grpc.StatusCode.UNAVAILABLE:
@@ -36,7 +50,8 @@ def bigtable_emulator(request):
             retries -= 1
             print(".", end='')
     if retries == 0:
-        print("\nCouldn't start Bigtable Emulator. Make sure it is setup correctly.")
+        print("\nCouldn't start Bigtable Emulator."
+              " Make sure it is setup correctly.")
         exit(1)
 
     # setup Emulator-Finalizer
