@@ -7,7 +7,7 @@ matrix:
         - python: 3.7
           dist: xenial
           sudo: true
-        - python: pypy
+        - python: pypy3
           dist: trusty
           sudo: false
 before_install:
