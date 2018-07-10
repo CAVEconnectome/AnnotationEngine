@@ -10,7 +10,8 @@ def test_junk_synapse(client, test_dataset):
         }
     }
     synapse_url = '/annotation/dataset/{}/synapse'.format(test_dataset)
-    response = client.post(synapse_url, json=junk_d)
+    response = client.post(synapse_url,
+                           json=junk_d)
     assert response.status_code == 422
 
 
@@ -32,9 +33,9 @@ def test_synapse(client, app, test_dataset):
     }
     synapse_url = '/annotation/dataset/{}/synapse'.format(test_dataset)
     response = client.post(synapse_url,
-                           data=json.dumps([synapse_d]))
+                           json=[synapse_d])
     assert response.status_code == 200
-    response_d = json.loads(response.data)
+    response_d = response.json
     oid = response_d[0]
     assert(type(oid) == int)
 
@@ -53,7 +54,7 @@ def test_synapse(client, app, test_dataset):
     # test that the client can retreive it
     response = client.get(url)
     assert(response.status_code == 200)
-    synapse_d = json.loads(response.data)
+    synapse_d = response.json
     assert(synapse_d['pre_pt']['supervoxel_id'] == 5)
 
     # # test that we can search for it

@@ -1,10 +1,7 @@
-import json
-
-
 def test_types(client):
     response = client.get('/schema')
     assert response.status_code == 200
-    assert len(json.loads(response.data)) == 1
+    assert len(response.json) == 1
 
 
 def test_bad_schema(client):

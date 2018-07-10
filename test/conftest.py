@@ -24,15 +24,15 @@ def bigtable_emulator(request):
                                           preexec_fn=os.setsid,
                                           stdout=subprocess.PIPE)
 
-    bt_env_init = subprocess.run(
-        ["gcloud",
-         "beta",
-         "emulators",
-         "bigtable",
-         "env-init"],
-        stdout=subprocess.PIPE)
-    bt_emul_host = bt_env_init.stdout.decode(
-        "utf-8").strip().split('=')[-1]
+    # bt_env_init = subprocess.run(
+    #     ["gcloud",
+    #      "beta",
+    #      "emulators",
+    #      "bigtable",
+    #      "env-init"],
+    #     stdout=subprocess.PIPE)
+    # bt_emul_host = bt_env_init.stdout.decode(
+    #     "utf-8").strip().split('=')[-1]
     os.environ["BIGTABLE_EMULATOR_HOST"] = "localhost:8086"
     startup_msg = "Waiting for BigTables Emulator to start up at {}..."
     print(startup_msg.format(os.environ["BIGTABLE_EMULATOR_HOST"]))

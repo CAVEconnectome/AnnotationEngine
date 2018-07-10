@@ -53,7 +53,7 @@ def import_annotations(dataset, annotation_type):
             schema = get_schema_with_context(annotation_type, dataset)
         except UnknownAnnotationTypeException as m:
             abort(404, str(m))
-        d = json.loads(request.data)
+        d = request.json
         result = schema.load(d, many=True)
         if len(result.errors) > 0:
             abort(422, result.errors)
@@ -83,13 +83,12 @@ def get_annotation(dataset, annotation_type, oid):
     user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                  request.remote_addr))
     if request.method == "PUT":
-        json_d = json.loads(request.data)
         try:
             schema = get_schema_with_context(annotation_type, dataset)
         except UnknownAnnotationTypeException:
             abort(404)
 
-        result = schema.load(json_d)
+        result = schema.load(request.json)
         if len(result.errors) > 0:
             abort(422, result.errors)
 
