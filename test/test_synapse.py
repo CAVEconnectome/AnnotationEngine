@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 def test_junk_synapse(client, test_dataset):
     junk_d = {
         'type': 'synapse',
@@ -81,3 +84,21 @@ def test_synapse(client, app, test_dataset):
     # test that we get 404 when we try to delete it again
     response = client.delete(url)
     assert(response.status_code == 404)
+
+
+def test_bulk_synpase(client, app, test_dataset):
+    data = [[[0, 0, 0], [0, 0, 1], [0, 0, 2]],
+            [[10, 10, 10], [10, 13, 10], [10, 15, 10]],
+            [[20, 25, 5], [22, 25, 5], [25, 25, 5]]]
+
+    df = pd.DataFrame(data)
+    df.columns = ['pre_pt.position', 'ctr_pt.position', 'post_pt.position']
+    url = '/annotation/dataset/{}/synapse?bulk=true'.format(test_dataset)
+    response = client.post(url, json=df.to_json())
+    assert(response.status_code == 200)
+    assert(len(response.json) == 3)
+
+    url = '/annotation/dataset/{}/synapse/{}'
+    for k,oid in enumerate(response.json):
+        response = client.get(url.format(test_dataset, oid))
+        assert(response.json['pre_pt']['position'] == data[k][0])
