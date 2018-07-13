@@ -5,3 +5,4 @@ marshmallow-jsonschema
 cloud-volume
 dynamicannotationdb
 emannotationschemas>=0.0.3
+pandas
