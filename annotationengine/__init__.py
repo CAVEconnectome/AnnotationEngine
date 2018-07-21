@@ -5,7 +5,8 @@ from annotationengine import annotation
 from annotationengine import schemas
 from annotationengine import voxel
 from annotationengine import dataset as dataset_mod
-__version__ = "0.0.1"
+from annotationengine import chunked_annotation
+__version__ = "0.1.0"
 
 
 def create_app(test_config=None):
@@ -24,6 +25,7 @@ def create_app(test_config=None):
     app.register_blueprint(voxel.bp)
     app.register_blueprint(schemas.bp)
     app.register_blueprint(dataset_mod.bp)
+    app.register_blueprint(chunked_annotation.bp)
     with app.app_context():
         db = annotation.get_db()
         types = schemas.get_types()
