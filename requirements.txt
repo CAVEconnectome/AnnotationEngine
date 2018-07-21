@@ -1,8 +1,8 @@
-marshmallow>=2.9.0
+marshmallow
 numpy
 Flask
 marshmallow-jsonschema
 cloud-volume
 dynamicannotationdb
-emannotationschemas>=0.0.3
+emannotationschemas>=0.1.0
 pandas

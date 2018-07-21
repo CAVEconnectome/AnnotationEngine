@@ -10,7 +10,7 @@ class DoNothingCreds(credentials.Credentials):
 
 
 def get_client(config):
-    project_id = config.get('project_id', 'pyseungchunkedgraph')
+    project_id = config.get('project_id', 'pychunkedgraph')
     if config.get('emulate', False):
         credentials = DoNothingCreds()
     else:

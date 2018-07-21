@@ -16,6 +16,7 @@ from signal import SIGTERM
 @pytest.fixture(scope='session', autouse=True)
 def bigtable_emulator(request):
     # setup Emulator
+    os.environ["BIGTABLE_EMULATOR_HOST"] = "localhost:8086"
     bigtables_emulator = subprocess.Popen(["gcloud",
                                            "beta",
                                            "emulators",
@@ -33,7 +34,7 @@ def bigtable_emulator(request):
     #     stdout=subprocess.PIPE)
     # bt_emul_host = bt_env_init.stdout.decode(
     #     "utf-8").strip().split('=')[-1]
-    os.environ["BIGTABLE_EMULATOR_HOST"] = "localhost:8086"
+    
     startup_msg = "Waiting for BigTables Emulator to start up at {}..."
     print(startup_msg.format(os.environ["BIGTABLE_EMULATOR_HOST"]))
     c = bigtable.Client(project='', credentials=DoNothingCreds(), admin=True)
@@ -57,7 +58,11 @@ def bigtable_emulator(request):
 
     # setup Emulator-Finalizer
     def fin():
-        os.killpg(os.getpgid(bigtables_emulator.pid), SIGTERM)
+        try:
+            gid = os.getpgid(bigtables_emulator.pid)
+            os.killpg(gid, SIGTERM)
+        except ProcessLookupError:
+            pass  
         bigtables_emulator.wait()
 
     request.addfinalizer(fin)
