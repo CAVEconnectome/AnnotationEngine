@@ -4,5 +4,5 @@ Flask
 marshmallow-jsonschema
 cloud-volume
 dynamicannotationdb
-emannotationschemas>=0.1.0
+emannotationschemas>=0.1.1
 pandas
