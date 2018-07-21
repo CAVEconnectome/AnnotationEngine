@@ -6,7 +6,7 @@ import tempfile
 import shutil
 from google.cloud import bigtable, exceptions
 import subprocess
-from annotationengine.database import DoNothingCreds
+from annotationengine.anno_database import DoNothingCreds
 import grpc
 from time import sleep
 import os
