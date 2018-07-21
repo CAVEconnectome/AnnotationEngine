@@ -99,6 +99,6 @@ def test_bulk_synpase(client, app, test_dataset):
     assert(len(response.json) == 3)
 
     url = '/annotation/dataset/{}/synapse/{}'
-    for k,oid in enumerate(response.json):
+    for k, oid in enumerate(response.json):
         response = client.get(url.format(test_dataset, oid))
         assert(response.json['pre_pt']['position'] == data[k][0])

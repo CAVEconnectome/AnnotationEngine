@@ -34,7 +34,7 @@ def bigtable_emulator(request):
     #     stdout=subprocess.PIPE)
     # bt_emul_host = bt_env_init.stdout.decode(
     #     "utf-8").strip().split('=')[-1]
-    
+
     startup_msg = "Waiting for BigTables Emulator to start up at {}..."
     print(startup_msg.format(os.environ["BIGTABLE_EMULATOR_HOST"]))
     c = bigtable.Client(project='', credentials=DoNothingCreds(), admin=True)
@@ -62,7 +62,7 @@ def bigtable_emulator(request):
             gid = os.getpgid(bigtables_emulator.pid)
             os.killpg(gid, SIGTERM)
         except ProcessLookupError:
-            pass  
+            pass
         bigtables_emulator.wait()
 
     request.addfinalizer(fin)
