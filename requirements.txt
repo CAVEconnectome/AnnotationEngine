@@ -6,3 +6,4 @@ cloud-volume
 dynamicannotationdb
 emannotationschemas>=0.1.1
 pandas
+pychunkedgraph

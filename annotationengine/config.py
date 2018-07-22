@@ -1,9 +1,11 @@
 # Define the application directory
 import os
 from annotationengine.utils import get_app_base_path
+import logging
 
 
 class BaseConfig(object):
+    HOME = os.path.expanduser("~")
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     # Statement for enabling the development environment
     DEBUG = True
@@ -19,6 +21,12 @@ class BaseConfig(object):
         'instance_id': 'pychunkedgraph',
         'project_id': 'demo'
     }
+    TESTING = False
+    LOGGING_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+    LOGGING_LOCATION = HOME + '/annoeng/bookshelf.log'
+    LOGGING_LEVEL = logging.DEBUG
+    # TODO what is this suppose to be by default?
+    CHUNKGRAPH_TABLE_ID = "chunkedgraph"
 
 
 config = {
