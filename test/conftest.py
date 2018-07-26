@@ -111,6 +111,7 @@ def test_dataset():
 
 @pytest.fixture
 def app(cv, test_dataset):
+    yield app
     app = create_app(
         {
             'TESTING': True,
@@ -125,7 +126,6 @@ def app(cv, test_dataset):
             }
         }
     )
-    yield app
 
 
 @pytest.fixture
