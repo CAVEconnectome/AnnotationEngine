@@ -11,15 +11,15 @@ class BaseConfig(object):
     DEBUG = True
     proj_dir = os.path.split(get_app_base_path())[0]
     DATASETS = [{
-        'name': 'demo',
-        'CV_SEGMENTATION_PATH': "file://{}/data/segmentation"
+        'name': 'pinky40',
+        'CV_SEGMENTATION_PATH': "gs://neuroglancer/svenmd/pinky40_v11/watershed"
         .format(proj_dir)
     }]
 
     NEUROGLANCER_URL = "https://neuroglancer-demo.appspot.com"
     BIGTABLE_CONFIG = {
         'instance_id': 'pychunkedgraph',
-        'project_id': 'demo'
+        'project_id': "neuromancer-seung-import"
     }
     TESTING = False
     LOGGING_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
