@@ -86,7 +86,7 @@ def test_synapse(client, app, test_dataset):
     assert(response.status_code == 404)
 
 
-def test_bulk_synpase(client, app, test_dataset):
+def test_bulk_synapse(client, app, test_dataset):
     data = [[[0, 0, 0], [0, 0, 1], [0, 0, 2]],
             [[10, 10, 10], [10, 13, 10], [10, 15, 10]],
             [[20, 25, 5], [22, 25, 5], [25, 25, 5]]]
