@@ -20,6 +20,7 @@ class BaseConfig(object):
         'project_id': "neuromancer-seung-import"
     }
 
+    CHUNKGRAPH_TABLE_ID = "pinky40_fanout2_v7"
 
 config = {
     "development": "annotationengine.config.BaseConfig",
