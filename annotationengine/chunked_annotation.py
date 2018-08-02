@@ -14,6 +14,10 @@ def get_annotations_of_rootid(dataset, root_id, annotation_type):
     '''get all annotations from a root id'''
     anno_db = get_db()
     cg = get_cg()
+    try:
+        schema = get_schema(annotation_type, dataset)
+    except UnknownAnnotationTypeException:
+        abort(404, "annotation type {} not known".format(annotation_type))
     if request.method == "POST":
         bb = request.json
 
@@ -32,13 +36,9 @@ def get_annotations_of_rootid(dataset, root_id, annotation_type):
                                  bb_is_coordinate=True)
     annotations = anno_db.get_annotations_by_sv_ids(dataset, annotation_type,
                                                     atomic_ids)
-    try:
-        schema = get_schema(annotation_type, dataset)
-    except UnknownAnnotationTypeException:
-        abort(404, "annotation type {} not known".format(annotation_type))
 
     ann = json.loads(annotations)
-    return jsonify(schema.dump(ann, many=True))
+    return jsonify(schema.dump(ann, many=True).result)
 
 
 # @bp.route("/dataset/<dataset>/rootid/<rootid>/<annotation_type>",
