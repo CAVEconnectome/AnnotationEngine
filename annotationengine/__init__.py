@@ -34,7 +34,7 @@ def create_app(test_config=None):
     app.register_blueprint(dataset_mod.bp)
 
     if cg_avail:
-        app.register_blueprint(cg_bp, url_prefix='/')
+        app.register_blueprint(cg_bp)
         app.register_blueprint(chunked_annotation.bp)
 
     with app.app_context():

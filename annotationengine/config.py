@@ -28,6 +28,7 @@ class BaseConfig(object):
     # TODO what is this suppose to be by default?
     CHUNKGRAPH_TABLE_ID = "chunkedgraph"
 
+    CHUNKGRAPH_TABLE_ID = "pinky40_fanout2_v7"
 
 config = {
     "development": "annotationengine.config.BaseConfig",
