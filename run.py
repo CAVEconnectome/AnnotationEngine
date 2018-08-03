@@ -1,17 +1,24 @@
 # Run a test server.
 import sys
-from annotationengine import create_app, create_app_seg
+from werkzeug.serving import WSGIRequestHandler
+from annotationengine import create_app
+import os
+
+HOME = os.path.expanduser("~")
 
 if __name__ == "__main__":
-
-    if len(sys.argv) == 3:
-        if sys.argv[2] == "--seg":
-            app = create_app_seg()
-        else:
-            raise Exception("Unknow parameter %s" % sys.argv[2])
-    elif len(sys.argv) == 2:
-        app = create_app()
+    if len(sys.argv) == 2 and sys.argv[1] == "--seg":
+        seg = True
     else:
-        raise Exception("Wrong number of parameters")
+        seg = False
 
-    app.run(host='0.0.0.0', port=4001, debug=True)
+    app = create_app(seg=seg)
+
+    WSGIRequestHandler.protocol_version = "HTTP/1.1"
+
+    app.run(host='0.0.0.0',
+            port=4001,
+            debug=True,
+            threaded=True,
+            ssl_context=(HOME + '/keys/server.crt',
+                         HOME + '/keys/server.key'))
