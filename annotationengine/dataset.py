@@ -51,7 +51,7 @@ def get_datasets():
     return jsonify(db.get_dataset_names())
 
 
-@bp.route("<dataset>")
+@bp.route("/<dataset>")
 def get_dataset(dataset):
     db = get_dataset_db()
     try:
