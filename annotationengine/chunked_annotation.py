@@ -1,8 +1,7 @@
 from flask import Blueprint, jsonify, abort, request
 from annotationengine.anno_database import get_db
 from pychunkedgraph.app.app_utils import get_cg
-from emannotationschemas import get_schema
-from emannotationschemas.errors import UnknownAnnotationTypeException
+from emannotationschemas import get_types
 import json
 
 bp = Blueprint("chunked_annotation", __name__,
@@ -15,9 +14,7 @@ def get_annotations_of_rootid(dataset, root_id, annotation_type):
     '''get all annotations from a root id'''
     anno_db = get_db()
     cg = get_cg()
-    try:
-        schema = get_schema(annotation_type)
-    except UnknownAnnotationTypeException:
+    if annotation_type not in get_types():
         abort(404, "annotation type {} not known".format(annotation_type))
     bb = None
     if request.method == "POST":
@@ -37,4 +34,5 @@ def get_annotations_of_rootid(dataset, root_id, annotation_type):
                                  bb_is_coordinate=True)
     annotations = anno_db.get_annotations_from_sv_ids(dataset, annotation_type,
                                                       atomic_ids)
-    return jsonify({str(k): json.loads(v) for k, v in annotations.items()})
+    return jsonify({str(k): json.loads(v) for k, v
+                    in annotations.items()})

@@ -1,13 +1,12 @@
 import numpy as np
 import pytest
 from itertools import product
-import os
-from pychunkedgraph.backend import chunkedgraph
 
 
 def create_chunk(cgraph, vertices=None, edges=None, timestamp=None):
     """
-    Helper function to add vertices and edges to the chunkedgraph - no safety checks!
+    Helper function to add vertices and edges to the chunkedgraph
+    no safety checks!
     """
     if not vertices:
         vertices = []
@@ -22,8 +21,10 @@ def create_chunk(cgraph, vertices=None, edges=None, timestamp=None):
     cross_edge_ids = []
     edge_affs = []
     cross_edge_affs = []
-    isolated_node_ids = [x for x in vertices if (x not in [edges[i][0] for i in range(len(edges))]) and
-                                                (x not in [edges[i][1] for i in range(len(edges))])]
+    isolated_node_ids = [x for x in vertices
+                         if (x not in [edges[i][0] for i in range(len(edges))])
+                         and
+                         (x not in [edges[i][1] for i in range(len(edges))])]
 
     for e in edges:
         if cgraph.test_if_nodes_are_in_same_chunk(e[0:2]):
@@ -96,7 +97,8 @@ def example_synapse(client, test_dataset):
     return oid, synapse_d
 
 
-def test_get_synapses_involving_root(client, test_dataset, test_cg, example_synapse):
+def test_get_synapses_involving_root(client, test_dataset, test_cg,
+                                     example_synapse):
     root_id = to_label(test_cg, 3, 0, 0, 0, 1)
     url = '/chunked_annotation/dataset/{}/rootid/{}/synapse'
     url = url.format(test_dataset, root_id)
@@ -105,7 +107,8 @@ def test_get_synapses_involving_root(client, test_dataset, test_cg, example_syna
     assert(len(response.json.keys()) == 1)
 
 
-def test_get_synapses_involving_root_spatial(client, test_dataset, test_cg, example_synapse):
+def test_get_synapses_involving_root_spatial(client, test_dataset, test_cg,
+                                             example_synapse):
     root_id = to_label(test_cg, 3, 0, 0, 0, 1)
     url = '/chunked_annotation/dataset/{}/rootid/{}/synapse'
     url = url.format(test_dataset, root_id)
@@ -115,11 +118,12 @@ def test_get_synapses_involving_root_spatial(client, test_dataset, test_cg, exam
     assert(response.status_code == 200)
     assert(len(response.json.keys()) == 1)
 
-    # if we restrict ourselves to the opposite corner of 64x64x64 cube we should get none
+    # if we restrict ourselves to the opposite corner we should get none
     j = [[33, 33, 33], [64, 64, 64]]
     response = client.post(url, json=j)
     assert(response.status_code == 200)
     assert(len(response.json.keys()) == 0)
+
 
 def test_bad_bounding_box(client, test_dataset, test_cg, example_synapse):
     root_id = to_label(test_cg, 3, 0, 0, 0, 1)
