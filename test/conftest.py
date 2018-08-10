@@ -170,7 +170,7 @@ def app(cv, test_dataset, cg_settings):
             'CHUNKGRAPH_TABLE_ID': cg_table
         }
     )
-
+    yield app
 
 @pytest.fixture(scope='session')
 def client(app):
