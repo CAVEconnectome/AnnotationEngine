@@ -172,6 +172,7 @@ def app(cv, test_dataset, cg_settings):
     )
     yield app
 
+
 @pytest.fixture(scope='session')
 def client(app):
     return app.test_client()

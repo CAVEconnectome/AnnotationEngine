@@ -10,7 +10,7 @@ from annotationengine import chunked_annotation
 try:
     from pychunkedgraph.app.app_blueprint import bp as cg_bp
     cg_avail = True
-except:
+except ImportError:
     cg_avail = False
 
 __version__ = "0.0.1"
