@@ -1,29 +1,38 @@
-from flask import Blueprint, jsonify, abort
-from annotationengine.database import get_db
-from flask import current_app, g
-import cloudvolume
+from flask import Blueprint, jsonify, abort, request
+from annotationengine.anno_database import get_db
+from pychunkedgraph.app.app_utils import get_cg
+from emannotationschemas import get_types
+import json
 
-bp = Blueprint("chunkedannotation", __name__, url_prefix="/chunkedannotation")
+bp = Blueprint("chunked_annotation", __name__,
+               url_prefix="/chunked_annotation")
 
 
-@bp.route("/dataset/<dataset>/rootid/<rootid>/<annotation_type>",
-          methods=["POST"])
-def get_annotations_of_rootid(dataset, rootid, annotation_type):
+@bp.route("/dataset/<dataset>/rootid/<root_id>/<annotation_type>",
+          methods=["GET", "POST"])
+def get_annotations_of_rootid(dataset, root_id, annotation_type):
     '''get all annotations from a root id'''
     anno_db = get_db()
-    cg = None
+    cg = get_cg()
+    if annotation_type not in get_types():
+        abort(404, "annotation type {} not known".format(annotation_type))
     bb = None
+    if request.method == "POST":
+        bb = request.json
+        if (len(bb) != 2):
+            bad_box = True
+        elif(len(bb[0]) != 3) | (len(bb[1]) != 3):
+            bad_box = True
+        else:
+            bad_box = False
+        if bad_box:
+            error_msg = '''badly formed bounding box {}
+                           [[minx,miny,minz],[maxx,maxy,maxz]]'''
+            abort(422, error_msg.format(bb))
 
-    atomic_ids = cg.get_subgraph(root_id, bounding_box=bb,
+    atomic_ids = cg.get_subgraph(int(root_id), bounding_box=bb,
                                  bb_is_coordinate=True)
-    annotations = anno_db.get_annotations_by_sv_ids(dataset, annotation_type,
-                                                    atomic_ids)
-
-    schema = get_schema_with_context(annotation_type, dataset)
-    ann = json.loads(ann)
-    return jsonify(schema.dump(ann, many=True))
-
-
-@bp.route("/dataset/<dataset>/rootid/<rootid>/<annotation_type>", methods=["POST"])
-def get_annotations_from_atomic_ids(dataset, rootid, annotation_type):
-    pass
+    annotations = anno_db.get_annotations_from_sv_ids(dataset, annotation_type,
+                                                      atomic_ids)
+    return jsonify({str(k): json.loads(v) for k, v
+                    in annotations.items()})

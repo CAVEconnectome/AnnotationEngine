@@ -44,7 +44,7 @@ def test_synapse(client, app, test_dataset):
     response = client.get(url)
     assert(response.status_code == 200)
     synapse_d = response.json
-    assert(synapse_d['pre_pt']['supervoxel_id'] == 5)
+    assert(type(synapse_d['pre_pt']['supervoxel_id']) == int)
 
     # # test that we can search for it
     # TODO implement this feature
@@ -99,6 +99,6 @@ def test_bulk_synpase(client, app, test_dataset):
     assert(len(response.json) == 3)
 
     url = '/annotation/dataset/{}/synapse/{}'
-    for k,oid in enumerate(response.json):
+    for k, oid in enumerate(response.json):
         response = client.get(url.format(test_dataset, oid))
         assert(response.json['pre_pt']['position'] == data[k][0])
