@@ -7,7 +7,6 @@ bp = Blueprint("dataset", __name__, url_prefix="/dataset")
 
 
 class MyCloudVolume(cloudvolume.CloudVolume):
-
     def lookup_supervoxel(self, x, y, z):
         voxel = self[x, y, z]
         return int(voxel[0, 0, 0, 0])
@@ -52,14 +51,13 @@ def get_datasets():
     return jsonify(db.get_dataset_names())
 
 
-@bp.route("<dataset>")
+@bp.route("/<dataset>")
 def get_dataset(dataset):
     db = get_dataset_db()
     try:
         return jsonify(db.get_dataset(dataset))
     except DataSetNotFoundException:
         abort(404)
-
 
 def get_dataset_db():
     if 'dataset_db' not in g:

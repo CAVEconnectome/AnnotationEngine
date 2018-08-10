@@ -1,12 +1,16 @@
-from flask import Blueprint, jsonify, request, abort
+from flask import Blueprint, jsonify, request, abort, current_app
 from annotationengine.schemas import get_schema, get_schemas
-from annotationengine.database import get_db
+from annotationengine.anno_database import get_db, get_client
 from annotationengine.dataset import get_datasets, get_dataset_db
 from emannotationschemas.errors import UnknownAnnotationTypeException
 import numpy as np
 import json
 from functools import partial
 import pandas as pd
+import time
+
+from pychunkedgraph.backend import multiprocessing_utils as mu
+from dynamicannotationdb.annodb import AnnotationMetaDB
 
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
@@ -30,7 +34,6 @@ def collect_supervoxels_recursive(d, svids=None):
 @bp.route("/datasets")
 def get_annotation_datasets():
     return get_datasets()
-
 
 def bsp_import_fn(cv, item):
     item.pop('root_id', None)
@@ -69,8 +72,14 @@ def nest_dictionary(d, key_path=None, sep="."):
     return d_new
 
 
-def import_dataframe(db, dataset, annotation_type, schema, df):
+def _import_dataframe_thread(args):
+    ind, df, annotation_type, dataset, user_id = args
+
+    schema = get_schema_with_context(annotation_type,
+                                     dataset)
+
     annotations = []
+
     for k, row in df.iterrows():
         d = nest_dictionary(dict(row))
         d['type'] = annotation_type
@@ -82,7 +91,35 @@ def import_dataframe(db, dataset, annotation_type, schema, df):
         blob = json.dumps(schema.dump(ann).data)
         annotations.append((supervoxels, blob))
 
-    return annotations
+    return ind, annotations
+
+
+def import_dataframe(db, dataset, annotation_type, schema, df, user_id,
+                     block_size=100, n_threads=30):
+    amdb = get_db()
+
+    multi_args = []
+    for i_start in range(0, len(df), block_size):
+        multi_args.append([i_start, df[i_start: i_start + block_size],
+                           annotation_type, dataset, user_id])
+
+    results = mu.multiprocess_func(_import_dataframe_thread, multi_args,
+                                   n_threads=n_threads)
+
+    ind = []
+    u_ids_lists = []
+    for result in results:
+        ind.append(result[0])
+        uids = db.insert_annotations(dataset,
+                                     annotation_type,
+                                     result[1],
+                                     user_id)
+
+        u_ids_lists.append(uids)
+
+    u_ids_lists = np.array(u_ids_lists)
+
+    return np.concatenate(u_ids_lists[np.argsort(ind)])
 
 
 @bp.route("/dataset/<dataset>/<annotation_type>", methods=["POST"])
@@ -90,20 +127,26 @@ def import_annotations(dataset, annotation_type):
     db = get_db()
     is_bulk = request.args.get('bulk', 'false') == 'true'
 
+    print("BULK", is_bulk)
+    print(request.method)
     if request.method == "POST":
         user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                      request.remote_addr))
+
         # iterate through annotations in json posted
         try:
             schema = get_schema_with_context(annotation_type,
                                              dataset)
         except UnknownAnnotationTypeException as m:
+            print("ABORT 404")
             abort(404, str(m))
+
         d = request.json
+
         if is_bulk:
             df = pd.read_json(d)
-            annotations = import_dataframe(db, dataset,
-                                           annotation_type, schema, df)
+            uids = import_dataframe(db, dataset, annotation_type, schema, df,
+                                    user_id)
         else:
             result = schema.load(d, many=True)
             if len(result.errors) > 0:
@@ -114,10 +157,12 @@ def import_annotations(dataset, annotation_type):
                 supervoxels = collect_supervoxels(ann)
                 blob = json.dumps(schema.dump(ann).data)
                 annotations.append((supervoxels, blob))
-        uids = db.insert_annotations(dataset,
-                                     annotation_type,
-                                     annotations,
-                                     user_id)
+
+            uids = db.insert_annotations(dataset,
+                                         annotation_type,
+                                         annotations,
+                                         user_id)
+
         return jsonify(np.uint64(uids).tolist())
 
 

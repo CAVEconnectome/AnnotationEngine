@@ -1,4 +1,4 @@
-from annotationengine.database import get_db
+from annotationengine.anno_database import get_db
 from annotationengine.dataset import get_dataset_db
 from annotationengine.schemas import get_types
 

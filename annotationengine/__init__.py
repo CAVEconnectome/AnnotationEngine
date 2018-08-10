@@ -5,6 +5,14 @@ from annotationengine import annotation
 from annotationengine import schemas
 from annotationengine import voxel
 from annotationengine import dataset as dataset_mod
+from annotationengine import chunked_annotation
+
+try:
+    from pychunkedgraph.app.app_blueprint import bp as cg_bp
+    cg_avail = True
+except:
+    cg_avail = False
+
 __version__ = "0.0.1"
 
 
@@ -24,6 +32,11 @@ def create_app(test_config=None):
     app.register_blueprint(voxel.bp)
     app.register_blueprint(schemas.bp)
     app.register_blueprint(dataset_mod.bp)
+
+    if cg_avail:
+        app.register_blueprint(cg_bp)
+        app.register_blueprint(chunked_annotation.bp)
+
     with app.app_context():
         db = annotation.get_db()
         types = schemas.get_types()

@@ -1,7 +1,7 @@
 def test_types(client):
     response = client.get('/schema')
     assert response.status_code == 200
-    assert len(response.json) == 1
+    assert type(response.json) == list
 
 
 def test_bad_schema(client):

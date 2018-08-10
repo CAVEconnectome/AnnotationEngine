@@ -3,7 +3,7 @@ def test_voxel(client, test_dataset):
     url = '/voxel/dataset/{}/0_0_0'.format(test_dataset)
     response = client.get(url)
     assert response.status_code == 200
-    assert response.json == 0
+    assert type(response.json) == int
 
 
 def test_bad_voxel(client):
