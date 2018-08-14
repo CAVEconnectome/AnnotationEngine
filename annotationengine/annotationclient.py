@@ -66,14 +66,16 @@ class AnnotationClient(object):
 
         bspf_coords = []
         for rel_column_key in rel_column_keys:
-            bspf_coords.append(np.array(data_df[rel_column_key].values.tolist())[:, None, :])
+            bspf_coords.append(
+                np.array(data_df[rel_column_key].values.tolist())[:, None, :])
 
         bspf_coords = np.concatenate(bspf_coords, axis=1)
         bspf_coords -= bounds[0]
         bspf_coords = (bspf_coords / chunk_size).astype(np.int)
 
         bspf_coords = bspf_coords[:, 0]
-        ind = np.lexsort((bspf_coords[:, 0], bspf_coords[:, 1], bspf_coords[:, 2]))
+        ind = np.lexsort(
+            (bspf_coords[:, 0], bspf_coords[:, 1], bspf_coords[:, 2]))
 
         data_df = data_df.reindex(ind)
 
@@ -97,7 +99,5 @@ class AnnotationClient(object):
             response = self.session.post(url, json=data_block, verify=False)
             assert(response.status_code == 200)
             responses.append(response.json)
-
-
 
         return responses

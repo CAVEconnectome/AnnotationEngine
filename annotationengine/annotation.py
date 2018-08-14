@@ -1,16 +1,13 @@
-from flask import Blueprint, jsonify, request, abort, current_app
+from flask import Blueprint, jsonify, request, abort
 from annotationengine.schemas import get_schema, get_schemas
-from annotationengine.anno_database import get_db, get_client
+from annotationengine.anno_database import get_db
 from annotationengine.dataset import get_datasets, get_dataset_db
 from emannotationschemas.errors import UnknownAnnotationTypeException
 import numpy as np
 import json
 from functools import partial
 import pandas as pd
-import time
-
 from pychunkedgraph.backend import multiprocessing_utils as mu
-from dynamicannotationdb.annodb import AnnotationMetaDB
 
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
@@ -34,6 +31,7 @@ def collect_supervoxels_recursive(d, svids=None):
 @bp.route("/datasets")
 def get_annotation_datasets():
     return get_datasets()
+
 
 def bsp_import_fn(cv, item):
     item.pop('root_id', None)
@@ -96,8 +94,6 @@ def _import_dataframe_thread(args):
 
 def import_dataframe(db, dataset, annotation_type, schema, df, user_id,
                      block_size=100, n_threads=30):
-    amdb = get_db()
-
     multi_args = []
     for i_start in range(0, len(df), block_size):
         multi_args.append([i_start, df[i_start: i_start + block_size],
