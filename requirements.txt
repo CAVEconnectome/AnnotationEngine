@@ -7,3 +7,4 @@ dynamicannotationdb
 emannotationschemas>=0.1.1
 pandas
 pychunkedgraph
+gunicorn==19.3.0
