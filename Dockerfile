@@ -31,5 +31,5 @@ WORKDIR /annotationengine
 RUN python setup.py install
 RUN useradd -ms /bin/bash nginx
 RUN mkdir -p /home/nginx/.cloudvolume/secrets && chown -R nginx /home/nginx
-EXPOSE 80
+EXPOSE 8080
 CMD ["/usr/bin/supervisord","-c","/etc/supervisord.conf"]
