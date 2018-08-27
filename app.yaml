@@ -6,12 +6,10 @@
 # TODO: Enter your application id below. If you have signed up
 # using cloud.google.com/console use the "project id" for your application
 # id.
-runtime: python
+runtime: python37
 api_version: 1
-threadsafe: yes
-runtime_config:
-    python_version: 3
 entrypoint: gunicorn -b :$PORT run:app
+service: annotationengine
 
 # Handlers define how to route requests to your application.
 handlers:

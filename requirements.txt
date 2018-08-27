@@ -1,10 +1,12 @@
-marshmallow
 numpy
+fpzip
+cloud-volume
+marshmallow
 Flask
 marshmallow-jsonschema
-cloud-volume
-dynamicannotationdb
-emannotationschemas>=0.1.1
+marshmallow_jsonschema
 pandas
-pychunkedgraph
 gunicorn==19.3.0
+git+git://github.com/seung-lab/DynamicAnnotationDB.git#egg=dynamicannotationdb
+git+git://github.com/seung-lab/emannotationschemas.git#egg=emannotationschemas
+git+git://github.com/seung-lab/pychunkedgraph.git@svenmd-mst#egg=pychunkedgraph
