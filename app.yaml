@@ -35,3 +35,6 @@ handlers:
 #libraries:
 #- name: jinja2
 #  version: latest
+libraries:
+- name: numpy
+  version: "1.6.1"
