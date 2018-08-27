@@ -38,3 +38,5 @@ handlers:
 libraries:
 - name: numpy
   version: "1.6.1"
+- name: grpcio
+  version: "1.0.0"
