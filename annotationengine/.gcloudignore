@@ -1,0 +1,9 @@
+(.*/)?#.*#$
+(.*/)?.*~$
+(.*/)?.*\.py[co]$
+(.*/)?.*/RCS/.*$
+(.*/)?\..*$
+tmp
+html
+htmlcov
+annotationengine.egg-info

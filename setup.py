@@ -23,6 +23,9 @@ def find_version(*file_paths):
 with open('requirements.txt', 'r') as f:
     required = f.read().splitlines()
 
+with open('pseudo_requirements.txt', 'r') as f:
+    required = f.read().splitlines()
+
 with open('test_requirements.txt', 'r') as f:
     test_required = f.read().splitlines()
 
