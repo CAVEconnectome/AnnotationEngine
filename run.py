@@ -6,13 +6,9 @@ import os
 
 HOME = os.path.expanduser("~")
 
-if __name__ == "__main__":
-    if len(sys.argv) == 2 and sys.argv[1] == "--seg":
-        seg = True
-    else:
-        seg = False
+app = create_app()
 
-    app = create_app(seg=seg)
+if __name__ == "__main__":
 
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
 

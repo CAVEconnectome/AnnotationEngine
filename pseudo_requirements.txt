@@ -1,0 +1,4 @@
+cloud-volume
+git+git://github.com/seung-lab/DynamicAnnotationDB.git#egg=dynamicannotationdb
+git+git://github.com/seung-lab/emannotationschemas.git#egg=emannotationschemas
+git+git://github.com/seung-lab/pychunkedgraph.git@svenmd-mst#egg=pychunkedgraph

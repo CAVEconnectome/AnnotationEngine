@@ -17,7 +17,7 @@ __version__ = "0.0.1"
 
 
 def create_app(test_config=None):
-
+    print('instance folder', get_instance_folder_path())
     # Define the Flask Object
     app = Flask(__name__,
                 instance_path=get_instance_folder_path(),
