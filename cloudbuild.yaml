@@ -1,5 +1,6 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: [ 'build', '-t', 'gcr.io/$PROJECT_ID/helloworld-image', '.' ]
+  args: [ 'build', '-t', 'gcr.io/$PROJECT_ID/annotationengine', '.' ]
+  branches: ['master'] 
 images:
 - 'gcr.io/$PROJECT_ID/annotationengine'
