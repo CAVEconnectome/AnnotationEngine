@@ -1,9 +1,10 @@
-marshmallow
 numpy
+marshmallow
 Flask
 marshmallow-jsonschema
+marshmallow_jsonschema
+pandas
 cloud-volume
 dynamicannotationdb
-emannotationschemas>=0.1.1
-pandas
+emannotationschemas
 pychunkedgraph

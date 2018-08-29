@@ -25,8 +25,6 @@ with open('requirements.txt', 'r') as f:
 
 with open('test_requirements.txt', 'r') as f:
     test_required = f.read().splitlines()
-dynannodb_git_url = 'git+https://github.com/fcollman/DynamicAnnotationDB.git\
-#egg=dynamicannotationdb'
 
 setup(
     version=find_version("annotationengine", "__init__.py"),
@@ -41,5 +39,7 @@ setup(
     install_requires=required,
     setup_requires=['pytest-runner'],
     tests_require=test_required,
-    dependency_links=[dynannodb_git_url]
+    dependency_links=['git+https://github.com/seung-lab/DynamicAnnotationDB.git#egg=dynamicannotationdb',
+                      'git+https://github.com/seung-lab/emannotationschemas.git#egg=emannotationschemas',
+                      'git+https://github.com/seung-lab/pychunkedgraph.git@svenmd-mst#egg=pychunkedgraph']
 )
