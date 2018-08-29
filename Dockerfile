@@ -26,12 +26,16 @@ COPY ./docker/uwsgi.ini /etc/uwsgi/
 # Custom Supervisord config
 COPY ./docker/supervisord.conf /etc/supervisord.conf
 
+COPY gcloud/install_gcloud.sh /root/install_gcloud.sh
+RUN /bin/bash -c /root/install_gcloud.sh
+
 # Add demo app
 COPY . /annotationengine
 WORKDIR /annotationengine
-#RUN /bin/bash -c gcloud/install_gcloud.sh
 RUN python setup.py install
 RUN useradd -ms /bin/bash nginx
 RUN mkdir -p /home/nginx/.cloudvolume/secrets && chown -R nginx /home/nginx
 EXPOSE 8080
+ENV PYTHONPATH=/annotationengine
+ENTRYPOINT ["/annotationengine/docker/entrypoint.sh"]
 CMD ["/usr/bin/supervisord","-c","/etc/supervisord.conf"]

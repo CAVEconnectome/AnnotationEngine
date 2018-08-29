@@ -5,3 +5,4 @@ source $HOME/google-cloud-sdk/path.bash.inc
 gcloud version
 gcloud components update
 gcloud components install beta
+gcloud components install beta cbt
