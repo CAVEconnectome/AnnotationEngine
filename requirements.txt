@@ -4,7 +4,6 @@ Flask
 marshmallow-jsonschema
 marshmallow_jsonschema
 pandas
-gunicorn==19.3.0
 cloud-volume
 dynamicannotationdb
 emannotationschemas
