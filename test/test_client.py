@@ -17,6 +17,3 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse({"name": "test_dataset", "CV_SEGMENTATION_PATH": "/test_data"}, 200)
     
     return MockResponse(None, 404)
-
-@patch('requests.Session.get',)
-def test_get_datasets(self)
