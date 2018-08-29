@@ -23,8 +23,3 @@ cache:
   - "$HOME/google-cloud-sdk/"
 after_success:
 - codecov
-deploy:
-  provider: gae
-  keyfile: client-secret.json
-  project: neuromancer-seung-import
-
