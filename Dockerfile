@@ -35,7 +35,7 @@ WORKDIR /annotationengine
 RUN python setup.py install
 RUN useradd -ms /bin/bash nginx
 RUN mkdir -p /home/nginx/.cloudvolume/secrets && chown -R nginx /home/nginx
-EXPOSE 8080
+EXPOSE 4000
 ENV PYTHONPATH=/annotationengine
 ENTRYPOINT ["/annotationengine/docker/entrypoint.sh"]
 CMD ["/usr/bin/supervisord","-c","/etc/supervisord.conf"]
