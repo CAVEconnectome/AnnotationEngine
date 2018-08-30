@@ -15,7 +15,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 RUN conda update -n base conda
 RUN conda install -c conda-forge uwsgi 
-ENV ANNOTATION_ENGINE_SETTINGS /annotationengine/annotationengine/instance/dev_config.py
+# ENV ANNOTATION_ENGINE_SETTINGS /annotationengine/annotationengine/instance/dev_config.py
 
 # Copy the Nginx global conf
 COPY ./docker/nginx.conf /etc/nginx/
