@@ -1,0 +1,29 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: annotationengine
+spec:
+  template:
+    metadata:
+      labels:
+        app: annotationengine
+    spec:
+      volumes:
+      - name: google-cloud-key
+        secret:
+          secretName: svenmd-cred
+      containers:
+      - name: subscriber
+        image: gcr.io/neuromancer-seung-import/annotationengine:latest
+        ports:
+        - containerPort: 4000
+        command:
+        - chmod
+        - o+r
+        - /home/nginx/.cloudvolume
+        volumeMounts:
+        - name: google-cloud-key
+          mountPath: /home/nginx/.cloudvolume/secrets/
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /home/nginx/.cloudvolume/secrets/google-secret.json
