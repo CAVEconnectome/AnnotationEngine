@@ -6,15 +6,15 @@ import os
 
 HOME = os.path.expanduser("~")
 
-app = create_app()
+application = create_app()
 
 if __name__ == "__main__":
 
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
 
-    app.run(host='0.0.0.0',
-            port=4001,
-            debug=True,
-            threaded=True,
-            ssl_context=(HOME + '/keys/server.crt',
-                         HOME + '/keys/server.key'))
+    application.run(host='0.0.0.0',
+                    port=4001,
+                    debug=True,
+                    threaded=True,
+                    ssl_context=(HOME + '/keys/server.crt',
+                                 HOME + '/keys/server.key'))

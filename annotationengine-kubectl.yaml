@@ -17,13 +17,9 @@ spec:
         image: gcr.io/neuromancer-seung-import/annotationengine:latest
         ports:
         - containerPort: 4000
-        command:
-        - chmod
-        - o+r
-        - /home/nginx/.cloudvolume
         volumeMounts:
         - name: google-cloud-key
-          mountPath: /home/nginx/.cloudvolume/secrets/
+          mountPath: /root/.cloudvolume/secrets/
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /home/nginx/.cloudvolume/secrets/google-secret.json
+          value: /root/.cloudvolume/secrets/google-secret.json
