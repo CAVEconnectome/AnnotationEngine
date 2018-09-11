@@ -16,5 +16,4 @@ if __name__ == "__main__":
                     port=4001,
                     debug=True,
                     threaded=True,
-                    ssl_context=(HOME + '/keys/server.crt',
-                                 HOME + '/keys/server.key'))
+                    ssl_context='adhoc')
