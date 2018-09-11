@@ -7,7 +7,7 @@ import numpy as np
 import json
 from functools import partial
 import pandas as pd
-from pychunkedgraph.backend import multiprocessing_utils as mu
+from pychunkedgraph.parallelizing import multiprocessing_utils as mu
 
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 

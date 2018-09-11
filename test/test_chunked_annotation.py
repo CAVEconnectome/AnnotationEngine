@@ -5,8 +5,7 @@ from itertools import product
 
 def create_chunk(cgraph, vertices=None, edges=None, timestamp=None):
     """
-    Helper function to add vertices and edges to the chunkedgraph
-    no safety checks!
+    Helper function to add vertices and edges to the chunkedgraph - no safety checks!
     """
     if not vertices:
         vertices = []
@@ -15,35 +14,63 @@ def create_chunk(cgraph, vertices=None, edges=None, timestamp=None):
         edges = []
 
     vertices = np.unique(np.array(vertices, dtype=np.uint64))
-    edges = [(np.uint64(v1), np.uint64(v2), np.float32(aff))
-             for v1, v2, aff in edges]
-    edge_ids = []
-    cross_edge_ids = []
-    edge_affs = []
-    cross_edge_affs = []
-    isolated_node_ids = [x for x in vertices
-                         if (x not in [edges[i][0] for i in range(len(edges))])
-                         and
-                         (x not in [edges[i][1] for i in range(len(edges))])]
+    edges = [(np.uint64(v1), np.uint64(v2), np.float32(aff)) for v1, v2, aff in edges]
+
+    isolated_node_ids = [x for x in vertices if (x not in [edges[i][0] for i in range(len(edges))]) and
+                                                (x not in [edges[i][1] for i in range(len(edges))])]
+
+    edge_ids = {"in_connected": np.array([], dtype=np.uint64).reshape(0, 2),
+                "in_disconnected": np.array([], dtype=np.uint64).reshape(0, 2),
+                "cross": np.array([], dtype=np.uint64).reshape(0, 2),
+                "between_connected": np.array([], dtype=np.uint64).reshape(0, 2),
+                "between_disconnected": np.array([], dtype=np.uint64).reshape(0, 2)}
+    edge_affs = {"in_connected": np.array([], dtype=np.float32),
+                 "in_disconnected": np.array([], dtype=np.float32),
+                 "between_connected": np.array([], dtype=np.float32),
+                 "between_disconnected": np.array([], dtype=np.float32)}
 
     for e in edges:
         if cgraph.test_if_nodes_are_in_same_chunk(e[0:2]):
-            edge_ids.append([e[0], e[1]])
-            edge_affs.append(e[2])
-        else:
-            cross_edge_ids.append([e[0], e[1]])
-            cross_edge_affs.append(e[2])
+            this_edge = np.array([e[0], e[1]], dtype=np.uint64).reshape(-1, 2)
+            edge_ids["in_connected"] = \
+                np.concatenate([edge_ids["in_connected"], this_edge])
+            edge_affs["in_connected"] = \
+                np.concatenate([edge_affs["in_connected"], [e[2]]])
 
-    edge_ids = np.array(edge_ids, dtype=np.uint64).reshape(-1, 2)
-    edge_affs = np.array(edge_affs, dtype=np.float32).reshape(-1, 1)
-    cross_edge_ids = np.array(cross_edge_ids, dtype=np.uint64).reshape(-1, 2)
-    cross_edge_affs = np.array(
-        cross_edge_affs, dtype=np.float32).reshape(-1, 1)
+    if len(edge_ids["in_connected"]) > 0:
+        chunk_id = cgraph.get_chunk_id(edge_ids["in_connected"][0][0])
+    elif len(vertices) > 0:
+        chunk_id = cgraph.get_chunk_id(vertices[0])
+    else:
+        chunk_id = None
+
+    for e in edges:
+        if not cgraph.test_if_nodes_are_in_same_chunk(e[0:2]):
+            # Ensure proper order
+            if chunk_id is not None:
+                if cgraph.get_chunk_id(e[0]) != chunk_id:
+                    e = [e[1], e[0], e[2]]
+            this_edge = np.array([e[0], e[1]], dtype=np.uint64).reshape(-1, 2)
+
+            if np.isinf(e[2]):
+                edge_ids["cross"] = \
+                    np.concatenate([edge_ids["cross"], this_edge])
+            else:
+                edge_ids["between_connected"] = \
+                    np.concatenate([edge_ids["between_connected"],
+                                    this_edge])
+                edge_affs["between_connected"] = \
+                    np.concatenate([edge_affs["between_connected"], [e[2]]])
+
     isolated_node_ids = np.array(isolated_node_ids, dtype=np.uint64)
 
-    cgraph.add_atomic_edges_in_chunks(edge_ids, cross_edge_ids,
-                                      edge_affs, cross_edge_affs,
-                                      isolated_node_ids)
+    print(edge_ids)
+    print(edge_affs)
+
+    # Use affinities as areas
+    cgraph.add_atomic_edges_in_chunks(edge_ids, edge_affs, edge_affs,
+                                      isolated_node_ids,
+                                      time_stamp=timestamp)
 
 
 def to_label(cgraph, l, x, y, z, segment_id):
