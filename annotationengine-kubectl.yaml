@@ -11,7 +11,7 @@ spec:
       volumes:
       - name: google-cloud-key
         secret:
-          secretName: svenmd-cred
+          secretName: svenmd-cred-m
       containers:
       - name: subscriber
         image: gcr.io/neuromancer-seung-import/annotationengine:latest
@@ -19,7 +19,7 @@ spec:
         - containerPort: 4000
         volumeMounts:
         - name: google-cloud-key
-          mountPath: /root/.cloudvolume/secrets/
+          mountPath: /home/nginx/.cloudvolume/secrets
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /root/.cloudvolume/secrets/google-secret.json
+          value: /home/nginx/.cloudvolume/secrets/google-secret.json
