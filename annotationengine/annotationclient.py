@@ -10,7 +10,7 @@ from emannotationschemas import get_schema
 
 
 class AnnotationClient(object):
-    def __init__(self, endpoint=None):
+    def __init__(self, endpoint=None, dataset_name=None):
         """
 
         :param endpoint: str or None
@@ -20,8 +20,9 @@ class AnnotationClient(object):
             endpoint = os.environ.get('ANNOTATION_ENGINE_ENDPOINT', None)
         assert(endpoint is not None)
 
+        self.dataset_name = dataset_name
         self.endpoint = endpoint
-        self.session = requests.session()
+        self.session = requests.Session()
 
     def get_datasets(self):
         """ Returns existing datasets
@@ -31,20 +32,76 @@ class AnnotationClient(object):
         url = "{}/dataset".format(self.endpoint)
         response = self.session.get(url)
         assert(response.status_code == 200)
-        return response
+        return response.json()
 
-    def get_dataset(self, dataset_name):
+    def get_dataset(self, dataset_name=None):
         """ Returns information about the dataset
 
         :return: dict
         """
+        if dataset_name is None:
+            dataset_name = self.dataset_name
         url = "{}/dataset/{}".format(self.endpoint, dataset_name)
         response = self.session.get(url, verify=False)
         assert(response.status_code == 200)
-        return response
+        return response.json()
 
-    def bulk_import_df(self, dataset_name, annotation_type, data_df,
-                       block_size=10000):
+    def get_annotation(self, annotation_type, oid, dataset_name=None):
+        """
+        Returns information about one specific annotation
+        :param dataset_name: str
+        :param annotation_type: str
+        :param oid: int
+        :return dict
+        """
+        if dataset_name is None:
+            dataset_name = self.dataset_name
+        url = "{}/annotation/dataset/{}/{}/{}".format(self.endpoint,
+                                                   dataset_name,
+                                                   annotation_type,
+                                                   oid)
+        response = self.session.get(url, verify=False)
+        assert(response.status_code == 200)
+        return response.json()
+
+    def post_annotation(self, annotation_type, data, dataset_name=None):
+        """
+        Post an annotation to the annotationEngine.
+        :param dataset_name: str
+        :param annotation_type: str
+        :param data: dict
+        :return dict
+        """
+        if dataset_name is None:
+            dataset_name = self.dataset_name
+
+        url = "{}/annotation/dataset/{}/{}".format(self.endpoint,
+                                                   dataset_name,
+                                                   annotation_type)
+        response = self.session.post(url, json=data, verify=False)
+        assert(response.status_code == 200)
+        return response.json()
+
+    def delete_annotation(self, annotation_type, oid, dataset_name=None):
+        """
+        Delete an existing annotation
+        :param dataset_name: str
+        :param annotation_type: str
+        :param oid: int
+        :return dict
+        """
+        if dataset_name is None:
+            dataset_name = self.dataset_name
+        url = "{}/annotation/dataset/{}/{}/{}".format(self.endpoint,
+                                                   dataset_name,
+                                                   annotation_type,
+                                                   oid)
+        response = self.session.delete(url, verify=False)
+        assert(response.status_code == 200)
+        return response.json()
+
+    def bulk_import_df(self, annotation_type, data_df,
+                       block_size=10000, dataset_name=None):
         """ Imports all annotations from a single dataframe in one go
 
         :param dataset_name: str
@@ -52,6 +109,8 @@ class AnnotationClient(object):
         :param data_df: pandas DataFrame
         :return:
         """
+        if dataset_name is None:
+            dataset_name = self.dataset_name
         dataset_info = json.loads(self.get_dataset(dataset_name).content)
         cv = cloudvolume.CloudVolume(dataset_info["CV_SEGMENTATION_PATH"])
         chunk_size = np.array(cv.info["scales"][0]["chunk_sizes"][0]) * 8
