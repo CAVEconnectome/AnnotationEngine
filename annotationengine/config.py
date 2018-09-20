@@ -17,6 +17,7 @@ class BaseConfig(object):
     }]
 
     NEUROGLANCER_URL = "https://neuroglancer-demo.appspot.com"
+    PYCHUNKEDGRAPH_ENDPOINT = "https://dynamicannotationframework.com:4000/pychunkgraph"
     BIGTABLE_CONFIG = {
         'instance_id': 'pychunkedgraph',
         'project_id': "neuromancer-seung-import"
