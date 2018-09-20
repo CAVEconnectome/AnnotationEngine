@@ -1,22 +1,24 @@
-from flask import Flask
-from annotationengine.config import configure_app
-from annotationengine.utils import get_instance_folder_path
-from annotationengine import annotation
-from annotationengine import schemas
-from annotationengine import voxel
-from annotationengine import dataset as dataset_mod
-from annotationengine import chunked_annotation
-
-try:
-    from pychunkedgraph.app.app_blueprint import bp as cg_bp
-    cg_avail = True
-except ImportError:
-    cg_avail = False
 
 __version__ = "0.0.1"
 
 
 def create_app(test_config=None):
+    from flask import Flask
+    from annotationengine.config import configure_app
+    from annotationengine.utils import get_instance_folder_path
+    from annotationengine import annotation
+    from annotationengine import schemas
+    from annotationengine import voxel
+    from annotationengine import dataset as dataset_mod
+    from annotationengine import chunked_annotation
+
+    try:
+        from pychunkedgraph.app.app_blueprint import bp as cg_bp
+        cg_avail = True
+    except ImportError:
+        cg_avail = False
+
+
     print('instance folder', get_instance_folder_path())
     # Define the Flask Object
     app = Flask(__name__,
