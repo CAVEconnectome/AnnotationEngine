@@ -74,11 +74,24 @@ class AnnotationClient(object):
         """
         if dataset_name is None:
             dataset_name = self.dataset_name
+        if isinstance(data,dict):
+            data=[data]
 
         url = "{}/annotation/dataset/{}/{}".format(self.endpoint,
                                                    dataset_name,
                                                    annotation_type)
         response = self.session.post(url, json=data, verify=False)
+        assert(response.status_code == 200)
+        return response.json()
+
+    def update_annotation(self, annotation_type, oid, data, dataset_name=None):
+        if dataset_name is None:
+            dataset_name = self.dataset_name
+        url = "{}/annotation/dataset/{}/{}/{}".format(self.endpoint,
+                                                   dataset_name,
+                                                   annotation_type,
+                                                   oid)
+        response = self.session.put(url, json=data, verify=False)
         assert(response.status_code == 200)
         return response.json()
 
