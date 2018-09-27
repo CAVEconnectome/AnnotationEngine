@@ -7,7 +7,6 @@ RUN apt-get update && \
     pip install --upgrade pip && \
     pip install flask && \
     pip install git+https://github.com/seung-lab/DynamicAnnotationDB.git#egg=dynamicannotationdb && \
-    pip install git+https://github.com/seung-lab/PyChunkedGraph.git#egg=pychunkedgraph && \
     pip install git+https://github.com/seung-lab/EMAnnotationSchemas.git#egg=emannotationschemas && \
     pip install -r /tmp/requirements.txt && \
     apt-get remove -y build-essential && apt autoremove -y && \
