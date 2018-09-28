@@ -1,0 +1,1 @@
+docker run -it -v $PWD/annotationengine/instance/dev_config.py:/app/annotatationengine/instance/config.cfg fcollman/annotationengine 
