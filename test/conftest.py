@@ -16,14 +16,14 @@ from itertools import product
 
 
 @pytest.fixture(scope='session')
-def cg_settings():
+def bigtable_settings():
     return 'anno_test', 'cg_test'
 
 
 @pytest.fixture(scope='session', autouse=True)
-def bigtable_client(request, cg_settings):
+def bigtable_client(request, bigtable_settings):
     # setup Emulator
-    cg_project, cg_table = cg_settings
+    cg_project, cg_table = bigtable_settings
     bt_emul_host = "localhost:8086"
     os.environ["BIGTABLE_EMULATOR_HOST"] = bt_emul_host
     bigtables_emulator = subprocess.Popen(["gcloud",
@@ -74,35 +74,7 @@ def bigtable_client(request, cg_settings):
 
 
 @pytest.fixture(scope='session')
-def chunkgraph_tuple(request,
-                     bigtable_client,
-                     cg_settings,
-                     fan_out=2,
-                     n_layers=3):
-    cg_project, cg_table = cg_settings
-    print('creating table {}'.format(cg_project))
-    graph = chunkedgraph.ChunkedGraph(cg_table,
-                                      client=bigtable_client,
-                                      project_id=cg_project,
-                                      is_new=True, fan_out=fan_out,
-                                      n_layers=n_layers, cv_path="",
-                                      chunk_size=(32, 32, 32))
-
-    yield graph, cg_table
-
-    def fin():
-        graph.table.delete()
-    request.addfinalizer(fin)
-    print("\n\nTABLE DELETED")
-
-
-def to_label(cgraph, l, x, y, z, segment_id):
-    return cgraph.get_node_id(np.uint64(segment_id), layer=l, x=x, y=y, z=z)
-
-
-@pytest.fixture(scope='session')
-def cv(chunkgraph_tuple, N=64, blockN=16):
-    cgraph, cg_table = chunkgraph_tuple
+def cv(N=64, blockN=16):
 
     block_per_row = int(N / blockN)
 
@@ -124,20 +96,13 @@ def cv(chunkgraph_tuple, N=64, blockN=16):
     )
     vol = cloudvolume.CloudVolume(path, info=info)
     vol.commit_info()
-    xx, yy, zz = np.meshgrid(*[np.arange(0, cs) for cs in chunk_size])
-
-    for x, y, z in product(*[range(nc) for nc in num_chunks]):
-        seg = np.uint64(xx / blockN) + \
-            block_per_row * np.uint64(yy / blockN) + \
-            block_per_row * block_per_row * np.uint64(zz / blockN)
-        for seg_id in np.unique(seg):
-            new_id = to_label(cgraph, 1, x, y, z, seg_id)
-            is_id = seg == seg_id
-            seg[is_id] = new_id
-
-        vol[x*chunk_size[0]:(x+1)*chunk_size[0],
-            y*chunk_size[1]:(y+1)*chunk_size[1],
-            z*chunk_size[2]:(z+1)*chunk_size[2]] = np.uint64(seg)
+    xx, yy, zz = np.meshgrid(*[np.arange(0, N) for cs in chunk_size])
+    id_ind = (np.uint64(xx / blockN),
+                np.uint64(yy / blockN),
+                np.uint64(zz / blockN))
+    id_shape = (block_per_row, block_per_row, block_per_row)
+    seg = np.ravel_multi_index(id_ind, id_shape)
+    vol[:] = np.uint64(seg)
 
     yield path
 
@@ -150,14 +115,15 @@ def test_dataset():
 
 
 @pytest.fixture(scope='session')
-def app(cv, test_dataset, cg_settings):
-    cg_project, cg_table = cg_settings
+def app(cv, test_dataset, bigtable_settings):
+    bt_project, bt_table = bigtable_settings
 
     app = create_app(
         {
-            'project_id': cg_project,
+            'project_id': bt_project,
             'emulate': True,
             'TESTING': True,
+            'PYCHUNKEDGRAPH_ENDPOINT':  "https://pychunkedgraph/pychunkgraph",
             'DATASETS': [
                 {
                     'name': test_dataset,
@@ -167,7 +133,7 @@ def app(cv, test_dataset, cg_settings):
             'BIGTABLE_CONFIG': {
                 'emulate': True
             },
-            'CHUNKGRAPH_TABLE_ID': cg_table
+            'CHUNKGRAPH_TABLE_ID': bt_table
         }
     )
     yield app
