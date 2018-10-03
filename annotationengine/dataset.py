@@ -31,17 +31,19 @@ class DataSetStore():
             r = requests.get(url)
             print(r.status_code)
             d= r.json()
-
             self.datasets[dataset] = d
             path = d['pychunkgraph_segmentation_source']
             vol_path = d['image_source']
-            img_cv = MyCloudVolume(vol_path, mip=0)
+            try:
+                img_cv = MyCloudVolume(vol_path, mip=0)
 
-            self.cvd[dataset] = MyCloudVolume(path,
-                                              mip=0,
-                                              fill_missing=True)
-            scale_factor = self.cvd[dataset].resolution / img_cv.resolution
-            self.scale_factors[dataset] = scale_factor
+                self.cvd[dataset] = MyCloudVolume(path,
+                                                  mip=0,
+                                                  fill_missing=True)
+                scale_factor = img_cv.resolution / self.cvd[dataset].resolution
+                self.scale_factors[dataset] = scale_factor
+            except:
+                self.datasets.pop(dataset)
 
     def get_dataset_names(self):
         return [d for d in self.datasets.keys()]
