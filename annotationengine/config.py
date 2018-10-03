@@ -26,6 +26,7 @@ class BaseConfig(object):
 
     CHUNKGRAPH_TABLE_ID = "pinky40_fanout2_v7"
 
+
 config = {
     "development": "annotationengine.config.BaseConfig",
     "testing": "annotationengine.config.BaseConfig",

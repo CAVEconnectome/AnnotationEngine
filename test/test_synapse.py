@@ -2,9 +2,11 @@ import pandas as pd
 from conftest import mock_info_service
 import pytest
 
-@pytest.fixture
+
+@pytest.fixture()
 def mock_me(requests_mock):
     mock_info_service(requests_mock)
+
 
 def test_junk_synapse(client, test_dataset, mock_me):
     junk_d = {
