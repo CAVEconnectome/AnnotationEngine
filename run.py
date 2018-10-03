@@ -1,5 +1,4 @@
 # Run a test server.
-import sys
 from werkzeug.serving import WSGIRequestHandler
 from annotationengine import create_app
 import os

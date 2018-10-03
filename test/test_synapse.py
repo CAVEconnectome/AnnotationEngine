@@ -1,7 +1,12 @@
 import pandas as pd
+from conftest import mock_info_service
+import pytest
 
+@pytest.fixture
+def mock_me(requests_mock):
+    mock_info_service(requests_mock)
 
-def test_junk_synapse(client, test_dataset):
+def test_junk_synapse(client, test_dataset, mock_me):
     junk_d = {
         'type': 'synapse',
         'pt_prt': {
@@ -14,7 +19,7 @@ def test_junk_synapse(client, test_dataset):
     assert response.status_code == 422
 
 
-def test_synapse(client, app, test_dataset):
+def test_synapse(client, app, test_dataset, mock_me):
     synapse_d = {
         'type': 'synapse',
         'pre_pt':
@@ -86,7 +91,7 @@ def test_synapse(client, app, test_dataset):
     assert(response.status_code == 404)
 
 
-def test_bulk_synapse(client, app, test_dataset):
+def test_bulk_synapse(client, app, test_dataset, mock_me):
     data = [[[0, 0, 0], [0, 0, 1], [0, 0, 2]],
             [[10, 10, 10], [10, 13, 10], [10, 15, 10]],
             [[20, 25, 5], [22, 25, 5], [25, 25, 5]]]

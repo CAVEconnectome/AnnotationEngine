@@ -15,5 +15,5 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(['test_dataset'], 200)
     elif args[0].endswith("/dataset/test_dataset"):
         return MockResponse({"name": "test_dataset", "CV_SEGMENTATION_PATH": "/test_data"}, 200)
-    
+
     return MockResponse(None, 404)
