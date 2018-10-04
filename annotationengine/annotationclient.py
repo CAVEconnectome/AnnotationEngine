@@ -57,9 +57,9 @@ class AnnotationClient(object):
         if dataset_name is None:
             dataset_name = self.dataset_name
         url = "{}/annotation/dataset/{}/{}/{}".format(self.endpoint,
-                                                   dataset_name,
-                                                   annotation_type,
-                                                   oid)
+                                                      dataset_name,
+                                                      annotation_type,
+                                                      oid)
         response = self.session.get(url, verify=False)
         assert(response.status_code == 200)
         return response.json()
@@ -74,8 +74,8 @@ class AnnotationClient(object):
         """
         if dataset_name is None:
             dataset_name = self.dataset_name
-        if isinstance(data,dict):
-            data=[data]
+        if isinstance(data, dict):
+            data = [data]
 
         url = "{}/annotation/dataset/{}/{}".format(self.endpoint,
                                                    dataset_name,
@@ -88,9 +88,9 @@ class AnnotationClient(object):
         if dataset_name is None:
             dataset_name = self.dataset_name
         url = "{}/annotation/dataset/{}/{}/{}".format(self.endpoint,
-                                                   dataset_name,
-                                                   annotation_type,
-                                                   oid)
+                                                      dataset_name,
+                                                      annotation_type,
+                                                      oid)
         response = self.session.put(url, json=data, verify=False)
         assert(response.status_code == 200)
         return response.json()
@@ -106,9 +106,9 @@ class AnnotationClient(object):
         if dataset_name is None:
             dataset_name = self.dataset_name
         url = "{}/annotation/dataset/{}/{}/{}".format(self.endpoint,
-                                                   dataset_name,
-                                                   annotation_type,
-                                                   oid)
+                                                      dataset_name,
+                                                      annotation_type,
+                                                      oid)
         response = self.session.delete(url, verify=False)
         assert(response.status_code == 200)
         return response.json()

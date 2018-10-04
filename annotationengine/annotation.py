@@ -33,16 +33,17 @@ def get_annotation_datasets():
     return get_datasets()
 
 
-def bsp_import_fn(cv, item):
+def bsp_import_fn(cv, scale_factor, item):
     item.pop('root_id', None)
-    svid = cv.lookup_supervoxel(*item['position'])
+    svid = cv.lookup_supervoxel(*item['position'], scale_factor)
     item['supervoxel_id'] = svid
 
 
 def get_schema_with_context(annotation_type, dataset, flatten=False):
     dataset_db = get_dataset_db()
     cv = dataset_db.get_cloudvolume(dataset)
-    myp = partial(bsp_import_fn, cv)
+    scale_factor = dataset_db.get_scale_factor(dataset)
+    myp = partial(bsp_import_fn, cv, scale_factor)
 
     context = {'bsp_fn': myp, 'flatten': flatten}
     Schema = get_schema(annotation_type)

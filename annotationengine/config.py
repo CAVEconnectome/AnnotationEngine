@@ -10,14 +10,9 @@ class BaseConfig(object):
     # Statement for enabling the development environment
     DEBUG = True
     proj_dir = os.path.split(get_app_base_path())[0]
-    DATASETS = [{
-        'name': 'pinky40',
-        'CV_SEGMENTATION_PATH': "gs://neuroglancer/svenmd/pinky40_v11/watershed"
-        .format(proj_dir)
-    }]
 
     NEUROGLANCER_URL = "https://neuroglancer-demo.appspot.com"
-    PYCHUNKEDGRAPH_ENDPOINT = "https://dynamicannotationframework.com:4000/pychunkgraph"
+    INFOSERVICE_ENDPOINT = "http://35.196.170.230"
     BIGTABLE_CONFIG = {
         'instance_id': 'pychunkedgraph',
         'project_id': "neuromancer-seung-import"
@@ -30,6 +25,7 @@ class BaseConfig(object):
     CHUNKGRAPH_TABLE_ID = "chunkedgraph"
 
     CHUNKGRAPH_TABLE_ID = "pinky40_fanout2_v7"
+
 
 config = {
     "development": "annotationengine.config.BaseConfig",

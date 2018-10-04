@@ -6,5 +6,5 @@ marshmallow_jsonschema
 pandas
 cloud-volume
 dynamicannotationdb
-emannotationschemas
+emannotationschemas>=0.2.3
 multiwrapper
