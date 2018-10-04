@@ -39,6 +39,5 @@ setup(
     install_requires=required,
     setup_requires=['pytest-runner'],
     tests_require=test_required,
-    dependency_links=['git+https://github.com/seung-lab/DynamicAnnotationDB.git#egg=dynamicannotationdb',
-                      'git+https://github.com/seung-lab/emannotationschemas.git#egg=emannotationschemas']
+    dependency_links=['git+https://github.com/seung-lab/DynamicAnnotationDB.git#egg=dynamicannotationdb']
 )
