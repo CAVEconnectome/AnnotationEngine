@@ -1,2 +1,0 @@
-cloud-volume
-git+git://github.com/seung-lab/DynamicAnnotationDB.git#egg=dynamicannotationdb
