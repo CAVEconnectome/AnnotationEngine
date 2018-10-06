@@ -1,10 +1,12 @@
 import requests
 import os
+import re
 import numpy as np
 import cloudvolume
 import json
 import time
 
+from annotationinfoservice.infoserviceclient import InfoServiceClient
 from emannotationschemas.utils import get_flattened_bsp_keys_from_schema
 from emannotationschemas import get_schema
 
@@ -24,12 +26,24 @@ class AnnotationClient(object):
         self.endpoint = endpoint
         self.session = requests.Session()
 
+    @classmethod
+    def from_info_service(cls, dataset_name=None, info_endpoint=None, info_client=None):
+        """
+        Get an annotation client from the info service.
+        """
+        if info_client is None:
+            info_client = InfoServiceClient(info_endpoint, dataset_name)
+        if (info_client.dataset is None) or (info_client.endpoint is None):
+            raise Exception('An info client must have a dataset name and an endpoint')
+        return cls(info_client.annotation_endpoint(),
+                   info_client.annotation_dataset_name())
+
     def get_datasets(self):
         """ Returns existing datasets
 
         :return: list
         """
-        url = "{}/dataset".format(self.endpoint)
+        url = "{}/dataset/".format(self.endpoint)
         response = self.session.get(url)
         assert(response.status_code == 200)
         return response.json()
@@ -63,6 +77,32 @@ class AnnotationClient(object):
         response = self.session.get(url, verify=False)
         assert(response.status_code == 200)
         return response.json()
+
+    def lookup_supervoxel(self, xyz, dataset_name=None):
+        if dataset_name == None:
+            dataset_name = self.dataset_name
+        url = "{}/voxel/dataset/{}/{}_{}_{}".format(self.endpoint,
+                                              dataset_name,
+                                              int(xyz[0]),
+                                              int(xyz[1]),
+                                              int(xyz[2]))
+        response = self.session.get(url, verify=False)
+        assert(response.status_code == 200)
+        return response.json()
+
+    def get_annotations_of_root_id(self, annotation_type, root_id, dataset_name=None):
+        if dataset_name == None:
+            dataset_name = self.dataset_name
+        url = "{}/chunked_annotation/dataset/{}/rootid/{}/{}".format(
+                            self.endpoint,
+                            dataset_name,
+                            root_id,
+                            annotation_type)
+        print(url)
+        response = self.session.get(url, verify=False)
+        assert(response.status_code == 200)
+        return response.json()
+
 
     def post_annotation(self, annotation_type, data, dataset_name=None):
         """
