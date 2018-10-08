@@ -6,6 +6,7 @@ import requests
 import os
 bp = Blueprint("dataset", __name__, url_prefix="/dataset")
 
+ds_cache = {}
 
 class MyCloudVolume(cloudvolume.CloudVolume):
     def lookup_supervoxel(self, x, y, z, scale_factor=(1, 1, 1)):
@@ -91,6 +92,6 @@ def get_dataset(dataset):
 
 
 def get_dataset_db():
-    if 'dataset_db' not in g:
-        g.dataset_db = DataSetStore(current_app.config['INFOSERVICE_ENDPOINT'])
-    return g.dataset_db
+    if 'dataset_db' in ds_cache:
+        ds_cache['dataset_db'] = DataSetStore(current_app.config['INFOSERVICE_ENDPOINT'])
+    return ds_cache['dataset_db']
