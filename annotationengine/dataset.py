@@ -92,6 +92,6 @@ def get_dataset(dataset):
 
 
 def get_dataset_db():
-    if 'dataset_db' in ds_cache:
+    if 'dataset_db' not in ds_cache:
         ds_cache['dataset_db'] = DataSetStore(current_app.config['INFOSERVICE_ENDPOINT'])
     return ds_cache['dataset_db']
