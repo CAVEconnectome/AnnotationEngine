@@ -43,12 +43,12 @@ class AnnotationClient(object):
 
         :return: list
         """
-        url = "{}/dataset/".format(self.endpoint)
+        url = "{}/datasets".format(self.endpoint)
         response = self.session.get(url)
         assert(response.status_code == 200)
         return response.json()
 
-    def get_dataset(self, dataset_name=None):
+    def get_dataset_info(self, dataset_name=None):
         """ Returns information about the dataset
 
         :return: dict
@@ -56,7 +56,7 @@ class AnnotationClient(object):
         if dataset_name is None:
             dataset_name = self.dataset_name
         url = "{}/dataset/{}".format(self.endpoint, dataset_name)
-        response = self.session.get(url, verify=False)
+        response = self.session.get(url)
         assert(response.status_code == 200)
         return response.json()
 
@@ -74,7 +74,7 @@ class AnnotationClient(object):
                                                       dataset_name,
                                                       annotation_type,
                                                       oid)
-        response = self.session.get(url, verify=False)
+        response = self.session.get(url)
         assert(response.status_code == 200)
         return response.json()
 
@@ -86,7 +86,7 @@ class AnnotationClient(object):
                                               int(xyz[0]),
                                               int(xyz[1]),
                                               int(xyz[2]))
-        response = self.session.get(url, verify=False)
+        response = self.session.get(url)
         assert(response.status_code == 200)
         return response.json()
 
@@ -99,7 +99,7 @@ class AnnotationClient(object):
                             root_id,
                             annotation_type)
         print(url)
-        response = self.session.get(url, verify=False)
+        response = self.session.get(url)
         assert(response.status_code == 200)
         return response.json()
 
@@ -120,7 +120,7 @@ class AnnotationClient(object):
         url = "{}/annotation/dataset/{}/{}".format(self.endpoint,
                                                    dataset_name,
                                                    annotation_type)
-        response = self.session.post(url, json=data, verify=False)
+        response = self.session.post(url, json=data)
         assert(response.status_code == 200)
         return response.json()
 
@@ -131,7 +131,7 @@ class AnnotationClient(object):
                                                       dataset_name,
                                                       annotation_type,
                                                       oid)
-        response = self.session.put(url, json=data, verify=False)
+        response = self.session.put(url, json=data)
         assert(response.status_code == 200)
         return response.json()
 
@@ -149,7 +149,7 @@ class AnnotationClient(object):
                                                       dataset_name,
                                                       annotation_type,
                                                       oid)
-        response = self.session.delete(url, verify=False)
+        response = self.session.delete(url)
         assert(response.status_code == 200)
         return response.json()
 
