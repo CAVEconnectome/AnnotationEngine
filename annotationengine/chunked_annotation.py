@@ -5,13 +5,14 @@ import json
 import requests
 
 bp = Blueprint("chunked_annotation", __name__,
-               url_prefix="/chunked_annotation")
+               url_prefix="/annotation/segmentation")
 
 
 @bp.route("/dataset/<dataset>/rootid/<root_id>/<annotation_type>",
           methods=["GET", "POST"])
 def get_annotations_of_rootid(dataset, root_id, annotation_type):
     '''get all annotations from a root id'''
+    print('test me!!!')
     anno_db = get_db()
     if annotation_type not in get_types():
         abort(404, "annotation type {} not known".format(annotation_type))
