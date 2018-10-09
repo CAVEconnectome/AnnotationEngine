@@ -11,6 +11,7 @@ from multiwrapper import multiprocessing_utils as mu
 
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
+__version__ = "0.0.8"
 
 def collect_supervoxels(d):
     svid_set = collect_supervoxels_recursive(d)
@@ -28,21 +29,26 @@ def collect_supervoxels_recursive(d, svids=None):
     return svids
 
 
+@bp.route("/")
+def index():
+    return "Annotation Engine -- version " + __version__
+
 @bp.route("/datasets")
 def get_annotation_datasets():
     return get_datasets()
 
 
-def bsp_import_fn(cv, item):
+def bsp_import_fn(cv, scale_factor, item):
     item.pop('root_id', None)
-    svid = cv.lookup_supervoxel(*item['position'])
+    svid = cv.lookup_supervoxel(*item['position'], scale_factor)
     item['supervoxel_id'] = svid
 
 
 def get_schema_with_context(annotation_type, dataset, flatten=False):
     dataset_db = get_dataset_db()
     cv = dataset_db.get_cloudvolume(dataset)
-    myp = partial(bsp_import_fn, cv)
+    scale_factor = dataset_db.get_scale_factor(dataset)
+    myp = partial(bsp_import_fn, cv, scale_factor)
 
     context = {'bsp_fn': myp, 'flatten': flatten}
     Schema = get_schema(annotation_type)

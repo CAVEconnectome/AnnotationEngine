@@ -1,11 +1,12 @@
 
-__version__ = "0.0.2"
+__version__ = "0.0.17"
 
 
 def create_app(test_config=None):
     from flask import Flask
     from annotationengine.config import configure_app
     from annotationengine.utils import get_instance_folder_path
+    from annotationengine.dataset import get_dataset_db
     from annotationengine import annotation
     from annotationengine import schemas
     from annotationengine import voxel
@@ -30,12 +31,14 @@ def create_app(test_config=None):
     with app.app_context():
         db = annotation.get_db()
         types = schemas.get_types()
-        for dataset in app.config['DATASETS']:
+        dataset_db = get_dataset_db()
+
+        for dataset_name in dataset_db.get_dataset_names():      
             for type_ in types:
-                if not db.has_table(dataset['name'], type_):
-                    db.create_table(dataset['name'], type_)
-                    print('creating table {}:{}'.format(dataset['name'],
+                if not db.has_table(dataset_name, type_):
+                    db.create_table(dataset_name, type_)
+                    print('creating table {}:{}'.format(dataset_name,
                                                         type_))
                 else:
-                    print('table exists {} {}'.format(dataset['name'], type_))
+                    print('table exists {} {}'.format(dataset_name, type_))
     return app
