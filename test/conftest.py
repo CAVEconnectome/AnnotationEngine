@@ -123,7 +123,7 @@ def root_id_vol(N=64, blockN=32):
                 np.uint64(yy / (blockN)),
                 np.uint64(zz / (blockN)))
     root_shape = (block_per_row, block_per_row, block_per_row)
-    root_id = np.ravel_multi_index(root_ind, root_shape)+100000
+    root_id = np.ravel_multi_index(root_ind, root_shape)+1000
 
     return root_id
 
@@ -132,9 +132,16 @@ def root_id_vol(N=64, blockN=32):
 def test_dataset():
     return TEST_DATASET_NAME
 
+def get_supervoxel_leaves(cv, root_id_vol, root_id):
+    vol = cloudvolume.CloudVolume(cv)
+    vol = vol[:]
+    print(np.squeeze(vol[::4,::4,0]))
+    print(np.squeeze(root_id_vol[::4,::4,0]))
+
+    return np.unique(vol[root_id_vol == root_id])
 
 @pytest.fixture(scope='session')
-def app(cv, test_dataset, bigtable_settings):
+def app(cv, root_id_vol, test_dataset, bigtable_settings):
     bt_project, bt_table = bigtable_settings
 
     with requests_mock.Mocker() as m:
@@ -152,6 +159,10 @@ def app(cv, test_dataset, bigtable_settings):
             "pychunkgraph_segmentation_source": cv
         }
         m.get(dataset_info_url, json=dataset_d)
+        root_id = 100000
+        cg_url = PYCHUNKEDGRAPH_ENDPOINT+'/1.0/segment/{}/leaves'.format(root_id)
+        seg_ids = get_supervoxel_leaves(cv, root_id_vol, root_id)
+        m.get(cg_url, json=seg_ids)
         app = create_app(
             {
                 'project_id': 'test',

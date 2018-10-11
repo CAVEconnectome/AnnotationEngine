@@ -2,7 +2,9 @@ import pytest
 import cloudvolume
 import numpy as np
 import os
-from conftest import PYCHUNKEDGRAPH_ENDPOINT
+from conftest import PYCHUNKEDGRAPH_ENDPOINT, get_supervoxel_leaves
+import mock
+
 
 @pytest.fixture(scope='module')
 def example_synapse(client, test_dataset):
@@ -30,25 +32,17 @@ def example_synapse(client, test_dataset):
     return oid, synapse_d
 
 
-def get_supervoxel_leaves(cv, root_id_vol, root_id):
-    vol = cloudvolume.CloudVolume(cv)
-    vol = vol[:]
-    return np.unique(vol[root_id_vol == root_id])
-
-
 def test_get_synapses_involving_root(client, app, test_dataset,
-                                     example_synapse, cv, root_id_vol,
-                                     requests_mock):
-    
-    root_id = 100000
-    cg_url = os.path.join(PYCHUNKEDGRAPH_ENDPOINT, '/1.0/segment/{}/leaves'.format(root_id))
+                                     example_synapse, cv, root_id_vol):
 
-    seg_ids = get_supervoxel_leaves(cv, root_id_vol, root_id)
-    requests_mock.get(cg_url, json=seg_ids.tolist())
-
-    url = '/annotation/segmentation/dataset/{}/rootid/{}/synapse'
-    url = url.format(test_dataset, root_id)
-    response = client.get(url)
+    with mock.patch('annotationengine.chunked_annotation.get_leaves') as MockClass:
+        root_id = 1000
+        MockClass.return_value = get_supervoxel_leaves(cv,
+                                                       root_id_vol,
+                                                       root_id)
+        url = '/annotation/segmentation/dataset/{}/rootid/{}/synapse'
+        url = url.format(test_dataset, root_id)
+        response = client.get(url)
     print(response.json)
     assert(response.status_code == 200)
     assert(len(response.json.keys()) == 1)

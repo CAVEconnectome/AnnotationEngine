@@ -27,6 +27,7 @@ def create_app(test_config=None):
     app.register_blueprint(voxel.bp)
     app.register_blueprint(schemas.bp)
     app.register_blueprint(dataset_mod.bp)
+    app.register_blueprint(chunked_annotation.bp)
 
     with app.app_context():
         db = annotation.get_db()
