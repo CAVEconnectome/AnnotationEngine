@@ -11,7 +11,6 @@ import grpc
 from time import sleep
 import os
 from signal import SIGTERM
-from pychunkedgraph.backend import chunkedgraph
 from itertools import product
 import requests_mock
 
@@ -19,17 +18,17 @@ INFOSERVICE_ENDPOINT = "http://infoservice"
 TEST_DATASET_NAME = 'test'
 tempdir = tempfile.mkdtemp()
 TEST_PATH = "file:/{}".format(tempdir)
-
+PYCHUNKEDGRAPH_ENDPOINT = "http://pcg/segmentation"
 
 @pytest.fixture(scope='session')
-def cg_settings():
+def bigtable_settings():
     return 'anno_test', 'cg_test'
 
 
 @pytest.fixture(scope='session', autouse=True)
-def bigtable_client(request, cg_settings):
+def bigtable_client(request, bigtable_settings):
     # setup Emulator
-    cg_project, cg_table = cg_settings
+    cg_project, cg_table = bigtable_settings
     bt_emul_host = "localhost:8086"
     os.environ["BIGTABLE_EMULATOR_HOST"] = bt_emul_host
     bigtables_emulator = subprocess.Popen(["gcloud",
@@ -80,40 +79,11 @@ def bigtable_client(request, cg_settings):
 
 
 @pytest.fixture(scope='session')
-def chunkgraph_tuple(request,
-                     bigtable_client,
-                     cg_settings,
-                     fan_out=2,
-                     n_layers=3):
-    cg_project, cg_table = cg_settings
-    print('creating table {}'.format(cg_project))
-    graph = chunkedgraph.ChunkedGraph(cg_table,
-                                      client=bigtable_client,
-                                      project_id=cg_project,
-                                      is_new=True, fan_out=fan_out,
-                                      n_layers=n_layers, cv_path="",
-                                      chunk_size=(32, 32, 32))
-
-    yield graph, cg_table
-
-    def fin():
-        graph.table.delete()
-    request.addfinalizer(fin)
-    print("\n\nTABLE DELETED")
-
-
-def to_label(cgraph, l, x, y, z, segment_id):
-    return cgraph.get_node_id(np.uint64(segment_id), layer=l, x=x, y=y, z=z)
-
-
-@pytest.fixture(scope='session')
-def cv(chunkgraph_tuple, N=64, blockN=16):
-    cgraph, cg_table = chunkgraph_tuple
+def cv(N=64, blockN=16):
 
     block_per_row = int(N / blockN)
 
     chunk_size = [32, 32, 32]
-    num_chunks = [int(N/cs) for cs in chunk_size]
     info = cloudvolume.CloudVolume.create_new_info(
         num_channels=1,
         layer_type='segmentation',
@@ -128,20 +98,14 @@ def cv(chunkgraph_tuple, N=64, blockN=16):
     )
     vol = cloudvolume.CloudVolume(TEST_PATH, info=info)
     vol.commit_info()
-    xx, yy, zz = np.meshgrid(*[np.arange(0, cs) for cs in chunk_size])
+    xx, yy, zz = np.meshgrid(*[np.arange(0, N) for cs in chunk_size])
+    id_ind = (np.uint64(xx / blockN),
+              np.uint64(yy / blockN),
+              np.uint64(zz / blockN))
+    id_shape = (block_per_row, block_per_row, block_per_row)
 
-    for x, y, z in product(*[range(nc) for nc in num_chunks]):
-        seg = np.uint64(xx / blockN) + \
-            block_per_row * np.uint64(yy / blockN) + \
-            block_per_row * block_per_row * np.uint64(zz / blockN)
-        for seg_id in np.unique(seg):
-            new_id = to_label(cgraph, 1, x, y, z, seg_id)
-            is_id = seg == seg_id
-            seg[is_id] = new_id
-
-        vol[x*chunk_size[0]:(x+1)*chunk_size[0],
-            y*chunk_size[1]:(y+1)*chunk_size[1],
-            z*chunk_size[2]:(z+1)*chunk_size[2]] = np.uint64(seg)
+    seg = np.ravel_multi_index(id_ind, id_shape)
+    vol[:] = np.uint64(seg)
 
     yield TEST_PATH
 
@@ -149,13 +113,36 @@ def cv(chunkgraph_tuple, N=64, blockN=16):
 
 
 @pytest.fixture(scope='session')
-def test_dataset():
-    return TEST_DATASET_NAME
+def root_id_vol(N=64, blockN=32):
+
+    block_per_row = int(N / blockN)
+
+    chunk_size = [32, 32, 32]
+    xx, yy, zz = np.meshgrid(*[np.arange(0, N) for cs in chunk_size])
+    root_ind = (np.uint64(xx / (blockN)),
+                np.uint64(yy / (blockN)),
+                np.uint64(zz / (blockN)))
+    root_shape = (block_per_row, block_per_row, block_per_row)
+    root_id = np.ravel_multi_index(root_ind, root_shape)+1000
+
+    return root_id
 
 
 @pytest.fixture(scope='session')
-def app(cv, test_dataset, cg_settings):
-    cg_project, cg_table = cg_settings
+def test_dataset():
+    return TEST_DATASET_NAME
+
+def get_supervoxel_leaves(cv, root_id_vol, root_id):
+    vol = cloudvolume.CloudVolume(cv)
+    vol = vol[:]
+    print(np.squeeze(vol[::4,::4,0]))
+    print(np.squeeze(root_id_vol[::4,::4,0]))
+
+    return np.unique(vol[root_id_vol == root_id])
+
+@pytest.fixture(scope='session')
+def app(cv, root_id_vol, test_dataset, bigtable_settings):
+    bt_project, bt_table = bigtable_settings
 
     with requests_mock.Mocker() as m:
         dataset_url = os.path.join(INFOSERVICE_ENDPOINT, 'api/datasets')
@@ -168,20 +155,24 @@ def app(cv, test_dataset, cg_settings):
             "id": 1,
             "image_source": cv,
             "name": test_dataset,
-            "pychunkgraph_endpoint": "http://pcg/segmentation",
+            "pychunkgraph_endpoint": PYCHUNKEDGRAPH_ENDPOINT,
             "pychunkgraph_segmentation_source": cv
         }
         m.get(dataset_info_url, json=dataset_d)
+        root_id = 100000
+        cg_url = PYCHUNKEDGRAPH_ENDPOINT+'/1.0/segment/{}/leaves'.format(root_id)
+        seg_ids = get_supervoxel_leaves(cv, root_id_vol, root_id)
+        m.get(cg_url, json=seg_ids)
         app = create_app(
             {
-                'project_id': cg_project,
+                'project_id': 'test',
                 'emulate': True,
                 'TESTING': True,
                 'INFOSERVICE_ENDPOINT':  INFOSERVICE_ENDPOINT,
                 'BIGTABLE_CONFIG': {
                     'emulate': True
                 },
-                'CHUNKGRAPH_TABLE_ID': cg_table
+                'CHUNKGRAPH_TABLE_ID': test_dataset
             }
         )
 
@@ -191,6 +182,7 @@ def app(cv, test_dataset, cg_settings):
 @pytest.fixture(scope='session')
 def client(app):
     return app.test_client()
+
 
 def mock_info_service(requests_mock):
     dataset_url = os.path.join(INFOSERVICE_ENDPOINT, 'api/datasets')

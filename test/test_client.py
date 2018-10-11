@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch
 
+
 # This method will be used by the mock to replace requests.get
 def mocked_requests_get(*args, **kwargs):
     class MockResponse:

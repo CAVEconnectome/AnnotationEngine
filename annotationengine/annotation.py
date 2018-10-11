@@ -11,6 +11,7 @@ from multiwrapper import multiprocessing_utils as mu
 
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
+__version__ = "0.0.8"
 
 def collect_supervoxels(d):
     svid_set = collect_supervoxels_recursive(d)
@@ -27,6 +28,10 @@ def collect_supervoxels_recursive(d, svids=None):
             svids = collect_supervoxels_recursive(v, svids)
     return svids
 
+
+@bp.route("/")
+def index():
+    return "Annotation Engine -- version " + __version__
 
 @bp.route("/datasets")
 def get_annotation_datasets():
