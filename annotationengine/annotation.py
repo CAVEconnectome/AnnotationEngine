@@ -8,6 +8,7 @@ import json
 from functools import partial
 import pandas as pd
 from multiwrapper import multiprocessing_utils as mu
+import time
 
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
@@ -56,7 +57,7 @@ def get_schema_with_context(annotation_type, dataset, flatten=False):
     return schema
 
 
-@bp.route("/dataset/<dataset>")
+@bp.route("/dataset/<dataset>", methods=["GET"])
 def get_annotation_types(dataset):
     return get_schemas()
 
@@ -105,8 +106,13 @@ def import_dataframe(db, dataset, annotation_type, schema, df, user_id,
         multi_args.append([i_start, df[i_start: i_start + block_size],
                            annotation_type, dataset, user_id])
 
+    time_start = time.time()
+
     results = mu.multiprocess_func(_import_dataframe_thread, multi_args,
                                    n_threads=n_threads)
+
+    print("Time for importing dataframe %.3fs" % (time.time() - time_start))
+    time_start = time.time()
 
     ind = []
     u_ids_lists = []
@@ -120,17 +126,21 @@ def import_dataframe(db, dataset, annotation_type, schema, df, user_id,
         u_ids_lists.append(uids)
 
     u_ids_lists = np.array(u_ids_lists)
+    ids = np.concatenate(u_ids_lists[np.argsort(ind)])
 
-    return np.concatenate(u_ids_lists[np.argsort(ind)])
+    print("Time for inserting annotations %.3fs" % (time.time() - time_start))
+
+    return ids
 
 
-@bp.route("/dataset/<dataset>/<annotation_type>", methods=["POST"])
+@bp.route("/dataset/<dataset>/<annotation_type>", methods=["GET", "POST"])
 def import_annotations(dataset, annotation_type):
     db = get_db()
     is_bulk = request.args.get('bulk', 'false') == 'true'
 
     print("BULK", is_bulk)
     print(request.method)
+
     if request.method == "POST":
         user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                      request.remote_addr))
