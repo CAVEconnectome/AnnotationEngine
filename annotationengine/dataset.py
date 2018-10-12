@@ -40,7 +40,8 @@ class DataSetStore():
 
                 self.cvd[dataset] = MyCloudVolume(path,
                                                   mip=0,
-                                                  fill_missing=True)
+                                                  fill_missing=True,
+                                                  cache=True)
                 scale_factor = img_cv.resolution / self.cvd[dataset].resolution
                 self.scale_factors[dataset] = scale_factor
             except:
