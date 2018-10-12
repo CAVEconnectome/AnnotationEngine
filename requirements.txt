@@ -8,3 +8,4 @@ cloud-volume
 dynamicannotationdb>=0.0.5
 emannotationschemas>=0.2.15
 multiwrapper
+google-auth

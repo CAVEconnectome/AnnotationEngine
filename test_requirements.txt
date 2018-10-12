@@ -10,3 +10,4 @@ pylint>=1.5.4
 codecov
 requests-mock
 cloud-volume
+google-auth
