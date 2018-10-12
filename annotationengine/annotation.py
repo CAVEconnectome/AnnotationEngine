@@ -41,6 +41,7 @@ def get_annotation_datasets():
 
 def bsp_import_fn(cv, scale_factor, item):
     item.pop('root_id', None)
+    print(*item['position'])
     svid = cv.lookup_supervoxel(*item['position'], scale_factor)
     item['supervoxel_id'] = svid
 
