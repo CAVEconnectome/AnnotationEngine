@@ -3,9 +3,6 @@ python:
 - 3.6
 - 3.6-dev
 install:
-- pip install -r test_requirements.txt
-- pip install tenacity==4.4.0 dill
-- pip install -r requirements.txt
 - gcloud version || true
 - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export
   CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
@@ -13,6 +10,9 @@ install:
 - gcloud --quiet version
 - gcloud --quiet components update
 - gcloud --quiet components install beta
+- pip install -r test_requirements.txt
+- pip install tenacity==4.4.0 dill
+- pip install -r requirements.txt
 script:
 - python setup.py pytest
 cache:
