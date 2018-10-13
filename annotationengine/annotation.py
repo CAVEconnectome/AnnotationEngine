@@ -81,7 +81,8 @@ def nest_dictionary(d, key_path=None, sep="."):
 def _import_dataframe_thread(args):
     ind, df, annotation_type, dataset, user_id = args
 
-    time_start = []
+    time_start = time.time()
+
     time_dict = collections.defaultdict(list)
 
     schema = get_schema_with_context(annotation_type,
