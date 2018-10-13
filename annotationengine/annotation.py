@@ -9,6 +9,7 @@ from functools import partial
 import pandas as pd
 from multiwrapper import multiprocessing_utils as mu
 import time
+import collections
 
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
@@ -41,7 +42,6 @@ def get_annotation_datasets():
 
 def bsp_import_fn(cv, scale_factor, item):
     item.pop('root_id', None)
-    print(*item['position'])
     svid = cv.lookup_supervoxel(*item['position'], scale_factor)
     item['supervoxel_id'] = svid
 
@@ -81,21 +81,51 @@ def nest_dictionary(d, key_path=None, sep="."):
 def _import_dataframe_thread(args):
     ind, df, annotation_type, dataset, user_id = args
 
+    time_start = []
+    time_dict = collections.defaultdict(list)
+
     schema = get_schema_with_context(annotation_type,
                                      dataset)
 
     annotations = []
 
+    time_dict["schema"].append(time.time() - time_start)
+    time_start = time.time()
+
     for k, row in df.iterrows():
+        time_start = time.time()
+
         d = nest_dictionary(dict(row))
         d['type'] = annotation_type
         result = schema.load(d)
+
+        time_dict["load_schema"].append(time.time() - time_start)
+        time_start = time.time()
+
         if len(result.errors) > 0:
             abort(422, result.errors)
         ann = result.data
+
+        time_dict["data"].append(time.time() - time_start)
+        time_start = time.time()
+
         supervoxels = collect_supervoxels(ann)
+
+
+        time_dict["supervoxel"].append(time.time() - time_start)
+        time_start = time.time()
+
         blob = json.dumps(schema.dump(ann).data)
+
+
+        time_dict["blob"].append(time.time() - time_start)
+        time_start = time.time()
+
         annotations.append((supervoxels, blob))
+
+    for k in time_dict.keys():
+        print("%s - mean: %.4fs - first: %.4fs - last: %.4fs" %
+              (k, np.mean(time_dict[k]), time_dict[k][0], time_dict[k][-1]))
 
     return ind, annotations
 
