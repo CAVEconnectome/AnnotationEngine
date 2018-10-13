@@ -91,8 +91,6 @@ def _import_dataframe_thread(args):
     annotations = []
 
     time_dict["schema"].append(time.time() - time_start)
-    time_start = time.time()
-
     for k, row in df.iterrows():
         time_start = time.time()
 
@@ -120,30 +118,26 @@ def _import_dataframe_thread(args):
 
 
         time_dict["blob"].append(time.time() - time_start)
-        time_start = time.time()
 
         annotations.append((supervoxels, blob))
 
     for k in time_dict.keys():
-        print("%s - mean: %.4fs - first: %.4fs - last: %.4fs" %
-              (k, np.mean(time_dict[k]), time_dict[k][0], time_dict[k][-1]))
+        print("%s - mean: %.6fs - median: %.6fs - std: %.6fs - first: %.6fs - last: %.6fs" %
+              (k, np.mean(time_dict[k]), np.median(time_dict[k]), np.std(time_dict[k]),
+               time_dict[k][0], time_dict[k][-1]))
 
     return ind, annotations
 
 
-def import_dataframe(db, dataset, annotation_type, schema, df, user_id,
+def import_dataframe(db, dataset, annotation_type, df, user_id,
                      block_size=100, n_threads=1):
     multi_args = []
     for i_start in range(0, len(df), block_size):
         multi_args.append([i_start, df[i_start: i_start + block_size],
                            annotation_type, dataset, user_id])
 
-    time_start = time.time()
     results = mu.multiprocess_func(_import_dataframe_thread, multi_args,
                                    n_threads=n_threads)
-
-    print("Time importing: %.3fs" % (time.time() - time_start))
-    time_start = time.time()
 
     ind = []
     u_ids_lists = []
@@ -159,9 +153,6 @@ def import_dataframe(db, dataset, annotation_type, schema, df, user_id,
     u_ids_lists = np.array(u_ids_lists)
 
     ids = np.concatenate(u_ids_lists[np.argsort(ind)])
-
-    print("Time inserting: %.3fs" % (time.time() - time_start))
-
     return ids
 
 
@@ -177,20 +168,20 @@ def import_annotations(dataset, annotation_type):
                                                      request.remote_addr))
 
         # iterate through annotations in json posted
-        try:
-            schema = get_schema_with_context(annotation_type,
-                                             dataset)
-        except UnknownAnnotationTypeException as m:
-            print("ABORT 404")
-            abort(404, str(m))
-
         d = request.json
 
         if is_bulk:
             df = pd.read_json(d)
-            uids = import_dataframe(db, dataset, annotation_type, schema, df,
+            uids = import_dataframe(db, dataset, annotation_type, df,
                                     user_id)
         else:
+            try:
+                schema = get_schema_with_context(annotation_type,
+                                                 dataset)
+            except UnknownAnnotationTypeException as m:
+                print("ABORT 404")
+                abort(404, str(m))
+
             result = schema.load(d, many=True)
             if len(result.errors) > 0:
                 abort(422, result.errors)

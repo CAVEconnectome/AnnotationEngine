@@ -17,7 +17,6 @@ class MyCloudVolume(cloudvolume.CloudVolume):
 
 
 class DataSetStore():
-
     def __init__(self, infoservice):
         url = os.path.join(infoservice, "api/datasets")
         r = requests.get(url)
@@ -38,10 +37,9 @@ class DataSetStore():
             try:
                 img_cv = MyCloudVolume(vol_path, mip=0)
 
-                self.cvd[dataset] = MyCloudVolume(path,
-                                                  mip=0,
+                self.cvd[dataset] = MyCloudVolume(path, mip=0,
                                                   fill_missing=True,
-                                                  cache=True)
+                                                  cache=False)
                 scale_factor = img_cv.resolution / self.cvd[dataset].resolution
                 self.scale_factors[dataset] = scale_factor
             except:
