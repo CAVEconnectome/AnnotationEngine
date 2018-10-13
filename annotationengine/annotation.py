@@ -130,7 +130,7 @@ def _import_dataframe_thread(args):
 
 
 def import_dataframe(db, dataset, annotation_type, df, user_id,
-                     block_size=50, n_threads=8):
+                     block_size=100, n_threads=1):
     multi_args = []
     for i_start in range(0, len(df), block_size):
         multi_args.append([i_start, df[i_start: i_start + block_size],
