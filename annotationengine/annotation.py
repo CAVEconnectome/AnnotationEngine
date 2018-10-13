@@ -13,7 +13,7 @@ import collections
 
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
-__version__ = "0.0.29"
+__version__ = "0.0.30"
 
 def collect_supervoxels(d):
     svid_set = collect_supervoxels_recursive(d)
