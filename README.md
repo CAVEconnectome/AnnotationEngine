@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/fcollman/AnnotationEngine.svg?branch=master)](https://travis-ci.org/fcollman/AnnotationEngine)
-[![codecov](https://codecov.io/gh/fcollman/AnnotationEngine/branch/master/graph/badge.svg)](https://codecov.io/gh/fcollman/AnnotationEngine)
+[![Build Status](https://travis-ci.org/seung-lab/AnnotationEngine.svg?branch=master)](https://travis-ci.org/fcollman/AnnotationEngine)
+[![codecov](https://codecov.io/gh/seung-lab/AnnotationEngine/branch/master/graph/badge.svg)](https://codecov.io/gh/fcollman/AnnotationEngine)
 
 
 # AnnotationEngine
