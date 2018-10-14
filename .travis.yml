@@ -14,9 +14,8 @@ script:
   # Add gcloud to $PATH
   - source ${HOME}/google-cloud-sdk/path.bash.inc
   - gcloud --quiet version
-  - gcloud --quiet version,
-  - gcloud --quiet components update,
-  - gcloud --quiet components install beta,
+  - gcloud --quiet components update
+  - gcloud --quiet components install beta
   - python setup.py pytest
 
 cache:
