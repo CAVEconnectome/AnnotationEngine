@@ -9,7 +9,7 @@ install:
 - gcloud --quiet components update
 - gcloud --quiet components install beta
 - pip install -r test_requirements.txt
-- pip install tenacity==4.4.0 dill
+- pip install tenacity==4.4.0 dill bumpversion twine
 - pip install -r requirements.txt
 stages:
 - test
