@@ -1,13 +1,6 @@
 language: python
 
 install:
-- gcloud version || true
-- if [ ! -d ${HOME}/google-cloud-sdk ]; then
-     curl https://sdk.cloud.google.com | bash;
-  fi
-- gcloud --quiet version
-- gcloud --quiet components update
-- gcloud --quiet components install beta
 - pip install -r test_requirements.txt
 - pip install tenacity==4.4.0 dill 
 - pip install -r requirements.txt
@@ -16,6 +9,11 @@ stages:
 - name: merge-deploy
 
 script:
+  - gcloud version || true
+  - if [ ! -d "${HOME}/google-cloud-sdk/bin" ]; then rm -rf ${HOME}/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
+  # Add gcloud to $PATH
+  - source ${HOME}/google-cloud-sdk/path.bash.inc
+  - gcloud version
   - python setup.py pytest
 
 cache:
