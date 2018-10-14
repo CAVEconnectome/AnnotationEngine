@@ -5,7 +5,6 @@ install:
 - if [ ! -d ${HOME}/google-cloud-sdk ]; then
      curl https://sdk.cloud.google.com | bash;
   fi
-- source /home/travis/google-cloud-sdk/path.bash.inc
 - gcloud --quiet version
 - gcloud --quiet components update
 - gcloud --quiet components install beta
