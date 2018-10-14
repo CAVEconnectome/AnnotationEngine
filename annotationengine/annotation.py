@@ -8,10 +8,12 @@ import json
 from functools import partial
 import pandas as pd
 from multiwrapper import multiprocessing_utils as mu
+import time
+import collections
 
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
-__version__ = "0.0.8"
+__version__ = "0.0.32"
 
 def collect_supervoxels(d):
     svid_set = collect_supervoxels_recursive(d)
@@ -79,27 +81,56 @@ def nest_dictionary(d, key_path=None, sep="."):
 def _import_dataframe_thread(args):
     ind, df, annotation_type, dataset, user_id = args
 
+    time_start = time.time()
+
+    time_dict = collections.defaultdict(list)
+
     schema = get_schema_with_context(annotation_type,
                                      dataset)
 
     annotations = []
 
+    time_dict["schema"].append(time.time() - time_start)
     for k, row in df.iterrows():
+        time_start = time.time()
+
         d = nest_dictionary(dict(row))
         d['type'] = annotation_type
         result = schema.load(d)
+
+        time_dict["load_schema"].append(time.time() - time_start)
+        time_start = time.time()
+
         if len(result.errors) > 0:
             abort(422, result.errors)
         ann = result.data
+
+        time_dict["data"].append(time.time() - time_start)
+        time_start = time.time()
+
         supervoxels = collect_supervoxels(ann)
+
+
+        time_dict["supervoxel"].append(time.time() - time_start)
+        time_start = time.time()
+
         blob = json.dumps(schema.dump(ann).data)
+
+
+        time_dict["blob"].append(time.time() - time_start)
+
         annotations.append((supervoxels, blob))
+
+    for k in time_dict.keys():
+        print("%s - mean: %.6fs - median: %.6fs - std: %.6fs - first: %.6fs - last: %.6fs" %
+              (k, np.mean(time_dict[k]), np.median(time_dict[k]), np.std(time_dict[k]),
+               time_dict[k][0], time_dict[k][-1]))
 
     return ind, annotations
 
 
-def import_dataframe(db, dataset, annotation_type, schema, df, user_id,
-                     block_size=100, n_threads=30):
+def import_dataframe(db, dataset, annotation_type, df, user_id,
+                     block_size=100, n_threads=1):
     multi_args = []
     for i_start in range(0, len(df), block_size):
         multi_args.append([i_start, df[i_start: i_start + block_size],
@@ -121,7 +152,8 @@ def import_dataframe(db, dataset, annotation_type, schema, df, user_id,
 
     u_ids_lists = np.array(u_ids_lists)
 
-    return np.concatenate(u_ids_lists[np.argsort(ind)])
+    ids = np.concatenate(u_ids_lists[np.argsort(ind)])
+    return ids
 
 
 @bp.route("/dataset/<dataset>/<annotation_type>", methods=["POST"])
@@ -136,20 +168,20 @@ def import_annotations(dataset, annotation_type):
                                                      request.remote_addr))
 
         # iterate through annotations in json posted
-        try:
-            schema = get_schema_with_context(annotation_type,
-                                             dataset)
-        except UnknownAnnotationTypeException as m:
-            print("ABORT 404")
-            abort(404, str(m))
-
         d = request.json
 
         if is_bulk:
             df = pd.read_json(d)
-            uids = import_dataframe(db, dataset, annotation_type, schema, df,
+            uids = import_dataframe(db, dataset, annotation_type, df,
                                     user_id)
         else:
+            try:
+                schema = get_schema_with_context(annotation_type,
+                                                 dataset)
+            except UnknownAnnotationTypeException as m:
+                print("ABORT 404")
+                abort(404, str(m))
+
             result = schema.load(d, many=True)
             if len(result.errors) > 0:
                 abort(422, result.errors)
