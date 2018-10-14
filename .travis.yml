@@ -9,7 +9,7 @@ install:
 - gcloud --quiet components update
 - gcloud --quiet components install beta
 - pip install -r test_requirements.txt
-- pip install tenacity==4.4.0 dill bumpversion twine
+- pip install tenacity==4.4.0 dill 
 - pip install -r requirements.txt
 stages:
 - test
@@ -32,6 +32,8 @@ jobs:
     - stage: merge-deploy
       name: "version bump and merge into master"
       python: 3.6
+      install:
+        - pip install bumpversion
       script:
         - "git clone https://gist.github.com/2c04596a45ccac57fe8dde0718ad58ee.git /tmp/travis-automerge"
         - "chmod a+x /tmp/travis-automerge/auto_merge_travis_with_bumpversion.sh"
@@ -39,6 +41,8 @@ jobs:
     - stage: merge-deploy
       name: "deploy to pypi"
       python: 3.6
+      install:
+        - pip install twine
       script: 
         - "git clone https://gist.github.com/cf9b261f26a1bf3fae6b59e7047f007a.git /tmp/travis-autodist"
         - "chmod a+x /tmp/travis-autodist/pypi_dist.sh"
