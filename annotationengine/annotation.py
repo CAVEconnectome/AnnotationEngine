@@ -1,8 +1,9 @@
 from flask import Blueprint, jsonify, request, abort
 from annotationengine.schemas import get_schema, get_schemas
 from annotationengine.anno_database import get_db
-from annotationengine.dataset import get_datasets
+from annotationengine.dataset import get_dataset, get_datasets
 from emannotationschemas.errors import UnknownAnnotationTypeException
+
 import numpy as np
 import json
 import pandas as pd
@@ -13,6 +14,7 @@ import collections
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
 __version__ = "0.0.48"
+
 
 
 def collect_bound_spatial_points(d, bsps=None, path=None):
@@ -51,9 +53,48 @@ def get_schema_with_context(annotation_type, flatten=False):
     return schema
 
 
-@bp.route("/dataset/<dataset>")
+@bp.route("/dataset/<dataset>", methods=["GET","POST"])
 def get_annotation_types(dataset):
-    return get_schemas()
+    db = get_db()
+
+    if request.method == "POST":
+        # first validate this is a valid dataset
+        valid_datasets = get_datasets()
+        if dataset not in valid_datasets:
+            abort(404)
+        
+        # then validate the schema is a valid one
+        d = request.json
+        table_name = d['table_name']
+        schema_name = d['schema_name']
+        if schema_name not in get_schemas():
+            abort(404)
+        
+        # if table already exists return 200
+        types = db.get_existing_tables(dataset)
+
+        for type_ in types:
+            if type_['schema_name']==schema_name:
+                return jsonify[type_]
+        
+        user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
+                                                     request.remote_addr))
+        # TODO sven make the accept both a table name and a schema name, and also userid
+        # please raise an exception if this table doesn't exist
+        db.create_table(dataset, d['table_name'], d['schema_name'], user_id)
+        return jsonify(db.get_table_metadata(dataset, table_name))
+
+
+    if request.method == "GET":
+
+        # TODO sven make this return both the table name and the schema name as a dict
+        # i.e.
+        #[{
+        #  "table_name": "table_name",
+        #  "schema_name": "schema_name"
+        #}]
+        types = db.get_existing_tables(dataset)
+        return jsonify(types)
 
 
 def nest_dictionary(d, key_path=None, sep="."):
@@ -72,13 +113,13 @@ def nest_dictionary(d, key_path=None, sep="."):
 
 
 def _import_dataframe_thread(args):
-    ind, df, annotation_type, dataset, user_id = args
+    ind, df, schema_name, dataset, user_id = args
 
     time_start = time.time()
 
     time_dict = collections.defaultdict(list)
 
-    schema = get_schema_with_context(annotation_type)
+    schema = get_schema_with_context(schema_name)
 
     annotations = []
 
@@ -87,7 +128,7 @@ def _import_dataframe_thread(args):
         time_start = time.time()
 
         d = nest_dictionary(dict(row))
-        d['type'] = annotation_type
+        d['type'] = schema_name
         result = schema.load(d)
 
         time_dict["load_schema"].append(time.time() - time_start)
@@ -102,7 +143,7 @@ def _import_dataframe_thread(args):
 
         bsps = collect_bound_spatial_points(ann)
 
-        time_dict["supervoxel"].append(time.time() - time_start)
+        time_dict["bound_spatial_point"].append(time.time() - time_start)
         time_start = time.time()
 
         blob = json.dumps(schema.dump(ann).data)
@@ -121,12 +162,12 @@ def _import_dataframe_thread(args):
     return ind, annotations
 
 
-def import_dataframe(db, dataset, annotation_type, df, user_id,
+def import_dataframe(db, dataset, table_name, schema_name, df, user_id,
                      block_size=100, n_threads=1):
     multi_args = []
     for i_start in range(0, len(df), block_size):
         multi_args.append([i_start, df[i_start: i_start + block_size],
-                           annotation_type, dataset, user_id])
+                           schema_name, dataset, user_id])
 
     results = mu.multiprocess_func(_import_dataframe_thread, multi_args,
                                    n_threads=n_threads)
@@ -136,7 +177,7 @@ def import_dataframe(db, dataset, annotation_type, df, user_id,
     for result in results:
         ind.append(result[0])
         uids = db.insert_annotations(dataset,
-                                     annotation_type,
+                                     table_name,
                                      result[1],
                                      user_id)
 
@@ -148,13 +189,16 @@ def import_dataframe(db, dataset, annotation_type, df, user_id,
     return ids
 
 
-@bp.route("/dataset/<dataset>/<annotation_type>", methods=["POST"])
-def import_annotations(dataset, annotation_type):
+@bp.route("/dataset/<dataset>/<table_name>", methods=["GET","POST"])
+def import_annotations(dataset, table_name):
     db = get_db()
     is_bulk = request.args.get('bulk', 'false') == 'true'
+    # TODO sven have this return the metadata dictionary ... table_name, schema_name
+    md = db.get_table_metadata(dataset, table_name)
+    annotation_type = md['schema_name']
+    if request.method == "GET":
+        return jsonify(md)
 
-    print("BULK", is_bulk)
-    print(request.method)
     if request.method == "POST":
         user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                      request.remote_addr))
@@ -164,7 +208,7 @@ def import_annotations(dataset, annotation_type):
 
         if is_bulk:
             df = pd.read_json(d)
-            uids = import_dataframe(db, dataset, annotation_type, df,
+            uids = import_dataframe(db, dataset, table_name, table_name, df,
                                     user_id)
         else:
             try:
@@ -185,19 +229,25 @@ def import_annotations(dataset, annotation_type):
                 annotations.append((bsps, blob))
 
             uids = db.insert_annotations(dataset,
-                                         annotation_type,
+                                         table_name,
                                          annotations,
                                          user_id)
 
         return jsonify(np.uint64(uids).tolist())
 
 
-@bp.route("/dataset/<dataset>/<annotation_type>/<oid>",
+@bp.route("/dataset/<dataset>/<table_name>/<oid>",
           methods=["GET", "PUT", "DELETE"])
-def get_annotation(dataset, annotation_type, oid):
+def get_annotation(dataset, table_name, oid):
     db = get_db()
+    
+    md = db.get_table_metadata(dataset, table_name)
+    annotation_type = md['schema_name']
+    
+
     user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                  request.remote_addr))
+
     if request.method == "PUT":
         try:
             schema = get_schema_with_context(annotation_type, dataset)
@@ -214,7 +264,7 @@ def get_annotation(dataset, annotation_type, oid):
                         json.dumps(schema.dump(ann).data))]
 
         success = db.update_annotations(dataset,
-                                        annotation_type,
+                                        table_name,
                                         annotations,
                                         user_id)
 
@@ -223,7 +273,7 @@ def get_annotation(dataset, annotation_type, oid):
     if request.method == "DELETE":
 
         success = db.delete_annotations(dataset,
-                                        annotation_type,
+                                        table_name,
                                         np.array([int(oid)], np.uint64),
                                         user_id)
         if success[0]:
@@ -233,11 +283,11 @@ def get_annotation(dataset, annotation_type, oid):
 
     if request.method == "GET":
         ann = db.get_annotation_data(dataset,
-                                     annotation_type,
+                                     table_name,
                                      int(oid))
         if ann is None:
             msg = 'annotation {} ({}) not in {}'
-            msg = msg.format(oid, annotation_type, dataset)
+            msg = msg.format(oid, table_name, dataset)
             abort(404, msg)
         schema = get_schema_with_context(annotation_type)
         ann = json.loads(ann)
