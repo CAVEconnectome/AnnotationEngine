@@ -11,7 +11,6 @@ import grpc
 from time import sleep
 import os
 from signal import SIGTERM
-from itertools import product
 import requests_mock
 
 INFOSERVICE_ENDPOINT = "http://infoservice"
@@ -19,6 +18,7 @@ TEST_DATASET_NAME = 'test'
 tempdir = tempfile.mkdtemp()
 TEST_PATH = "file:/{}".format(tempdir)
 PYCHUNKEDGRAPH_ENDPOINT = "http://pcg/segmentation"
+
 
 @pytest.fixture(scope='session')
 def bigtable_settings():
@@ -132,13 +132,15 @@ def root_id_vol(N=64, blockN=32):
 def test_dataset():
     return TEST_DATASET_NAME
 
+
 def get_supervoxel_leaves(cv, root_id_vol, root_id):
     vol = cloudvolume.CloudVolume(cv)
     vol = vol[:]
-    print(np.squeeze(vol[::4,::4,0]))
-    print(np.squeeze(root_id_vol[::4,::4,0]))
+    print(np.squeeze(vol[::4, ::4, 0]))
+    print(np.squeeze(root_id_vol[::4, ::4, 0]))
 
     return np.unique(vol[root_id_vol == root_id])
+
 
 @pytest.fixture(scope='session')
 def app(cv, root_id_vol, test_dataset, bigtable_settings):
@@ -160,7 +162,8 @@ def app(cv, root_id_vol, test_dataset, bigtable_settings):
         }
         m.get(dataset_info_url, json=dataset_d)
         root_id = 100000
-        cg_url = PYCHUNKEDGRAPH_ENDPOINT+'/1.0/segment/{}/leaves'.format(root_id)
+        cg_url = PYCHUNKEDGRAPH_ENDPOINT + \
+            '/1.0/segment/{}/leaves'.format(root_id)
         seg_ids = get_supervoxel_leaves(cv, root_id_vol, root_id)
         m.get(cg_url, json=seg_ids)
         app = create_app(

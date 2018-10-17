@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, abort
 from annotationengine.schemas import get_schema, get_schemas
 from annotationengine.anno_database import get_db
-from annotationengine.dataset import get_dataset, get_datasets
+from annotationengine.dataset import get_datasets
 from emannotationschemas.errors import UnknownAnnotationTypeException
 
 import numpy as np
@@ -14,7 +14,6 @@ import collections
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
 __version__ = "0.0.36"
-
 
 
 def collect_bound_spatial_points(d, bsps=None, path=None):
@@ -30,9 +29,11 @@ def collect_bound_spatial_points(d, bsps=None, path=None):
             bsps = collect_bound_spatial_points(v, bsps, path.append(k))
     return bsps
 
+
 @bp.route("/")
 def index():
     return "Annotation Engine -- version " + __version__
+
 
 @bp.route("/datasets")
 def get_annotation_datasets():
@@ -46,30 +47,31 @@ def get_schema_with_context(annotation_type, flatten=False):
     return schema
 
 
-@bp.route("/dataset/<dataset>", methods=["GET","POST"])
+@bp.route("/dataset/<dataset>", methods=["GET", "POST"])
 def get_annotation_types(dataset):
     db = get_db()
 
+    # make a new table
     if request.method == "POST":
         # first validate this is a valid dataset
         valid_datasets = get_datasets()
         if dataset not in valid_datasets:
             abort(404)
-        
+
         # then validate the schema is a valid one
         d = request.json
         table_name = d['table_name']
         schema_name = d['schema_name']
         if schema_name not in get_schemas():
             abort(404)
-        
+
         # if table already exists return 200
         types = db.get_existing_tables(dataset)
 
         for type_ in types:
-            if type_['schema_name']==schema_name:
+            if type_['schema_name'] == schema_name:
                 return jsonify[type_]
-        
+
         user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                      request.remote_addr))
         # TODO sven make the accept both a table name and a schema name, and also userid
@@ -77,15 +79,14 @@ def get_annotation_types(dataset):
         db.create_table(dataset, d['table_name'], d['schema_name'], user_id)
         return jsonify(db.get_table_metadata(dataset, table_name))
 
-
     if request.method == "GET":
 
         # TODO sven make this return both the table name and the schema name as a dict
         # i.e.
-        #[{
+        # [{
         #  "table_name": "table_name",
         #  "schema_name": "schema_name"
-        #}]
+        # }]
         types = db.get_existing_tables(dataset)
         return jsonify(types)
 
@@ -141,7 +142,6 @@ def _import_dataframe_thread(args):
 
         blob = json.dumps(schema.dump(ann).data)
 
-
         time_dict["blob"].append(time.time() - time_start)
 
         annotations.append((bsps, blob))
@@ -181,7 +181,7 @@ def import_dataframe(db, dataset, table_name, schema_name, df, user_id,
     return ids
 
 
-@bp.route("/dataset/<dataset>/<table_name>", methods=["GET","POST"])
+@bp.route("/dataset/<dataset>/<table_name>", methods=["GET", "POST"])
 def import_annotations(dataset, table_name):
     db = get_db()
     is_bulk = request.args.get('bulk', 'false') == 'true'
@@ -219,7 +219,8 @@ def import_annotations(dataset, table_name):
                 bsps = collect_bound_spatial_points(ann)
                 blob = json.dumps(schema.dump(ann).data)
                 annotations.append((bsps, blob))
-
+            # TODO you should be expecting annotations to be a list of tuples
+            # with bound spatial point lists of dictionaries and annotation blobs
             uids = db.insert_annotations(dataset,
                                          table_name,
                                          annotations,
@@ -232,10 +233,9 @@ def import_annotations(dataset, table_name):
           methods=["GET", "PUT", "DELETE"])
 def get_annotation(dataset, table_name, oid):
     db = get_db()
-    
+
     md = db.get_table_metadata(dataset, table_name)
     annotation_type = md['schema_name']
-    
 
     user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                  request.remote_addr))
@@ -254,7 +254,7 @@ def get_annotation(dataset, table_name, oid):
         annotations = [(np.uint64(oid),
                         collect_bound_spatial_points(result.data),
                         json.dumps(schema.dump(ann).data))]
-
+        # TODO sven this like insert needs to change what it expects
         success = db.update_annotations(dataset,
                                         table_name,
                                         annotations,
