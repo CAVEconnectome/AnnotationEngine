@@ -1,11 +1,10 @@
 from flask import Blueprint, jsonify, request, abort
 from annotationengine.schemas import get_schema, get_schemas
 from annotationengine.anno_database import get_db
-from annotationengine.dataset import get_datasets, get_dataset_db
+from annotationengine.dataset import get_datasets
 from emannotationschemas.errors import UnknownAnnotationTypeException
 import numpy as np
 import json
-from functools import partial
 import pandas as pd
 from multiwrapper import multiprocessing_utils as mu
 import time
@@ -15,21 +14,19 @@ bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
 __version__ = "0.0.36"
 
-def collect_supervoxels(d):
-    svid_set = collect_supervoxels_recursive(d)
-    return np.array(list(svid_set), dtype=np.uint64)
 
-
-def collect_supervoxels_recursive(d, svids=None):
-    if svids is None:
-        svids = set()
+def collect_bound_spatial_points(d, bsps=None, path=None):
+    if bsps is None:
+        bsps = []
+    if path is None:
+        path = []
+    if 'supervoxel_id' in d.keys():
+        if 'position' in d.keys():
+            bsps.append({'position': d['position'], 'path': path})
     for k, v in d.items():
-        if k == 'supervoxel_id':
-            svids.add(v)
         if type(v) is dict:
-            svids = collect_supervoxels_recursive(v, svids)
-    return svids
-
+            bsps = collect_bound_spatial_points(v, bsps, path.append(k))
+    return bsps
 
 @bp.route("/")
 def index():
@@ -40,19 +37,8 @@ def get_annotation_datasets():
     return get_datasets()
 
 
-def bsp_import_fn(cv, scale_factor, item):
-    item.pop('root_id', None)
-    svid = cv.lookup_supervoxel(*item['position'], scale_factor)
-    item['supervoxel_id'] = svid
-
-
-def get_schema_with_context(annotation_type, dataset, flatten=False):
-    dataset_db = get_dataset_db()
-    cv = dataset_db.get_cloudvolume(dataset)
-    scale_factor = dataset_db.get_scale_factor(dataset)
-    myp = partial(bsp_import_fn, cv, scale_factor)
-
-    context = {'bsp_fn': myp, 'flatten': flatten}
+def get_schema_with_context(annotation_type, flatten=False):
+    context = {'flatten': flatten}
     Schema = get_schema(annotation_type)
     schema = Schema(context=context)
     return schema
@@ -85,8 +71,7 @@ def _import_dataframe_thread(args):
 
     time_dict = collections.defaultdict(list)
 
-    schema = get_schema_with_context(annotation_type,
-                                     dataset)
+    schema = get_schema_with_context(annotation_type)
 
     annotations = []
 
@@ -108,8 +93,7 @@ def _import_dataframe_thread(args):
         time_dict["data"].append(time.time() - time_start)
         time_start = time.time()
 
-        supervoxels = collect_supervoxels(ann)
-
+        bsps = collect_bound_spatial_points(ann)
 
         time_dict["supervoxel"].append(time.time() - time_start)
         time_start = time.time()
@@ -119,7 +103,7 @@ def _import_dataframe_thread(args):
 
         time_dict["blob"].append(time.time() - time_start)
 
-        annotations.append((supervoxels, blob))
+        annotations.append((bsps, blob))
 
     for k in time_dict.keys():
         print("%s - mean: %.6fs - median: %.6fs - std: %.6fs - first: %.6fs - last: %.6fs" %
@@ -188,9 +172,9 @@ def import_annotations(dataset, annotation_type):
 
             annotations = []
             for ann in result.data:
-                supervoxels = collect_supervoxels(ann)
+                bsps = collect_bound_spatial_points(ann)
                 blob = json.dumps(schema.dump(ann).data)
-                annotations.append((supervoxels, blob))
+                annotations.append((bsps, blob))
 
             uids = db.insert_annotations(dataset,
                                          annotation_type,
@@ -218,7 +202,7 @@ def get_annotation(dataset, annotation_type, oid):
 
         ann = result.data
         annotations = [(np.uint64(oid),
-                        collect_supervoxels(result.data),
+                        collect_bound_spatial_points(result.data),
                         json.dumps(schema.dump(ann).data))]
 
         success = db.update_annotations(dataset,
@@ -247,7 +231,7 @@ def get_annotation(dataset, annotation_type, oid):
             msg = 'annotation {} ({}) not in {}'
             msg = msg.format(oid, annotation_type, dataset)
             abort(404, msg)
-        schema = get_schema_with_context(annotation_type, dataset)
+        schema = get_schema_with_context(annotation_type)
         ann = json.loads(ann)
         ann['oid'] = oid
         return jsonify(schema.dump(ann)[0])
