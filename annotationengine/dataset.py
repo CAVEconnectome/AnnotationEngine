@@ -42,7 +42,8 @@ class DataSetStore():
                                                   cache=True)
                 scale_factor = img_cv.resolution / self.cvd[dataset].resolution
                 self.scale_factors[dataset] = scale_factor
-            except:
+            except Exception as e:
+                print('dataset {} failed to load because {}'.format(dataset, e))
                 self.datasets.pop(dataset)
 
     def get_dataset_names(self):
