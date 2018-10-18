@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/seung-lab/AnnotationEngine.svg?branch=master)](https://travis-ci.org/fcollman/AnnotationEngine)
 [![codecov](https://codecov.io/gh/seung-lab/AnnotationEngine/branch/master/graph/badge.svg)](https://codecov.io/gh/fcollman/AnnotationEngine)
 
+
 # AnnotationEngine
 This is a flask app for adding data to a [DynamicAnnotationDB](https://github.com/seung-lab/DynamicAnnotationDb), and defining the [schemas](annotationengine/schemas) for those annotations.  This is meant to work in concert with a PyChunkedGraph, and a MaterializationEngine to provide a constantly updated, searchable set of annotations in the face of a changing underlying segmentation.   
 
