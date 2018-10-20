@@ -7,7 +7,6 @@ def create_app(test_config=None):
     from annotationengine.config import configure_app
     from annotationengine.utils import get_instance_folder_path
     from annotationengine import annotation
-    from annotationengine import schemas
 
     # Define the Flask Object
     app = Flask(__name__,
@@ -20,7 +19,6 @@ def create_app(test_config=None):
         app.config.update(test_config)
     # register blueprints
     app.register_blueprint(annotation.bp)
-    app.register_blueprint(schemas.bp)
 
     # with app.app_context():
     #     db = annotation.get_db()

@@ -1,15 +1,17 @@
-from flask import Blueprint, jsonify, request, abort
-from annotationengine.schemas import get_schema, get_schemas
+from flask import Blueprint, jsonify, request, abort, current_app
 from annotationengine.anno_database import get_db
 from annotationengine.dataset import get_datasets
 from emannotationschemas.errors import UnknownAnnotationTypeException
-
+from annotationengine.errors import SchemaServiceError
+import jsonschema
 import numpy as np
 import json
 import pandas as pd
 from multiwrapper import multiprocessing_utils as mu
 import time
 import collections
+import os
+import requests
 
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
@@ -40,11 +42,50 @@ def get_annotation_datasets():
     return get_datasets()
 
 
-def get_schema_with_context(annotation_type, flatten=False):
+def get_schemas(endpoint):
+    url = os.path.join(endpoint, "type")
+    r = requests.get(url)
+    if (r.status_code != 200):
+        raise(SchemaServiceError(r.text))
+    schema_d = r.json()
+
+    return schema_d
+
+
+def get_schema(annotation_type, endpoint):
+    url = os.path.join(endpoint, "/type/", annotation_type)
+    r = requests.get(url)
+    if (r.status_code != 200):
+        raise(SchemaServiceError(r.text))
+    schema_d = r.json()
+
+    return schema_d
+
+
+def get_schema_with_context(annotation_type, endpoint, flatten=False):
     context = {'flatten': flatten}
     Schema = get_schema(annotation_type)
     schema = Schema(context=context)
     return schema
+
+
+def validate_ann(d, schema, schema_name):
+    try:
+        if type(d) == list:
+            for d_i in d:
+                jsonschema.validate(d_i, schema)
+        else:
+            jsonschema(d, schema)
+    except jsonschema.ValidationError as ve:
+        abort(422, ve)
+    d['type'] = schema_name
+
+    # d['type']=schema_name
+    # result = schema.load(d)
+    # if len(result.errors) > 0:
+    #     abort(422, result.errors)
+    # ann = result.data
+    return d
 
 
 @bp.route("/dataset/<dataset>", methods=["GET", "POST"])
@@ -74,14 +115,15 @@ def get_annotation_types(dataset):
 
         user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                      request.remote_addr))
-        # TODO sven make the accept both a table name and a schema name, and also userid
-        # please raise an exception if this table doesn't exist
+        # TODO sven make the accept both a table name and a schema name,
+        # and also userid please raise an exception if this table doesn't exist
         db.create_table(dataset, d['table_name'], d['schema_name'], user_id)
         return jsonify(db.get_table_metadata(dataset, table_name))
 
     if request.method == "GET":
 
-        # TODO sven make this return both the table name and the schema name as a dict
+        # TODO sven make this return both the table name
+        # and the schema name as a dict
         # i.e.
         # [{
         #  "table_name": "table_name",
@@ -107,13 +149,11 @@ def nest_dictionary(d, key_path=None, sep="."):
 
 
 def _import_dataframe_thread(args):
-    ind, df, schema_name, dataset, user_id = args
+    ind, df, schema_name, dataset, user_id, schema = args
 
     time_start = time.time()
 
     time_dict = collections.defaultdict(list)
-
-    schema = get_schema_with_context(schema_name)
 
     annotations = []
 
@@ -122,15 +162,8 @@ def _import_dataframe_thread(args):
         time_start = time.time()
 
         d = nest_dictionary(dict(row))
-        d['type'] = schema_name
-        result = schema.load(d)
 
-        time_dict["load_schema"].append(time.time() - time_start)
-        time_start = time.time()
-
-        if len(result.errors) > 0:
-            abort(422, result.errors)
-        ann = result.data
+        ann = validate_ann(d, schema, schema_name)
 
         time_dict["data"].append(time.time() - time_start)
         time_start = time.time()
@@ -148,18 +181,18 @@ def _import_dataframe_thread(args):
 
     for k in time_dict.keys():
         print("%s - mean: %.6fs - median: %.6fs - std: %.6fs - first: %.6fs - last: %.6fs" %
-              (k, np.mean(time_dict[k]), np.median(time_dict[k]), np.std(time_dict[k]),
-               time_dict[k][0], time_dict[k][-1]))
+              (k, np.mean(time_dict[k]), np.median(time_dict[k]),
+               np.std(time_dict[k]), time_dict[k][0], time_dict[k][-1]))
 
     return ind, annotations
 
 
-def import_dataframe(db, dataset, table_name, schema_name, df, user_id,
+def import_dataframe(db, dataset, table_name, schema_name, df, user_id, schema,
                      block_size=100, n_threads=1):
     multi_args = []
     for i_start in range(0, len(df), block_size):
         multi_args.append([i_start, df[i_start: i_start + block_size],
-                           schema_name, dataset, user_id])
+                           schema_name, dataset, user_id, schema])
 
     results = mu.multiprocess_func(_import_dataframe_thread, multi_args,
                                    n_threads=n_threads)
@@ -185,13 +218,22 @@ def import_dataframe(db, dataset, table_name, schema_name, df, user_id,
 def import_annotations(dataset, table_name):
     db = get_db()
     is_bulk = request.args.get('bulk', 'false') == 'true'
-    # TODO sven have this return the metadata dictionary ... table_name, schema_name
+    # TODO sven have this return the metadata dictionary
+    # ... table_name, schema_name
     md = db.get_table_metadata(dataset, table_name)
     annotation_type = md['schema_name']
+
     if request.method == "GET":
         return jsonify(md)
 
     if request.method == "POST":
+        schema_endpoint = current_app.config['SCHEMA_SERVICE_ENDPOINT']
+        try:
+            schema = get_schema(annotation_type, schema_endpoint)
+        except SchemaServiceError as sse:
+            abort(502, sse)
+        except UnknownAnnotationTypeException as uate:
+            abort(502, uate)
         user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                      request.remote_addr))
 
@@ -201,26 +243,16 @@ def import_annotations(dataset, table_name):
         if is_bulk:
             df = pd.read_json(d)
             uids = import_dataframe(db, dataset, table_name, table_name, df,
-                                    user_id)
+                                    user_id, schema)
         else:
-            try:
-                schema = get_schema_with_context(annotation_type,
-                                                 dataset)
-            except UnknownAnnotationTypeException as m:
-                print("ABORT 404")
-                abort(404, str(m))
-
-            result = schema.load(d, many=True)
-            if len(result.errors) > 0:
-                abort(422, result.errors)
-
+            anns = validate_ann(d, schema, annotation_type)
             annotations = []
-            for ann in result.data:
+            for ann in anns:
                 bsps = collect_bound_spatial_points(ann)
                 blob = json.dumps(schema.dump(ann).data)
                 annotations.append((bsps, blob))
             # TODO you should be expecting annotations to be a list of tuples
-            # with bound spatial point lists of dictionaries and annotation blobs
+            # with bound spatial point lists of dictionaries and blobs
             uids = db.insert_annotations(dataset,
                                          table_name,
                                          annotations,
@@ -233,7 +265,7 @@ def import_annotations(dataset, table_name):
           methods=["GET", "PUT", "DELETE"])
 def get_annotation(dataset, table_name, oid):
     db = get_db()
-
+    schema_endpoint = current_app.config['SCHEMA_SERVICE_ENDPOINT']
     md = db.get_table_metadata(dataset, table_name)
     annotation_type = md['schema_name']
 
@@ -242,18 +274,13 @@ def get_annotation(dataset, table_name, oid):
 
     if request.method == "PUT":
         try:
-            schema = get_schema_with_context(annotation_type, dataset)
+            schema = get_schema(annotation_type, schema_endpoint)
         except UnknownAnnotationTypeException:
             abort(404)
-
-        result = schema.load(request.json)
-        if len(result.errors) > 0:
-            abort(422, result.errors)
-
-        ann = result.data
+        ann = validate_ann(request.json, schema, annotation_type)
         annotations = [(np.uint64(oid),
-                        collect_bound_spatial_points(result.data),
-                        json.dumps(schema.dump(ann).data))]
+                        collect_bound_spatial_points(ann),
+                        json.dumps(ann))]
         # TODO sven this like insert needs to change what it expects
         success = db.update_annotations(dataset,
                                         table_name,
@@ -281,7 +308,7 @@ def get_annotation(dataset, table_name, oid):
             msg = 'annotation {} ({}) not in {}'
             msg = msg.format(oid, table_name, dataset)
             abort(404, msg)
-        schema = get_schema_with_context(annotation_type)
+        schema = get_schema(annotation_type, schema_endpoint)
         ann = json.loads(ann)
         ann['oid'] = oid
-        return jsonify(schema.dump(ann)[0])
+        return jsonify(ann)

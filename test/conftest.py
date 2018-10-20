@@ -12,8 +12,10 @@ from time import sleep
 import os
 from signal import SIGTERM
 import requests_mock
+from emannotationschemas.blueprint_app import get_type_schema, get_types
 
 INFOSERVICE_ENDPOINT = "http://infoservice"
+SCHEMA_SERVICE_ENDPOINT = "http://schemaservice"
 TEST_DATASET_NAME = 'test'
 tempdir = tempfile.mkdtemp()
 TEST_PATH = "file:/{}".format(tempdir)
@@ -172,6 +174,7 @@ def app(cv, root_id_vol, test_dataset, bigtable_settings):
                 'emulate': True,
                 'TESTING': True,
                 'INFOSERVICE_ENDPOINT':  INFOSERVICE_ENDPOINT,
+                'SCHEMA_SERVICE_ENDPOINT': SCHEMA_SERVICE_ENDPOINT,
                 'BIGTABLE_CONFIG': {
                     'emulate': True
                 },
@@ -185,6 +188,15 @@ def app(cv, root_id_vol, test_dataset, bigtable_settings):
 @pytest.fixture(scope='session')
 def client(app):
     return app.test_client()
+
+
+def mock_schema_service(requests_mock):
+    types_url = os.path.join(SCHEMA_SERVICE_ENDPOINT)
+    types = get_types()
+    requests_mock.get(types_url, json=types)
+    for type_ in types:
+        url = os.path.join(SCHEMA_SERVICE_ENDPOINT, type_)
+        requests_mock.get(url, json=get_type_schema(type_))
 
 
 def mock_info_service(requests_mock):

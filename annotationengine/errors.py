@@ -10,3 +10,7 @@ class AnnotationNotFoundException(AnnotationEngineException):
 
 class DataSetNotFoundException(AnnotationEngineException):
     ''' error raised when a dataset is not found '''
+
+
+class SchemaServiceError(AnnotationEngineException):
+    ''' error raised when schema can't be loading from schema service '''

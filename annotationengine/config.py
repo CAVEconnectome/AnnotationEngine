@@ -12,7 +12,8 @@ class BaseConfig(object):
     proj_dir = os.path.split(get_app_base_path())[0]
 
     NEUROGLANCER_URL = "https://neuroglancer-demo.appspot.com"
-    INFOSERVICE_ENDPOINT = "http://35.196.170.230"
+    INFOSERVICE_ENDPOINT = "https://www.dynamicannotationengine.com/info"
+    SCHEMA_SERVICE_ENDPOINT = "https://www.dynamicannotationengine.com/schema"
     BIGTABLE_CONFIG = {
         'instance_id': 'pychunkedgraph',
         'project_id': "neuromancer-seung-import"

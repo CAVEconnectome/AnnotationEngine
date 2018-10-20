@@ -1,12 +1,9 @@
 numpy
 marshmallow
 Flask
-marshmallow-jsonschema
-marshmallow_jsonschema
 pandas
 cloud-volume
 dynamicannotationdb>=0.0.5
-emannotationschemas>=0.2.15
 multiwrapper
 google-api-core==0.1.4
 google-auth==1.5.0
