@@ -122,9 +122,10 @@ def _import_dataframe_thread(args):
         annotations.append((supervoxels, blob))
 
     for k in time_dict.keys():
-        print("%s - mean: %.6fs - median: %.6fs - std: %.6fs - first: %.6fs - last: %.6fs" %
-              (k, np.mean(time_dict[k]), np.median(time_dict[k]), np.std(time_dict[k]),
-               time_dict[k][0], time_dict[k][-1]))
+        print("%s - mean: %.6fs - median: %.6fs - std: %.6fs - first: %.6fs -"
+              " last: %.6fs" % (k, np.mean(time_dict[k]),
+                                np.median(time_dict[k]), np.std(time_dict[k]),
+                                time_dict[k][0], time_dict[k][-1]))
 
     return ind, annotations
 
