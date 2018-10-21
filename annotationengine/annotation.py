@@ -30,6 +30,10 @@ def collect_supervoxels_recursive(d, svids=None):
             svids = collect_supervoxels_recursive(v, svids)
     return svids
 
+@bp.route("/sleep/<int:sleep>")
+def sleep_me(sleep):
+    time.sleep(sleep)
+    return "zzz... {} ... awake".format(sleep)
 
 @bp.route("/")
 def index():
