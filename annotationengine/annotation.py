@@ -201,10 +201,10 @@ def import_dataframe(db, dataset, table_name, schema_name, df, user_id, schema,
     u_ids_lists = []
     for result in results:
         ind.append(result[0])
-        uids = db.insert_annotations(dataset,
+        uids = db.insert_annotations(user_id,
+                                     dataset,
                                      table_name,
-                                     result[1],
-                                     user_id)
+                                     result[1])
 
         u_ids_lists.append(uids)
 
@@ -253,10 +253,10 @@ def import_annotations(dataset, table_name):
                 annotations.append((bsps, blob))
             # TODO you should be expecting annotations to be a list of tuples
             # with bound spatial point lists of dictionaries and blobs
-            uids = db.insert_annotations(dataset,
+            uids = db.insert_annotations(user_id,
+                                         dataset,
                                          table_name,
-                                         annotations,
-                                         user_id)
+                                         annotations)
 
         return jsonify(np.uint64(uids).tolist())
 
@@ -291,10 +291,10 @@ def get_annotation(dataset, table_name, oid):
 
     if request.method == "DELETE":
 
-        success = db.delete_annotations(dataset,
+        success = db.delete_annotations(user_id,
+                                        dataset,
                                         table_name,
-                                        np.array([int(oid)], np.uint64),
-                                        user_id)
+                                        np.array([int(oid)], np.uint64))
         if success[0]:
             return jsonify(success[0])
         else:
