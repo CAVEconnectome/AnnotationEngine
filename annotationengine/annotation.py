@@ -91,11 +91,12 @@ def validate_ann(d, schema, schema_name):
 @bp.route("/dataset/<dataset>", methods=["GET", "POST"])
 def get_annotation_types(dataset):
     db = get_db()
-
+    endpoint = current_app.config['SCHEMA_SERVICE_ENDPOINT']
     # make a new table
     if request.method == "POST":
         # first validate this is a valid dataset
         valid_datasets = get_datasets()
+        print(valid_datasets)
         if dataset not in valid_datasets:
             abort(404)
 
@@ -103,7 +104,7 @@ def get_annotation_types(dataset):
         d = request.json
         table_name = d['table_name']
         schema_name = d['schema_name']
-        if schema_name not in get_schemas():
+        if schema_name not in get_schemas(endpoint):
             abort(404)
 
         # if table already exists return 200
@@ -221,6 +222,8 @@ def import_annotations(dataset, table_name):
     # TODO sven have this return the metadata dictionary
     # ... table_name, schema_name
     md = db.get_table_metadata(dataset, table_name)
+    if md is None:
+        abort(404)
     annotation_type = md['schema_name']
 
     if request.method == "GET":
