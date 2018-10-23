@@ -16,7 +16,7 @@ def synapse_table_md():
 
 @pytest.fixture()
 def test_synapse_table(client, test_dataset, synapse_table_md, mock_me):
-    url = '/annotaiton/dataset/{}'.format(test_dataset)
+    url = '/annotation/dataset/{}'.format(test_dataset)
     response = client.post(url, json=synapse_table_md)
     assert(response.status_code == 200)
 

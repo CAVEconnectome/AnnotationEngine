@@ -23,6 +23,14 @@ def test_junk_synapse(client, test_dataset, mock_me):
 
 
 def test_synapse(client, app, test_dataset, mock_me):
+    url = '/dataset/'
+    d = {
+        "table_name": "synapse",
+        "schema_name": "synapse"
+    }
+    r = client.post(url, json=d)
+    assert(r.status_code == 200)
+
     synapse_d = {
         'type': 'synapse',
         'pre_pt':
