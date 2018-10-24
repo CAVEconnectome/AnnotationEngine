@@ -5,7 +5,7 @@ marshmallow-jsonschema
 marshmallow_jsonschema
 pandas
 cloud-volume
-dynamicannotationdb>=0.0.5
+dynamicannotationdb>=0.0.5<1.0.0
 emannotationschemas>=0.2.15
 multiwrapper
 google-api-core==0.1.4
