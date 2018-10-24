@@ -3,6 +3,11 @@ class AnnotationEngineException(Exception):
     pass
 
 
+class UnknownAnnotationTypeException(Exception):
+    ''' error raised when an annotation type is not found '''
+    pass
+
+
 class AnnotationNotFoundException(AnnotationEngineException):
     ''' error raised when an annotation is not found '''
     pass

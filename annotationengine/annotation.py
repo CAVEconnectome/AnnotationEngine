@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, abort, current_app
 from annotationengine.anno_database import get_db
 from annotationengine.dataset import get_datasets
-from emannotationschemas.errors import UnknownAnnotationTypeException
+from annotationengine.errors import UnknownAnnotationTypeException
 from annotationengine.errors import SchemaServiceError
 from jsonschema import validate, ValidationError
 import numpy as np
