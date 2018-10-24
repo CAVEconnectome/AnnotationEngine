@@ -18,18 +18,28 @@ bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 __version__ = "0.0.36"
 
 
-def collect_bound_spatial_points(d, bsps=None, path=None):
-    if bsps is None:
-        bsps = {}
+def collect_bound_spatial_points(d, schema):
+    bsp_paths = collect_bound_spatial_point_paths(schema['def'])
+    bsps = {}
+    for path in bsp_paths:
+        v = d
+        for k in path:
+            v=v[k]
+        bsps[k]=
+def collect_bound_spatial_point_paths(schema, bsp_paths=None, path=None):
+
+    if bsp_paths is None:
+        bsp_paths = []
     if path is None:
         path = []
-    if 'supervoxel_id' in d.keys():
-        if 'position' in d.keys():
-            bsps[path[-1]] = d['position']
+    
+    if '$ref' in schema.keys():
+        if schema['$ref'] == '#/definitions/BoundSpatialPoint':
+            bsp_paths.append(path)
     for k, v in d.items():
         if type(v) is dict:
-            bsps = collect_bound_spatial_points(v, bsps, path.append(k))
-    return bsps
+            bsp_paths = collect_bound_spatial_point_paths(schema, bsp_paths, path.append(k))
+    return bsp_paths
 
 
 @bp.route("/")
@@ -66,7 +76,7 @@ def get_schema_from_service(annotation_type, endpoint):
 
 def get_schema_with_context(annotation_type, endpoint, flatten=False):
     context = {'flatten': flatten}
-    Schema = get_schema(annotation_type)
+    Schema = get_schema_from_service(annotation_type, endpoint)
     schema = Schema(context=context)
     return schema
 
@@ -76,11 +86,11 @@ def validate_ann(d, schema, schema_name):
         if type(d) == list:
             for d_i in d:
                 validate(d_i, schema)
-                d_i['type']=schema
+                d_i['type']=schema_name
         else:
             validate(d, schema)
-            d['type']=schema
-        
+            d['type']=schema_name
+            d=[d]
     except ValidationError as ve:
         abort(422, ve)
     
@@ -263,8 +273,7 @@ def import_annotations(dataset, table_name):
                 bsps = collect_bound_spatial_points(ann)
                 blob = json.dumps(ann)
                 annotations.append((bsps, blob))
-            # TODO you should be expecting annotations to be a list of tuples
-            # with bound spatial point lists of dictionaries and blobs
+            print(annotations)
             uids = db.insert_annotations(user_id,
                                          dataset,
                                          table_name,
