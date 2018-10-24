@@ -1,6 +1,5 @@
 import pytest
 from annotationengine import create_app
-import cloudvolume
 import numpy as np
 import tempfile
 import shutil
@@ -125,11 +124,11 @@ def client(app):
 
 
 def mock_schema_service(requests_mock):
-    types_url = os.path.join(SCHEMA_SERVICE_ENDPOINT)
+    types_url = os.path.join(SCHEMA_SERVICE_ENDPOINT,'type')
     types = get_types()
     requests_mock.get(types_url, json=types)
     for type_ in types:
-        url = os.path.join(SCHEMA_SERVICE_ENDPOINT, type_)
+        url = os.path.join(SCHEMA_SERVICE_ENDPOINT, 'type', type_)
         requests_mock.get(url, json=get_type_schema(type_))
 
 

@@ -1,9 +1,6 @@
 numpy
-marshmallow
 Flask
 pandas
-cloud-volume
-dynamicannotationdb>=0.0.5
+dynamicannotationdb>=0.0.6
 multiwrapper
-google-api-core==0.1.4
-google-auth==1.5.0
+jsonschema

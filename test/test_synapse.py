@@ -8,8 +8,26 @@ def mock_me(requests_mock):
     mock_info_service(requests_mock)
     mock_schema_service(requests_mock)
 
+@pytest.fixture()
+def synapse_table_md():
+    return {'table_name': 'test_synapse', 'schema_name': 'synapse'}
 
-def test_junk_synapse(client, test_dataset, mock_me):
+
+@pytest.fixture()
+def test_synapse_table(client, test_dataset, synapse_table_md, mock_me):
+    url = '/annotation/dataset/{}'.format(test_dataset)
+    response = client.post(url, json=synapse_table_md)
+    assert(response.status_code == 200)
+    d = response.json
+    assert(d['table_name'] == 'test_synapse')
+
+    url = 'annotation/dataset/test_synapse'
+    r = client.get(url)
+    assert(r.status_code == 200)
+    return synapse_table_md['table_name']
+
+
+def test_junk_synapse(client, test_dataset, test_synapse_table, mock_me):
     junk_d = {
         'type': 'synapse',
         'pt_prt': {
@@ -22,15 +40,7 @@ def test_junk_synapse(client, test_dataset, mock_me):
     assert response.status_code == 422
 
 
-def test_synapse(client, app, test_dataset, mock_me):
-    url = '/dataset/'
-    d = {
-        "table_name": "synapse",
-        "schema_name": "synapse"
-    }
-    r = client.post(url, json=d)
-    assert(r.status_code == 200)
-
+def test_synapse(client, app, test_dataset, test_synapse_table, mock_me):
     synapse_d = {
         'type': 'synapse',
         'pre_pt':

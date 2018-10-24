@@ -17,6 +17,7 @@ def test_db(app, mock_me):
         for dataset in get_datasets():
             for type_ in types:
                 db.create_table('test', dataset, type_, type_)
-            tables = db.get_existing_annotation_types(dataset)
+            mds = db.get_existing_tables_metadata(dataset)
+            print(mds)
             for type_ in types:
-                assert(type_ in tables)
+                md = next(md for md in mds if md['table_name']==type_)
