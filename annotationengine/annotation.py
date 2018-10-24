@@ -133,7 +133,10 @@ def get_annotation_types(dataset):
         user_id = request.headers.get('X-Forwarded-For',request.remote_addr)
         # TODO sven make the accept both a table name and a schema name,
         # and also userid please raise an exception if this table doesn't exist
-        db.create_table(user_id, dataset, d['table_name'], d['schema_name'])
+        success=db.create_table(user_id, dataset, d['table_name'], d['schema_name'])
+        if not success:
+            abort(503, "this table could not be created")
+
         md = db.get_table_metadata(dataset, table_name)
         return jsonify(md)
 
