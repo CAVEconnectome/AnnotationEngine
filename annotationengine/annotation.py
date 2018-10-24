@@ -20,12 +20,12 @@ __version__ = "0.0.36"
 
 def collect_bound_spatial_points(d, bsps=None, path=None):
     if bsps is None:
-        bsps = []
+        bsps = {}
     if path is None:
         path = []
     if 'supervoxel_id' in d.keys():
         if 'position' in d.keys():
-            bsps.append({'position': d['position'], 'path': path})
+            bsps[path[-1]] = d['position']
     for k, v in d.items():
         if type(v) is dict:
             bsps = collect_bound_spatial_points(v, bsps, path.append(k))
