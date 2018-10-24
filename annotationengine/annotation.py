@@ -146,7 +146,7 @@ def get_annotation_types(dataset):
         #  "table_name": "table_name",
         #  "schema_name": "schema_name"
         # }]
-        types = db.get_existing_tables(dataset)
+        types = db.get_existing_tables_metadata(dataset)
         return jsonify(types)
 
 
