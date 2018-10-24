@@ -1,5 +1,5 @@
 
-__version__ = "0.0.47"
+__version__ = "0.0.48"
 
 
 def create_app(test_config=None):
