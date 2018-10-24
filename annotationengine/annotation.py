@@ -51,7 +51,7 @@ def index():
 
 @bp.route("/datasets")
 def get_annotation_datasets():
-    return get_datasets()
+    return jsonify(get_datasets())
 
 
 def get_schemas(endpoint):
