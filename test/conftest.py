@@ -1,8 +1,6 @@
 import pytest
 from annotationengine import create_app
-import numpy as np
 import tempfile
-import shutil
 from google.cloud import bigtable, exceptions
 import subprocess
 from annotationengine.anno_database import DoNothingCreds
@@ -12,6 +10,7 @@ import os
 from signal import SIGTERM
 import requests_mock
 from emannotationschemas.blueprint_app import get_type_schema, get_types
+
 
 INFOSERVICE_ENDPOINT = "http://infoservice"
 SCHEMA_SERVICE_ENDPOINT = "http://schemaservice"
@@ -23,7 +22,7 @@ PYCHUNKEDGRAPH_ENDPOINT = "http://pcg/segmentation"
 
 @pytest.fixture(scope='session')
 def bigtable_settings():
-    return 'anno_test', 'cg_test'
+    return 'annos_test', 'cg_test'
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -85,7 +84,7 @@ def test_dataset():
 
 
 @pytest.fixture(scope='session')
-def app( test_dataset, bigtable_settings):
+def app(test_dataset, bigtable_settings):
     bt_project, bt_table = bigtable_settings
 
     with requests_mock.Mocker() as m:
@@ -100,7 +99,6 @@ def app( test_dataset, bigtable_settings):
             "pychunkgraph_endpoint": PYCHUNKEDGRAPH_ENDPOINT,
         }
         m.get(dataset_info_url, json=dataset_d)
-        
         app = create_app(
             {
                 'project_id': 'test',
@@ -124,7 +122,7 @@ def client(app):
 
 
 def mock_schema_service(requests_mock):
-    types_url = os.path.join(SCHEMA_SERVICE_ENDPOINT,'type')
+    types_url = os.path.join(SCHEMA_SERVICE_ENDPOINT, 'type')
     types = get_types()
     requests_mock.get(types_url, json=types)
     for type_ in types:

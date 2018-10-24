@@ -8,6 +8,7 @@ def mock_me(requests_mock):
     mock_info_service(requests_mock)
     mock_schema_service(requests_mock)
 
+
 @pytest.fixture()
 def synapse_table_md():
     return {'table_name': 'test_synapse', 'schema_name': 'synapse'}
@@ -70,7 +71,7 @@ def test_synapse(client, app, test_dataset, test_synapse_table, mock_me):
     response = client.get(url)
     assert(response.status_code == 200)
     synapse_d = response.json
-    assert(type(synapse_d['pre_pt']['supervoxel_id']) == int)
+    assert(len(synapse_d['pre_pt']['position']) == 3)
 
     # # test that we can search for it
     # TODO implement this feature
