@@ -80,9 +80,9 @@ def test_synapse(client, app, test_dataset, test_synapse_table, mock_me):
     # assert (oid in response.json)
 
     # now lets modify it and update it with put
-    synapse_d['pre_pt']['position'] = [31, 30, 0]
-    response = client.put(url, json=synapse_d)
-    assert(response.status_code == 200)
+    # synapse_d['pre_pt']['position'] = [31, 30, 0]
+    # response = client.put(url, json=synapse_d)
+    # assert(response.status_code == 200)
 
     # test that updating it with bad data fails
     junk_d = {
@@ -95,22 +95,22 @@ def test_synapse(client, app, test_dataset, test_synapse_table, mock_me):
     assert response.status_code == 422
 
     # test that it is changed when we get it again
-    response = client.get(url)
-    assert(response.status_code == 200)
-    synapse_d = response.json
-    assert(synapse_d['pre_pt']['position'] == [31, 30, 0])
+    # response = client.get(url)
+    # assert(response.status_code == 200)
+    # synapse_d = response.json
+    # assert(synapse_d['pre_pt']['position'] == [31, 30, 0])
 
-    # test that we can delete it
-    response = client.delete(url)
-    assert(response.status_code == 200)
+    # # test that we can delete it
+    # response = client.delete(url)
+    # assert(response.status_code == 200)
 
-    # test that we get 404 when we try to get it again
-    response = client.get(url)
-    assert(response.status_code == 404)
+    # # test that we get 404 when we try to get it again
+    # response = client.get(url)
+    # assert(response.status_code == 404)
 
-    # test that we get 404 when we try to delete it again
-    response = client.delete(url)
-    assert(response.status_code == 404)
+    # # test that we get 404 when we try to delete it again
+    # response = client.delete(url)
+    # assert(response.status_code == 404)
 
 
 def test_bulk_synapse(client, app, test_dataset, mock_me):
