@@ -1,6 +1,6 @@
 numpy
 Flask
 pandas
-dynamicannotationdb>=0.0.6
+dynamicannotationdb>=1.0.0
 multiwrapper
 jsonschema
