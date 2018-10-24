@@ -14,7 +14,7 @@ import os
 import requests
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 
 def collect_bound_spatial_points(ann: dict, schema: dict):
