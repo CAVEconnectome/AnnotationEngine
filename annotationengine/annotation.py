@@ -12,33 +12,29 @@ import time
 import collections
 import os
 import requests
-
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
 __version__ = "0.0.36"
 
 
-def collect_bound_spatial_points(d, schema):
-    bsp_paths = collect_bound_spatial_point_paths(schema['def'])
+def collect_bound_spatial_points(ann: dict, schema: dict):
+    bsp_paths = collect_bound_spatial_point_paths(schema)
     bsps = {}
     for path in bsp_paths:
-        v = d
-        for k in path:
-            v=v[k]
-        bsps[k]=
-def collect_bound_spatial_point_paths(schema, bsp_paths=None, path=None):
+        bsps[path] = np.array(ann[path]['position'])
+    return bsps
 
-    if bsp_paths is None:
-        bsp_paths = []
-    if path is None:
-        path = []
-    
-    if '$ref' in schema.keys():
-        if schema['$ref'] == '#/definitions/BoundSpatialPoint':
-            bsp_paths.append(path)
-    for k, v in d.items():
-        if type(v) is dict:
-            bsp_paths = collect_bound_spatial_point_paths(schema, bsp_paths, path.append(k))
+
+# TODO make this more general for nested BoundSpatialPoints
+# and lists of BoundSpatialPoints
+def collect_bound_spatial_point_paths(schema):
+    root = schema['$ref'].split('/')[1:]
+    root_schema = schema[root[0]][root[1]]
+    bsp_paths = []
+    for k, v in root_schema['properties'].items():
+        if '$ref' in v.keys():
+            if (v['$ref'] == "#/definitions/BoundSpatialPoint"):
+                bsp_paths.append(k)
     return bsp_paths
 
 
@@ -63,9 +59,7 @@ def get_schemas(endpoint):
 
 
 def get_schema_from_service(annotation_type, endpoint):
-    print('at',annotation_type, 'endpoint', endpoint)
-    url = endpoint+ "/type/" + annotation_type
-    print(url)
+    url = endpoint + "/type/" + annotation_type
     r = requests.get(url)
     if (r.status_code != 200):
         raise(SchemaServiceError(r.text))
@@ -81,19 +75,18 @@ def get_schema_with_context(annotation_type, endpoint, flatten=False):
     return schema
 
 
+def validate_annotations(anns: list, schema, schema_name):
+    for ann in anns:
+        validate_ann(ann, schema, schema_name)
+    return anns
+
+
 def validate_ann(d, schema, schema_name):
     try:
-        if type(d) == list:
-            for d_i in d:
-                validate(d_i, schema)
-                d_i['type']=schema_name
-        else:
-            validate(d, schema)
-            d['type']=schema_name
-            d=[d]
+        d['type'] = schema_name
+        validate(d, schema)  
     except ValidationError as ve:
         abort(422, ve)
-    
 
     # d['type']=schema_name
     # result = schema.load(d)
@@ -111,7 +104,6 @@ def get_annotation_types(dataset):
     if request.method == "POST":
         # first validate this is a valid dataset
         valid_datasets = get_datasets()
-        print(valid_datasets)
         if dataset not in valid_datasets:
             abort(404)
 
@@ -131,13 +123,13 @@ def get_annotation_types(dataset):
                     return jsonify(type_)
                 else:
                     abort(503, 'this table already exists with a different schema')
-            
-        user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
-                                                     request.remote_addr))
+
+        user_id = request.headers.get('X-Forwarded-For',request.remote_addr)
         # TODO sven make the accept both a table name and a schema name,
         # and also userid please raise an exception if this table doesn't exist
         db.create_table(user_id, dataset, d['table_name'], d['schema_name'])
-        return jsonify(db.get_table_metadata(dataset, table_name))
+        md = db.get_table_metadata(dataset, table_name)
+        return jsonify(md)
 
     if request.method == "GET":
 
@@ -175,24 +167,23 @@ def _import_dataframe_thread(args):
     time_dict = collections.defaultdict(list)
 
     annotations = []
-
+    
     time_dict["schema"].append(time.time() - time_start)
     for k, row in df.iterrows():
         time_start = time.time()
-
+  
         d = nest_dictionary(dict(row))
 
         ann = validate_ann(d, schema, schema_name)
-
         time_dict["data"].append(time.time() - time_start)
         time_start = time.time()
 
-        bsps = collect_bound_spatial_points(ann)
+        bsps = collect_bound_spatial_points(ann, schema)
 
         time_dict["bound_spatial_point"].append(time.time() - time_start)
         time_start = time.time()
 
-        blob = json.dumps(schema.dump(ann).data)
+        blob = json.dumps(ann)
 
         time_dict["blob"].append(time.time() - time_start)
 
@@ -212,10 +203,8 @@ def import_dataframe(db, dataset, table_name, schema_name, df, user_id, schema,
     for i_start in range(0, len(df), block_size):
         multi_args.append([i_start, df[i_start: i_start + block_size],
                            schema_name, dataset, user_id, schema])
-
     results = mu.multiprocess_func(_import_dataframe_thread, multi_args,
                                    n_threads=n_threads)
-
     ind = []
     u_ids_lists = []
     for result in results:
@@ -250,36 +239,37 @@ def import_annotations(dataset, table_name):
     if request.method == "POST":
         schema_endpoint = current_app.config['SCHEMA_SERVICE_ENDPOINT']
         try:
-            print('schema_endpoint',schema_endpoint)
             schema = get_schema_from_service(annotation_type, schema_endpoint)
         except SchemaServiceError as sse:
             abort(502, sse)
         except UnknownAnnotationTypeException as uate:
             abort(502, uate)
-        user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
-                                                     request.remote_addr))
+        user_id = request.headers.get('X-Forwarded-For',request.remote_addr)
+
 
         # iterate through annotations in json posted
         d = request.json
-
         if is_bulk:
             df = pd.read_json(d)
             uids = import_dataframe(db, dataset, table_name, table_name, df,
                                     user_id, schema)
         else:
-            anns = validate_ann(d, schema, annotation_type)
+            if type(d) == list:
+                anns = validate_annotations(d, schema, annotation_type)
+            else:
+                ann = validate_ann(d, schema, annotation_type)
+                anns = [ann]
             annotations = []
             for ann in anns:
-                bsps = collect_bound_spatial_points(ann)
+                bsps = collect_bound_spatial_points(ann, schema)
                 blob = json.dumps(ann)
                 annotations.append((bsps, blob))
-            print(annotations)
             uids = db.insert_annotations(user_id,
                                          dataset,
                                          table_name,
                                          annotations)
 
-        return jsonify(np.uint64(uids).tolist())
+        return jsonify(np.uint64(uids))
 
 
 @bp.route("/dataset/<dataset>/<table_name>/<oid>",
@@ -290,8 +280,8 @@ def get_annotation(dataset, table_name, oid):
     md = db.get_table_metadata(dataset, table_name)
     annotation_type = md['schema_name']
 
-    user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
-                                                 request.remote_addr))
+    user_id = request.headers.get('X-Forwarded-For',request.remote_addr)
+
 
     if request.method == "PUT":
         try:
@@ -300,7 +290,7 @@ def get_annotation(dataset, table_name, oid):
             abort(404)
         ann = validate_ann(request.json, schema, annotation_type)
         annotations = [(np.uint64(oid),
-                        collect_bound_spatial_points(ann),
+                        collect_bound_spatial_points(ann, schema),
                         json.dumps(ann))]
         # TODO sven this like insert needs to change what it expects
         success = db.update_annotations(dataset,
