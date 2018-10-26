@@ -208,13 +208,13 @@ def _import_dataframe_thread(args):
 
 
 def import_dataframe(db, dataset, table_name, schema_name, df, user_id, schema,
-                     block_size=100, n_threads=1):
+                     block_size=100, n_threads=8):
     multi_args = []
     for i_start in range(0, len(df), block_size):
         multi_args.append([i_start, df[i_start: i_start + block_size],
                            schema_name, dataset, user_id, schema])
     results = mu.multiprocess_func(_import_dataframe_thread, multi_args,
-                                   n_threads=n_threads)
+                                   n_threads=n_threads, debug=n_threads==1)
     ind = []
     u_ids_lists = []
     for result in results:
@@ -259,7 +259,7 @@ def import_annotations(dataset, table_name):
     md = db.get_table_metadata(dataset, table_name)
     if md is None:
         abort(404)
-    annotation_type = md['schema_name']
+        schema_name = md['schema_name']
 
     if request.method == "GET":
         return jsonify(md)
@@ -267,11 +267,12 @@ def import_annotations(dataset, table_name):
     if request.method == "POST":
         schema_endpoint = current_app.config['SCHEMA_SERVICE_ENDPOINT']
         try:
-            schema = get_schema_from_service(annotation_type, schema_endpoint)
+            schema = get_schema_from_service(schema_name, schema_endpoint)
         except SchemaServiceError as sse:
             abort(502, sse)
         except UnknownAnnotationTypeException as uate:
             abort(502, uate)
+
         user_id = request.headers.get('X-Forwarded-For',request.remote_addr)
 
 
@@ -279,13 +280,13 @@ def import_annotations(dataset, table_name):
         d = request.json
         if is_bulk:
             df = pd.read_json(d)
-            uids = import_dataframe(db, dataset, table_name, table_name, df,
+            uids = import_dataframe(db, dataset, table_name, schema_name, df,
                                     user_id, schema)
         else:
             if type(d) == list:
-                anns = validate_annotations(d, schema, annotation_type)
+                anns = validate_annotations(d, schema, schema_name)
             else:
-                ann = validate_ann(d, schema, annotation_type)
+                ann = validate_ann(d, schema, schema_name)
                 anns = [ann]
             annotations = []
             for ann in anns:
