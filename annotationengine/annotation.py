@@ -232,6 +232,24 @@ def import_dataframe(db, dataset, table_name, schema_name, df, user_id, schema,
     return ids
 
 
+def import_annotation_func(data, user_id, dataset,table_name, schema, annotation_type, db):
+    if type(data) == list:
+        anns = validate_annotations(data, schema, annotation_type)
+    else:
+        ann = validate_ann(data, schema, annotation_type)
+        anns = [ann]
+    annotations = []
+    for ann in anns:
+        bsps = collect_bound_spatial_points(ann, schema)
+        blob = json.dumps(ann)
+        annotations.append((bsps, blob))
+    uids = db.insert_annotations(user_id,
+                                 dataset,
+                                 table_name,
+                                 annotations)
+    return uids
+
+                      
 @bp.route("/dataset/<dataset>/<table_name>", methods=["GET", "POST"])
 def import_annotations(dataset, table_name):
     db = get_db()
@@ -274,10 +292,7 @@ def import_annotations(dataset, table_name):
                 bsps = collect_bound_spatial_points(ann, schema)
                 blob = json.dumps(ann)
                 annotations.append((bsps, blob))
-            uids = db.insert_annotations(user_id,
-                                         dataset,
-                                         table_name,
-                                         annotations)
+            uids = import_annotation_func(d, user_id, dataset, table_name, schema, annotation_type, db)
 
         return jsonify(np.uint64(uids))
 
