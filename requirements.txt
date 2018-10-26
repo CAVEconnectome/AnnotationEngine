@@ -1,7 +1,6 @@
 numpy
 Flask
 pandas
-cloud-volume
 dynamicannotationdb>=1.0.0
 emannotationschemas>=0.2.15
 multiwrapper
