@@ -5,6 +5,7 @@ from google.cloud import bigtable
 
 cache = {}
 
+
 class DoNothingCreds(credentials.Credentials):
     def refresh(self, request):
         pass

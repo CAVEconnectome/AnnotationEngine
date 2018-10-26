@@ -1,11 +1,12 @@
 import json
-from conftest import mock_info_service
+from conftest import mock_info_service, mock_schema_service
 import pytest
 
 
 @pytest.fixture()
 def mock_me(requests_mock):
     mock_info_service(requests_mock)
+    mock_schema_service(requests_mock)
 
 
 @pytest.fixture()
@@ -19,7 +20,7 @@ def test_synapse_table(client, test_dataset, synapse_table_md, mock_me):
     response = client.post(url, json=synapse_table_md)
     assert(response.status_code == 200)
 
-    match = next([d for d in respons.json if d['table_name'] == 'synapse'])
+    match = next([d for d in response.json if d['table_name'] == 'synapse'])
 
     url = 'annotation/dataset/test_synapse'
     r = client.get(url)

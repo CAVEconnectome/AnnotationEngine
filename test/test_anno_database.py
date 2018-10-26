@@ -1,6 +1,6 @@
 from annotationengine.anno_database import get_db
 from annotationengine.dataset import get_datasets
-from annotationengine.schemas import get_types
+from emannotationschemas import get_types
 from conftest import mock_info_service
 import pytest
 
