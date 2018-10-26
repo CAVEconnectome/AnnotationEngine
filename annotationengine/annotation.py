@@ -260,7 +260,7 @@ def import_annotations(dataset, table_name):
     md = db.get_table_metadata(dataset, table_name)
     if md is None:
         abort(404)
-        schema_name = md['schema_name']
+    schema_name = md['schema_name']
 
     if request.method == "GET":
         return jsonify(md)
