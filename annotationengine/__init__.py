@@ -5,7 +5,7 @@ from annotationengine.config import configure_app
 from annotationengine.utils import get_instance_folder_path
 from annotationengine import annotation
 
-__version__ = "0.0.48"
+__version__ = "1.0.0"
 
 
 class AEEncoder(json.JSONEncoder):
