@@ -1,4 +1,4 @@
-from flask import g, current_app
+from flask import current_app
 from dynamicannotationdb.annodb import AnnotationMetaDB
 from google.auth import credentials, default as default_creds
 from google.cloud import bigtable

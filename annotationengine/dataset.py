@@ -17,7 +17,6 @@ def get_dataset(dataset):
     url = os.path.join(infoservice, "api/dataset/{}".format(dataset))
     r = requests.get(url)
     if r.status_code != 200:
-        raise DataSetNotFoundException('dataset {} not found'%(dataset))
+        raise DataSetNotFoundException('dataset {} not found'.format(dataset))
     else:
         return r.json()
-
