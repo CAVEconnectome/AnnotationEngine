@@ -169,6 +169,7 @@ def nest_dictionary(d, key_path=None, sep="."):
 
 
 def _import_dataframe_thread(args):
+
     ind, df, schema_name, dataset, user_id, schema = args
 
     time_start = time.time()
@@ -232,11 +233,11 @@ def import_dataframe(db, dataset, table_name, schema_name, df, user_id, schema,
     return ids
 
 
-def import_annotation_func(data, user_id, dataset,table_name, schema, annotation_type, db):
+def import_annotation_func(data, user_id, dataset,table_name, schema, schema_name, db):
     if type(data) == list:
-        anns = validate_annotations(data, schema, annotation_type)
+        anns = validate_annotations(data, schema, schema_name)
     else:
-        ann = validate_ann(data, schema, annotation_type)
+        ann = validate_ann(data, schema, schema_name)
         anns = [ann]
     annotations = []
     for ann in anns:
@@ -293,7 +294,7 @@ def import_annotations(dataset, table_name):
                 bsps = collect_bound_spatial_points(ann, schema)
                 blob = json.dumps(ann)
                 annotations.append((bsps, blob))
-            uids = import_annotation_func(d, user_id, dataset, table_name, schema, annotation_type, db)
+            uids = import_annotation_func(d, user_id, dataset, table_name, schema, schema_name, db)
 
         return jsonify(np.uint64(uids))
 
