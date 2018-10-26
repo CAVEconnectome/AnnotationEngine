@@ -3,7 +3,7 @@ from annotationengine.anno_database import get_db
 from annotationengine.dataset import get_datasets
 from emannotationschemas.errors import UnknownAnnotationTypeException
 from annotationengine.errors import SchemaServiceError
-import jsonschema
+from jsonschema import validate, ValidationError
 import numpy as np
 import json
 import pandas as pd
@@ -58,8 +58,10 @@ def get_schemas(endpoint):
     return schema_d
 
 
-def get_schema(annotation_type, endpoint):
-    url = os.path.join(endpoint, "/type/", annotation_type)
+def get_schema_from_service(annotation_type, endpoint):
+    print('at',annotation_type, 'endpoint', endpoint)
+    url = endpoint+ "/type/" + annotation_type
+    print(url)
     r = requests.get(url)
     if (r.status_code != 200):
         raise(SchemaServiceError(r.text))
@@ -79,12 +81,15 @@ def validate_ann(d, schema, schema_name):
     try:
         if type(d) == list:
             for d_i in d:
-                jsonschema.validate(d_i, schema)
+                validate(d_i, schema)
+                d_i['type']=schema
         else:
-            jsonschema(d, schema)
-    except jsonschema.ValidationError as ve:
+            validate(d, schema)
+            d['type']=schema
+        
+    except ValidationError as ve:
         abort(422, ve)
-    d['type'] = schema_name
+    
 
     # d['type']=schema_name
     # result = schema.load(d)
@@ -114,17 +119,20 @@ def get_annotation_types(dataset):
             abort(404)
 
         # if table already exists return 200
-        types = db.get_existing_tables(dataset)
+        mds = db.get_existing_tables_metadata(dataset)
 
-        for type_ in types:
-            if type_['schema_name'] == schema_name:
-                return jsonify[type_]
-
+        for type_ in mds:
+            if type_['table_name'] == table_name:
+                if type_['schema_name'] == schema_name:
+                    return jsonify(type_)
+                else:
+                    abort(503, 'this table already exists with a different schema')
+            
         user_id = jsonify(origin=request.headers.get('X-Forwarded-For',
                                                      request.remote_addr))
         # TODO sven make the accept both a table name and a schema name,
         # and also userid please raise an exception if this table doesn't exist
-        db.create_table(dataset, d['table_name'], d['schema_name'], user_id)
+        db.create_table(user_id, dataset, d['table_name'], d['schema_name'])
         return jsonify(db.get_table_metadata(dataset, table_name))
 
     if request.method == "GET":
@@ -239,7 +247,8 @@ def import_annotations(dataset, table_name):
     if request.method == "POST":
         schema_endpoint = current_app.config['SCHEMA_SERVICE_ENDPOINT']
         try:
-            schema = get_schema(annotation_type, schema_endpoint)
+            print('schema_endpoint',schema_endpoint)
+            schema = get_schema_from_service(annotation_type, schema_endpoint)
         except SchemaServiceError as sse:
             abort(502, sse)
         except UnknownAnnotationTypeException as uate:
@@ -259,7 +268,7 @@ def import_annotations(dataset, table_name):
             annotations = []
             for ann in anns:
                 bsps = collect_bound_spatial_points(ann)
-                blob = json.dumps(schema.dump(ann).data)
+                blob = json.dumps(ann)
                 annotations.append((bsps, blob))
             # TODO you should be expecting annotations to be a list of tuples
             # with bound spatial point lists of dictionaries and blobs
@@ -284,7 +293,7 @@ def get_annotation(dataset, table_name, oid):
 
     if request.method == "PUT":
         try:
-            schema = get_schema(annotation_type, schema_endpoint)
+            schema = get_schema_from_service(annotation_type, schema_endpoint)
         except UnknownAnnotationTypeException:
             abort(404)
         ann = validate_ann(request.json, schema, annotation_type)
@@ -318,7 +327,7 @@ def get_annotation(dataset, table_name, oid):
             msg = 'annotation {} ({}) not in {}'
             msg = msg.format(oid, table_name, dataset)
             abort(404, msg)
-        schema = get_schema(annotation_type, schema_endpoint)
+        schema = get_schema_from_service(annotation_type, schema_endpoint)
         ann = json.loads(ann)
         ann['oid'] = oid
         return jsonify(ann)
