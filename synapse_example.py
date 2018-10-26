@@ -44,8 +44,9 @@ def insert_synases_no_endpoint(syn_df, dataset_name='pinky100',
     amdb = AnnotationMetaDB()
     amdb._reset_table(user_id, dataset_name, table_name, schema_name)
 
+    syn_df_jsonified = pd.read_json(syn_df.to_json())
     annotation.import_dataframe(amdb, dataset_name, table_name, schema_name,
-                                syn_df, user_id, schema, n_threads=1)
+                                syn_df_jsonified, user_id, schema, n_threads=1)
 
 if __name__ == "__main__":
 
