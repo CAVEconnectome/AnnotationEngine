@@ -1,9 +1,10 @@
-from flask import g, current_app
-from dynamicannotationdb.annodb import AnnotationMetaDB
+from flask import current_app
+from dynamicannotationdb.annodb_meta import AnnotationMetaDB
 from google.auth import credentials, default as default_creds
 from google.cloud import bigtable
 
 cache = {}
+
 
 class DoNothingCreds(credentials.Credentials):
     def refresh(self, request):
