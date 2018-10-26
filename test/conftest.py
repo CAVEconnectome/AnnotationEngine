@@ -1,9 +1,6 @@
 import pytest
 from annotationengine import create_app
-import cloudvolume
-import numpy as np
 import tempfile
-import shutil
 from google.cloud import bigtable, exceptions
 import subprocess
 from annotationengine.anno_database import DoNothingCreds
@@ -13,6 +10,7 @@ import os
 from signal import SIGTERM
 import requests_mock
 from emannotationschemas.blueprint_app import get_type_schema, get_types
+
 
 INFOSERVICE_ENDPOINT = "http://infoservice"
 SCHEMA_SERVICE_ENDPOINT = "http://schemaservice"
@@ -24,7 +22,7 @@ PYCHUNKEDGRAPH_ENDPOINT = "http://pcg/segmentation"
 
 @pytest.fixture(scope='session')
 def bigtable_settings():
-    return 'anno_test', 'cg_test'
+    return 'annos_test', 'cg_test'
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -81,71 +79,12 @@ def bigtable_client(request, bigtable_settings):
 
 
 @pytest.fixture(scope='session')
-def cv(N=64, blockN=16):
-
-    block_per_row = int(N / blockN)
-
-    chunk_size = [32, 32, 32]
-    info = cloudvolume.CloudVolume.create_new_info(
-        num_channels=1,
-        layer_type='segmentation',
-        data_type='uint64',
-        encoding='raw',
-        resolution=[4, 4, 40],  # Voxel scaling, units are in nanometers
-        voxel_offset=[0, 0, 0],  # x,y,z offset in voxels from the origin
-        # Pick a convenient size for your underlying chunk representation
-        # Powers of two are recommended, doesn't need to cover image exactly
-        chunk_size=chunk_size,  # units are voxels
-        volume_size=[N, N, N],
-    )
-    vol = cloudvolume.CloudVolume(TEST_PATH, info=info)
-    vol.commit_info()
-    xx, yy, zz = np.meshgrid(*[np.arange(0, N) for cs in chunk_size])
-    id_ind = (np.uint64(xx / blockN),
-              np.uint64(yy / blockN),
-              np.uint64(zz / blockN))
-    id_shape = (block_per_row, block_per_row, block_per_row)
-
-    seg = np.ravel_multi_index(id_ind, id_shape)
-    vol[:] = np.uint64(seg)
-
-    yield TEST_PATH
-
-    shutil.rmtree(tempdir)
-
-
-@pytest.fixture(scope='session')
-def root_id_vol(N=64, blockN=32):
-
-    block_per_row = int(N / blockN)
-
-    chunk_size = [32, 32, 32]
-    xx, yy, zz = np.meshgrid(*[np.arange(0, N) for cs in chunk_size])
-    root_ind = (np.uint64(xx / (blockN)),
-                np.uint64(yy / (blockN)),
-                np.uint64(zz / (blockN)))
-    root_shape = (block_per_row, block_per_row, block_per_row)
-    root_id = np.ravel_multi_index(root_ind, root_shape)+1000
-
-    return root_id
-
-
-@pytest.fixture(scope='session')
 def test_dataset():
     return TEST_DATASET_NAME
 
 
-def get_supervoxel_leaves(cv, root_id_vol, root_id):
-    vol = cloudvolume.CloudVolume(cv)
-    vol = vol[:]
-    print(np.squeeze(vol[::4, ::4, 0]))
-    print(np.squeeze(root_id_vol[::4, ::4, 0]))
-
-    return np.unique(vol[root_id_vol == root_id])
-
-
 @pytest.fixture(scope='session')
-def app(cv, root_id_vol, test_dataset, bigtable_settings):
+def app(test_dataset, bigtable_settings):
     bt_project, bt_table = bigtable_settings
 
     with requests_mock.Mocker() as m:
@@ -155,19 +94,11 @@ def app(cv, root_id_vol, test_dataset, bigtable_settings):
                                         'api/dataset/{}'.format(test_dataset))
         dataset_d = {
             "annotation_engine_endpoint": "http://35.237.200.246",
-            "flat_segmentation_source": cv,
             "id": 1,
-            "image_source": cv,
             "name": test_dataset,
             "pychunkgraph_endpoint": PYCHUNKEDGRAPH_ENDPOINT,
-            "pychunkgraph_segmentation_source": cv
         }
         m.get(dataset_info_url, json=dataset_d)
-        root_id = 100000
-        cg_url = PYCHUNKEDGRAPH_ENDPOINT + \
-            '/1.0/segment/{}/leaves'.format(root_id)
-        seg_ids = get_supervoxel_leaves(cv, root_id_vol, root_id)
-        m.get(cg_url, json=seg_ids)
         app = create_app(
             {
                 'project_id': 'test',
@@ -191,11 +122,11 @@ def client(app):
 
 
 def mock_schema_service(requests_mock):
-    types_url = os.path.join(SCHEMA_SERVICE_ENDPOINT)
+    types_url = os.path.join(SCHEMA_SERVICE_ENDPOINT, 'type')
     types = get_types()
     requests_mock.get(types_url, json=types)
     for type_ in types:
-        url = os.path.join(SCHEMA_SERVICE_ENDPOINT, type_)
+        url = os.path.join(SCHEMA_SERVICE_ENDPOINT, 'type', type_)
         requests_mock.get(url, json=get_type_schema(type_))
 
 

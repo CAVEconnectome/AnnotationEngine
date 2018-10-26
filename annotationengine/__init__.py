@@ -1,17 +1,28 @@
+from flask import Flask
+import json
+import numpy as np
+from annotationengine.config import configure_app
+from annotationengine.utils import get_instance_folder_path
+from annotationengine import annotation
 
-__version__ = "0.0.36"
+__version__ = "1.0.5"
+
+
+class AEEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, np.uint64):
+            return int(obj)
+        return json.JSONEncoder.default(self, obj)
 
 
 def create_app(test_config=None):
-    from flask import Flask
-    from annotationengine.config import configure_app
-    from annotationengine.utils import get_instance_folder_path
-    from annotationengine import annotation
-
     # Define the Flask Object
     app = Flask(__name__,
                 instance_path=get_instance_folder_path(),
                 instance_relative_config=True)
+    app.json_encoder = AEEncoder
     # load configuration (from test_config if passed)
     if test_config is None:
         app = configure_app(app)
