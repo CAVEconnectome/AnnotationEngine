@@ -23,8 +23,6 @@ class BaseConfig(object):
     LOGGING_LOCATION = HOME + '/annoeng/bookshelf.log'
     LOGGING_LEVEL = logging.DEBUG
     # TODO what is this suppose to be by default?
-    CHUNKGRAPH_TABLE_ID = "chunkedgraph"
-
     CHUNKGRAPH_TABLE_ID = "pinky40_fanout2_v7"
 
 

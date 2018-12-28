@@ -12,6 +12,10 @@ import time
 import collections
 import os
 import requests
+
+from dynamicannotationdb.annodb_meta import AnnotationMetaDB
+
+
 bp = Blueprint("annotation", __name__, url_prefix="/annotation")
 
 __version__ = "1.0.6"
@@ -169,19 +173,18 @@ def nest_dictionary(d, key_path=None, sep="."):
 
 
 def _import_dataframe_thread(args):
-
-    ind, df, schema_name, dataset, user_id, schema = args
+    ind, df, schema_name, dataset, user_id, schema, table_name = args
 
     time_start = time.time()
 
     time_dict = collections.defaultdict(list)
 
     annotations = []
-    
+
     time_dict["schema"].append(time.time() - time_start)
     for k, row in df.iterrows():
         time_start = time.time()
-  
+
         d = nest_dictionary(dict(row))
 
         ann = validate_ann(d, schema, schema_name)
@@ -205,31 +208,38 @@ def _import_dataframe_thread(args):
                                 np.median(time_dict[k]), np.std(time_dict[k]),
                                 time_dict[k][0], time_dict[k][-1]))
 
-    return ind, annotations
+    amdb = AnnotationMetaDB()
+    uids = amdb.insert_annotations(user_id, dataset, table_name, annotations)
+
+    return ind, uids
 
 
 def import_dataframe(db, dataset, table_name, schema_name, df, user_id, schema,
-                     block_size=100, n_threads=8):
+                     block_size=2000, n_threads=8):
+    time_start = time.time()
     multi_args = []
     for i_start in range(0, len(df), block_size):
         multi_args.append([i_start, df[i_start: i_start + block_size],
-                           schema_name, dataset, user_id, schema])
-    results = mu.multiprocess_func(_import_dataframe_thread, multi_args,
-                                   n_threads=n_threads, debug=n_threads==1)
+                           schema_name, dataset, user_id, schema, table_name])
+    results = mu.multisubprocess_func(_import_dataframe_thread, multi_args,
+                                      n_threads=n_threads,
+                                      package_name="annotationengine")
     ind = []
     u_ids_lists = []
     for result in results:
         ind.append(result[0])
-        uids = db.insert_annotations(user_id,
-                                     dataset,
-                                     table_name,
-                                     result[1])
+        # uids = db.insert_annotations(user_id,
+        #                              dataset,
+        #                              table_name,
+        #                              result[1])
 
-        u_ids_lists.append(uids)
+        u_ids_lists.append(result[1])
 
     u_ids_lists = np.array(u_ids_lists)
 
     ids = np.concatenate(u_ids_lists[np.argsort(ind)])
+
+    print("Import took: %.3fs" % (time.time() - time_start))
     return ids
 
 
@@ -250,7 +260,7 @@ def import_annotation_func(data, user_id, dataset,table_name, schema, schema_nam
                                  annotations)
     return uids
 
-                      
+
 @bp.route("/dataset/<dataset>/<table_name>", methods=["GET", "POST"])
 def import_annotations(dataset, table_name):
     db = get_db()
