@@ -1,7 +1,13 @@
 numpy
 Flask
 pandas
-dynamicannotationdb>=1.0.0
-emannotationschemas>=0.2.15
+git+https://github.com/seung-lab/DynamicAnnotationDB.git@postgres_v1#egg=dynamicannotationdb
+git+https://github.com/seung-lab/EMAnnotationSchemas.git@marshmallow_3.5.1#egg=emannotationschemas
 multiwrapper
 jsonschema
+flask_sqlalchemy
+flask-marshmallow
+flask-admin
+flask-restx
+flask-accepts
+requests
