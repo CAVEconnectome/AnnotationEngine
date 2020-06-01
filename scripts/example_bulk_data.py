@@ -12,13 +12,13 @@ from io import StringIO
 import csv
 
 def _process_dataframe_worker(args):
-    ind, data, schema, schema_name, data_mapping, sql_uri = args
+    ind, dataframe, schema, schema_name, data_mapping, sql_uri = args
     annotations, segmentations = [], []   
     insert_time = datetime.now()
     
     flat_annotation_schema, flat_segmentation_schema = split_annotation_schema(schema)
 
-    for index, row in data.iterrows():
+    for index, row in dataframe.iterrows():
         ann = dict(row)
         annotation_data, segmentation_data = map(lambda keys: {x: ann[x] for x in keys}, 
                                         [data_mapping['anno_cols'], data_mapping['seg_cols']])
@@ -49,10 +49,10 @@ def common_column_set(columns_a, columns_b):
     else:
         return ("There are no common elements")
 
-def import_dataframe(sql_uri, table_id: str, 
+def process_dataframe(sql_uri, table_id: str, 
                               schema, 
                               schema_name: str, 
-                              data, 
+                              dataframe, 
                               data_mapping: dict, 
                               chunksize: int, 
                               n_threads: int=16):
@@ -62,8 +62,8 @@ def import_dataframe(sql_uri, table_id: str,
     
     schema = schema(context={'postgis': True})
 
-    for i_start in range(0, len(data), chunksize):
-        multi_args.append([i_start, data[i_start: i_start + chunksize],
+    for i_start in range(0, len(dataframe), chunksize):
+        multi_args.append([i_start, dataframe[i_start: i_start + chunksize],
                            schema, schema_name, data_mapping, sql_uri])       
 
     multi_start = time.time()
@@ -82,7 +82,7 @@ def import_dataframe(sql_uri, table_id: str,
 
 def test_sqlalchemy_orm_bulk_insert(sql_uri, table_id, 
                                              schema_name,
-                                             data,
+                                             dataframe,
                                              chunksize):
     
     client = AnnotationDB(sql_uri)
@@ -94,21 +94,21 @@ def test_sqlalchemy_orm_bulk_insert(sql_uri, table_id,
     seg_cols = SegmentationModel.__table__.columns.keys()
     column_map = {}
 
-    if isinstance(data, pd.DataFrame):
-        data_cols = data.columns.tolist()
+    if isinstance(dataframe, pd.DataFrame):
+        data_cols = dataframe.columns.tolist()
         anno_matching = common_column_set(anno_cols, data_cols)
         seg_matching = common_column_set(seg_cols, data_cols)
         column_map['anno_cols'] = anno_matching
         column_map['seg_cols'] = seg_matching
 
         
-    results = import_dataframe(sql_uri, 
-                               table_id,
-                               schema,
-                               schema_name,
-                               data,
-                               column_map,
-                               chunksize)
+    results = process_dataframe(sql_uri, 
+                                table_id,
+                                schema,
+                                schema_name,
+                                dataframe,
+                                column_map,
+                                chunksize)
 
     client_engine = client.engine
  
@@ -117,7 +117,7 @@ def test_sqlalchemy_orm_bulk_insert(sql_uri, table_id,
         client_engine.execute(SegmentationModel.__table__.insert(), data[2])
         # client.cached_session.bulk_insert_mappings(AnnoModel, data[1])
         # client.cached_session.bulk_insert_mappings(SegModel, data[2])
-    client.commit_session()
+    # client.commit_session()
 
 
 # def psql_insert_copy(table, conn, keys, data_iter):
@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
     df = pd.DataFrame()
 
-    n_samples = 1_000_000 # number of synapses to make
+    n_samples = 1_000 # number of synapses to make
 
     pre_coords = np.random.randint(0,1000, size=(n_samples, 3))
     ctr_coords = np.random.randint(0,1000, size=(n_samples, 3))
@@ -157,14 +157,14 @@ if __name__ == "__main__":
     df['ctr_pt_position'] = list(ctr_coords.tolist())
     df['post_pt_position'] = list(post_coords.tolist())
 
-    pre_root_id = np.repeat(np.arange(100),10000)
-    post_root_id = np.repeat(np.arange(100),10000)
+    pre_root_id = np.repeat(np.arange(100),10)
+    post_root_id = np.repeat(np.arange(100),10)
     df['pre_pt_root_id'] = pre_root_id
     df['post_pt_root_id'] = post_root_id
 
     df.to_csv('million_synapses_data.csv', index=False)
 
-    synapse_df = pd.read_csv("C:\\workspace\\scratch\\test_dev\\Notebooks\\million_synapses_data.csv")
+    synapse_df = pd.read_csv("million_synapses_data.csv")
 
     from ast import literal_eval
     
@@ -175,5 +175,23 @@ if __name__ == "__main__":
 
 
     sql_uri = "postgres://postgres:annodb@localhost:5432/annodb"
-    d = test_sqlalchemy_orm_bulk_insert(sql_uri, 'minnie_synapse_test', 'synapse', synapse_df, 100)
+
+    client = AnnotationDB(sql_uri=sql_uri)
+    
+    dataset_name = 'minnie'
+    table_name = 'synapse_test'
+    schema_name = 'synapse'
+    table_id = f"{dataset_name}_{table_name}"
+
+    example_table_description = "This is an example description for this table"
+
+    new_table = client.create_table(dataset_name, 
+                                    table_name, 
+                                    schema_name,
+                                    description=example_table_description,
+                                    user_id='foo@bar.com')
+    tables = client.get_dataset_tables(dataset_name)
+    print(tables)
+
+    test_sqlalchemy_orm_bulk_insert(sql_uri, 'minnie_synapse_test', 'synapse', synapse_df, 100)
 
