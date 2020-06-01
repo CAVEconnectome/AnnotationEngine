@@ -162,9 +162,9 @@ if __name__ == "__main__":
     df['pre_pt_root_id'] = pre_root_id
     df['post_pt_root_id'] = post_root_id
 
-    df.to_csv('million_synapses_data.csv', index=False)
+    df.to_csv('synapses_data.csv', index=False)
 
-    synapse_df = pd.read_csv("million_synapses_data.csv")
+    synapse_df = pd.read_csv("synapses_data.csv")
 
     from ast import literal_eval
     
