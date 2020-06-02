@@ -52,14 +52,9 @@ def _process_dataframe_worker(args):
              'annotation_id': index,            
         })
 
-        # ordered_anno_data.update(annotation_data)
-        # ordered_seg_data.update(segmentation_data)
-
         annotations.append(ordered_anno_data)
         segmentations.append(ordered_seg_data)
         
-    # annotations = flat_segmentation_schema().load(annotations, many=True, unknown=INCLUDE)
-    # segmentations = flat_segmentation_schema().load(segmentations, many=True, unknown=INCLUDE)
     return ind, annotations, segmentations
 
 def common_column_set(columns_a, columns_b):
@@ -109,11 +104,10 @@ def test_sqlalchemy_orm_bulk_insert(sql_uri, table_id,
 
     AnnotationModel = client.cached_table(table_id)
     SegmentationModel = client.cached_table(f"{table_id}_segmentation")
+    
     anno_cols = AnnotationModel.__table__.columns.keys()
     seg_cols = SegmentationModel.__table__.columns.keys()
     
-    anno_vals = AnnotationModel.__table__.columns.values()
-
     if isinstance(dataframe, pd.DataFrame):
         data_cols = dataframe.columns.tolist()
         anno_matching = common_column_set(anno_cols, data_cols)
@@ -147,14 +141,6 @@ def test_sqlalchemy_orm_bulk_insert(sql_uri, table_id,
                         data[2])
     insert_end = time.time()
     print(f"INSERT TIME {insert_end-insert_start}")
-
-        # print(AnnotationModel.__table__)
-    
-        # client_engine.execute(AnnotationModel.__table__.insert(), data[1])
-        # client_engine.execute(SegmentationModel.__table__.insert(), data[2])
-        # client.cached_session.bulk_insert_mappings(AnnoModel, data[1])
-        # client.cached_session.bulk_insert_mappings(SegModel, data[2])
-    # client.commit_session()
 
 
 class StringIteratorIO(TextIOBase):
