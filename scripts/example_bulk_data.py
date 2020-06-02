@@ -1,19 +1,14 @@
-from concurrent.futures import ProcessPoolExecutor
 from typing import Iterator, Dict, Any, Optional
-import time
-from io import StringIO,TextIOBase
-import csv
+from datetime import datetime
+from io import StringIO, TextIOBase
 from emannotationschemas import get_schema
 from emannotationschemas.models import split_annotation_schema
 from multiwrapper import multiprocessing_utils as mu
-
-from datetime import datetime
-from marshmallow import Schema, EXCLUDE, INCLUDE
 from dynamicannotationdb.interface import AnnotationDB
 import pandas as pd
-from geoalchemy2 import Geometry 
-import psycopg2.extras
 from collections import OrderedDict
+import time
+
 
 def _process_dataframe_worker(args):
     ind, dataframe, schema, schema_name, data_mapping, sql_uri = args
