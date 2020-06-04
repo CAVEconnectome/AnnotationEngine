@@ -9,19 +9,19 @@ stages:
 - name: merge-deploy
 
 script:
-  - gcloud version || true
-  - if [ ! -d "${HOME}/google-cloud-sdk/bin" ]; then rm -rf ${HOME}/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
-  # Add gcloud to $PATH
-  - source ${HOME}/google-cloud-sdk/path.bash.inc
-  - gcloud --quiet version
-  - gcloud --quiet components update
-  - gcloud --quiet components install beta
+  # - gcloud version || true
+  # - if [ ! -d "${HOME}/google-cloud-sdk/bin" ]; then rm -rf ${HOME}/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
+  # # Add gcloud to $PATH
+  # - source ${HOME}/google-cloud-sdk/path.bash.inc
+  # - gcloud --quiet version
+  # - gcloud --quiet components update
+  # - gcloud --quiet components install beta
   - python setup.py pytest
 
 cache:
   - pip: true
-    directories:
-    - "${HOME}/google-cloud-sdk/"
+    # directories:
+    # - "${HOME}/google-cloud-sdk/"
 
 jobs:
   include:
