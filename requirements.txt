@@ -1,8 +1,8 @@
 numpy
 Flask
 pandas
-git+https://github.com/seung-lab/DynamicAnnotationDB.git@postgres_v1#egg=dynamicannotationdb
-git+https://github.com/seung-lab/EMAnnotationSchemas.git@marshmallow_3.5.1#egg=emannotationschemas
+-e git+https://github.com/seung-lab/DynamicAnnotationDB.git@postgres_v1#egg=dynamicannotationdb
+-e git+https://github.com/seung-lab/EMAnnotationSchemas.git@marshmallow_3.5.1#egg=emannotationschemas
 multiwrapper
 jsonschema
 marshmallow
