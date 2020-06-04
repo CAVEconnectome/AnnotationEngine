@@ -31,7 +31,7 @@ jobs:
     - python: 3.7-dev
     - stage: merge-deploy
       name: "version bump and merge into master"
-      python: 3.6
+      python: 3.7
       install:
         - pip install bumpversion
       script:
@@ -40,7 +40,7 @@ jobs:
         - "BRANCHES_TO_MERGE_REGEX='develop' BRANCH_TO_MERGE_INTO=master /tmp/travis-automerge/auto_merge_travis_with_bumpversion.sh"
     - stage: merge-deploy
       name: "deploy to pypi"
-      python: 3.6
+      python: 3.7
       install:
         - pip install twine
       script: 
