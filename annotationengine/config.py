@@ -10,22 +10,14 @@ class BaseConfig(object):
     # Statement for enabling the development environment
     DEBUG = True
     proj_dir = os.path.split(get_app_base_path())[0]
-
+    SQLALCHEMY_DATABASE_URI = 'postgres://postgres:annodb@db:5432/annodb'
     NEUROGLANCER_URL = "https://neuroglancer-demo.appspot.com"
-    INFOSERVICE_ENDPOINT = "https://www.dynamicannotationengine.com/info"
-    SCHEMA_SERVICE_ENDPOINT = "https://www.dynamicannotationengine.com/schema"
-    BIGTABLE_CONFIG = {
-        'instance_id': 'pychunkedgraph',
-        'project_id': "neuromancer-seung-import"
-    }
+    INFOSERVICE_ENDPOINT = "https://www.dynamicannotationframework.com/info/"
+    SCHEMA_SERVICE_ENDPOINT = "https://www.dynamicannotationframework.com/schema/"
     TESTING = False
     LOGGING_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
     LOGGING_LOCATION = HOME + '/annoeng/bookshelf.log'
     LOGGING_LEVEL = logging.DEBUG
-    # TODO what is this suppose to be by default?
-    CHUNKGRAPH_TABLE_ID = "chunkedgraph"
-
-    CHUNKGRAPH_TABLE_ID = "pinky40_fanout2_v7"
 
 
 config = {
