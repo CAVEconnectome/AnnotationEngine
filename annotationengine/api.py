@@ -111,7 +111,7 @@ class Annotations(Resource):
             msg = f"annotation_id {ids} not in {table_id}"
             abort(404, msg)
 
-        return ann
+        return ann, 200
     
     @api_bp.doc('post_annotation')
     def post(self, **kwargs):
