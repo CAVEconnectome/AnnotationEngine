@@ -24,25 +24,11 @@ __version__ = "1.0.6"
 
 api_bp = Namespace("Annotation Engine", description="Annotation Engine")
 
-# def flatten_dict(value, root=None, sep='_'):
-#     if root is None:
-#         root = ""
-#     else:
-#         root += sep
-#     result = {}
-#     for k, v in value:
-#         if type(v) is dict:
-#             fd = flatten_dict(v, root=root + k, sep=sep)
-#             result.update(fd)
-#         else:
-#             result[root + k] = v
-#     return result    
-
 annotation_parser = reqparse.RequestParser()
 annotation_parser.add_argument('em_dataset', type=str, help='Name of EM Dataset')
 annotation_parser.add_argument('table_name', type=str, help='Name of annotation table')
 annotation_parser.add_argument('annotation_ids', type=int, action='split', help='list of annotation ids')    
-annotation_parser.add_argument('annotations', type=dict, help='dict of annotations')    
+annotation_parser.add_argument('annotations', action='append', help='dict of annotations')    
 
 
 @api_bp.route("/datasets")
@@ -131,22 +117,19 @@ class Annotations(Resource):
     def post(self, **kwargs):
         """ Insert annotations """
         args = annotation_parser.parse_args()
-        logging.info(f"______________________________________{args}")
-        # args = annotation_parser.parse_args()
-        # em_dataset = args['em_dataset']
-        # table_name = args['table_name']
-        # annotations = args['annotation']
+        em_dataset = args['em_dataset']
+        table_name = args['table_name']
+        annotations = args['annotations']
 
-        # db = get_db()
-        # table_id = f"{em_dataset}_{table_name}"
-        # metadata = db.get_table_metadata(table_id)
-        # schema = metadata.get('schema_type')
+        db = get_db()
+        table_id = f"{em_dataset}_{table_name}"
+        metadata = db.get_table_metadata(table_id)
+        schema = metadata.get('schema_type')
 
-        # if schema:
-        #     db.insert_annotations(table_id,
-        #                           schema,
-        #                           annotations)
+        if schema:
+            data = [json.loads(annotation) for annotation in annotations]
+            db.insert_annotations(table_id,
+                                  schema,
+                                  data)
 
-
-        # return {f"{len(annotations)} annotations inserted"}
-        return args
+        return {f"Inserted {len(data)} annotations"}, 200
