@@ -37,8 +37,8 @@ def create_app(test_config=None):
     apibp = Blueprint('api', __name__, url_prefix='/annotation/api')
 
     with app.app_context():
-        api = Api(app, title="Annotation Engine API", version=__version__, doc="/doc")
-        api.add_namespace(api_bp, path='/v2')
+        api = Api(apibp, title="Annotation Engine API", version=__version__, doc="/doc")
+        api.add_namespace(apibp, path='/v2')
 
     @app.route("/info/health")
     def health():
