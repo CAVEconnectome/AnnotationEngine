@@ -40,7 +40,7 @@ def create_app(test_config=None):
         api = Api(apibp, title="Annotation Engine API", version=__version__, doc="/doc")
         api.add_namespace(api_bp, path='/v2')
 
-    @app.route("/info/health")
+    @app.route("/health")
     def health():
         return jsonify("healthy"), 200
    
