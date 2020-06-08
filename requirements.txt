@@ -6,6 +6,7 @@ pandas
 multiwrapper
 jsonschema
 marshmallow
+middle-auth-client==2.4.3
 flask_sqlalchemy
 flask-marshmallow
 flask-admin
