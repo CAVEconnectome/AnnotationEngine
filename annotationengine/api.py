@@ -7,6 +7,8 @@ from annotationengine.dataset import get_datasets
 from annotationengine.errors import UnknownAnnotationTypeException
 from annotationengine.errors import SchemaServiceError
 from annotationengine.schemas import TableSchema
+
+from middle_auth_client import auth_required, auth_requires_permission
 from jsonschema import validate, ValidationError
 import numpy as np
 import json
@@ -32,6 +34,7 @@ annotation_parser.add_argument('annotations', action='append', help='dict of ann
 
 
 @api_bp.route("/datasets")
+@auth_required
 class DatasetResource(Resource):
     """Dataset Info"""
 
@@ -49,6 +52,7 @@ def get_schema_from_service(annotation_type, endpoint):
 
 
 @api_bp.route("/dataset/create_table")
+@auth_required
 class Table(Resource):   
     
     @api_bp.doc('create_table')
@@ -77,6 +81,7 @@ class Table(Resource):
 
 
 @api_bp.route("/dataset/count/<string:em_dataset>/<string:table_name>")
+@auth_required
 class TableInfo(Resource):
 
     @api_bp.doc(description="get_table_size")
@@ -90,6 +95,7 @@ class TableInfo(Resource):
 @api_bp.expect(annotation_parser)
 @api_bp.route("/dataset/annotations")
 @api_bp.response(404, 'ID not found')
+@auth_required
 class Annotations(Resource):
 
     @api_bp.doc('get_annotations')
