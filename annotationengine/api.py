@@ -34,10 +34,10 @@ annotation_parser.add_argument('annotations', action='append', help='dict of ann
 
 
 @api_bp.route("/datasets")
-@auth_required
 class DatasetResource(Resource):
     """Dataset Info"""
-
+    
+    @auth_required
     def get(self):
         """Get all Datasets """
         return jsonify(get_datasets())
@@ -52,11 +52,11 @@ def get_schema_from_service(annotation_type, endpoint):
 
 
 @api_bp.route("/dataset/create_table")
-@auth_required
 class Table(Resource):   
     
     @api_bp.doc('create_table')
     @accepts("TableSchema", schema=TableSchema, api=api_bp)
+    @auth_required
     def post(self):
         """ Create a new annotation table"""
         data = request.parsed_obj
@@ -81,10 +81,10 @@ class Table(Resource):
 
 
 @api_bp.route("/dataset/count/<string:em_dataset>/<string:table_name>")
-@auth_required
 class TableInfo(Resource):
 
     @api_bp.doc(description="get_table_size")
+    @auth_required
     def get(self, em_dataset:str, table_name: str) -> int:
         """ Get count of rows of an annotation table"""
         table_id = f"{em_dataset}_{table_name}"
@@ -95,10 +95,10 @@ class TableInfo(Resource):
 @api_bp.expect(annotation_parser)
 @api_bp.route("/dataset/annotations")
 @api_bp.response(404, 'ID not found')
-@auth_required
 class Annotations(Resource):
 
     @api_bp.doc('get_annotations')
+    @auth_required
     def get(self, **kwargs):
         """ Get annotations by list of IDs"""
         args = annotation_parser.parse_args()
