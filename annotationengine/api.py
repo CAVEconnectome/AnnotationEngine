@@ -51,7 +51,7 @@ def get_schema_from_service(annotation_type, endpoint):
     return r.json()
 
 
-@api_bp.route("/dataset/create_table")
+@api_bp.route("/dataset/table")
 class Table(Resource):   
     
     @api_bp.doc('create_table')
@@ -78,7 +78,15 @@ class Table(Resource):
                                          metadata_dict)
 
         return table_info, 200
+    
+    @api_bp.doc('get_tables')
+    @auth_required
+    def get(self):
+        """ Get list of annotation tables"""
+        db = get_db()
+        table_info = db.get_existing_tables()
 
+        return table_info, 200
 
 @api_bp.route("/dataset/count/<string:em_dataset>/<string:table_name>")
 class TableInfo(Resource):
