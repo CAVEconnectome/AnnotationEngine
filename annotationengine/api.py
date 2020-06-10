@@ -128,6 +128,7 @@ class Annotations(Resource):
         return ann, 200
     
     @api_bp.doc('post_annotation')
+    @auth_required
     def post(self, **kwargs):
         """ Insert annotations """
         args = annotation_parser.parse_args()
