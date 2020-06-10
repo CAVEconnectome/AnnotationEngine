@@ -1,12 +1,13 @@
 from annotationengine.errors import DataSetNotFoundException
 from flask import current_app
 import requests
+import logging
 import os
 
 
 def get_datasets():
     infoservice = current_app.config['INFOSERVICE_ENDPOINT']
-    url = os.path.join(infoservice, "api/datasets")
+    url = os.path.join(infoservice, "api/v2/datasets")
     r = requests.get(url)
     dataset_names = r.json()
     return dataset_names
