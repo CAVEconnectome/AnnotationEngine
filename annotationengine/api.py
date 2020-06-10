@@ -40,7 +40,7 @@ class DatasetResource(Resource):
     @auth_required
     def get(self):
         """Get all Datasets """
-        return jsonify(get_datasets())
+        return get_datasets(), 200
 
 
 def get_schema_from_service(annotation_type, endpoint):
