@@ -5,7 +5,7 @@ from nglui.statebuilder import *
 
 __version__ = "0.4.0"
 
-views_bp = Blueprint('datasets', __name__, url_prefix='/datasets')
+views_bp = Blueprint('views', __name__, url_prefix='/datasets')
 
 
 @views_bp.route("/")
