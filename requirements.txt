@@ -1,12 +1,11 @@
-numpy
 Flask
-pandas
 -e git+https://github.com/seung-lab/DynamicAnnotationDB.git@postgres_v1#egg=dynamicannotationdb
 -e git+https://github.com/seung-lab/EMAnnotationSchemas.git@marshmallow_3.5.1#egg=emannotationschemas
 multiwrapper
 jsonschema
-marshmallow
+middle-auth-client==2.4.3
 flask_sqlalchemy
+flask_cors
 flask-marshmallow
 flask-admin
 flask-restx

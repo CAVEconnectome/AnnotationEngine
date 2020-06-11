@@ -11,6 +11,7 @@ class BaseConfig(object):
     DEBUG = True
     proj_dir = os.path.split(get_app_base_path())[0]
     SQLALCHEMY_DATABASE_URI = 'postgres://postgres:annodb@db:5432/annodb'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     NEUROGLANCER_URL = "https://neuroglancer-demo.appspot.com"
     INFOSERVICE_ENDPOINT = "https://www.dynamicannotationframework.com/info/"
     SCHEMA_SERVICE_ENDPOINT = "https://www.dynamicannotationframework.com/schema/"

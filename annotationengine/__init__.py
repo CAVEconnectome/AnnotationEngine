@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, url_for, redirect, Blueprint
 import json
 import numpy as np
+from emannotationschemas.models import Base
 from annotationengine.config import configure_app
 from annotationengine.utils import get_instance_folder_path
 from annotationengine.api import api_bp
@@ -10,6 +11,8 @@ import logging
 
 __version__ = "1.0.6"
 
+
+db = SQLAlchemy(model_class=Base)
 
 class AEEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -37,10 +40,14 @@ def create_app(test_config=None):
     apibp = Blueprint('api', __name__, url_prefix='/annotation/api')
 
     with app.app_context():
-        api = Api(app, title="Annotation Engine API", version=__version__, doc="/doc")
+        api = Api(apibp, title="Annotation Engine API", version=__version__, doc="/doc")
         api.add_namespace(api_bp, path='/v2')
+        app.register_blueprint(apibp)
+        
+        db.init_app(app)
+        db.create_all()
 
-    @app.route("/info/health")
+    @app.route("/health")
     def health():
         return jsonify("healthy"), 200
    
