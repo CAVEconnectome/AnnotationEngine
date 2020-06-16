@@ -5,6 +5,7 @@ from emannotationschemas.models import Base
 from annotationengine.config import configure_app
 from annotationengine.utils import get_instance_folder_path
 from annotationengine.api import api_bp
+from annotationengine.admin import setup_admin
 from flask_sqlalchemy import SQLAlchemy
 from flask_restx import Api
 import logging
@@ -46,6 +47,7 @@ def create_app(test_config=None):
         
         db.init_app(app)
         db.create_all()
+        admin = setup_admin(app, db)
 
     @app.route("/health")
     def health():
