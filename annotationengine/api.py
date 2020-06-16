@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, abort, current_app
+from flask import Blueprint, jsonify, request, abort, current_app, g
 from flask_restx import Namespace, Resource, reqparse, fields
 from flask_accepts import accepts, responds
 
@@ -50,6 +50,17 @@ def get_schema_from_service(annotation_type, endpoint):
     return r.json()
 
 
+@api_bp.route("/dataset/table/<string:em_dataset>")
+class EMDataSetTables(Resource):
+    @auth_required   
+    @api_bp.doc('get_em_dataset_tables')
+    def get(self, em_dataset:str):
+        """ Get list of annotation tables for a dataset"""
+        db = get_db()
+        tables = db._client.get_dataset_tables(em_dataset)
+        return tables, 200
+
+
 @api_bp.route("/dataset/table")
 class Table(Resource):   
     
@@ -63,6 +74,8 @@ class Table(Resource):
         metadata_dict = data.get('metadata')
         logging.info(metadata_dict)
         decription = metadata_dict.get('description')
+        if metadata_dict.get('user_id', None) is None:
+            metadata_dict['user_id']=str(g.auth_user["id"])
         if decription is None:
             msg = "Table description required"
             abort(404, msg)
