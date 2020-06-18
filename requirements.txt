@@ -1,6 +1,6 @@
 Flask
--e git+https://github.com/seung-lab/DynamicAnnotationDB.git@postgres_v1#egg=dynamicannotationdb
--e git+https://github.com/seung-lab/EMAnnotationSchemas.git@marshmallow_3.5.1#egg=emannotationschemas
+-e git+https://github.com/seung-lab/DynamicAnnotationDB.git@postgres_v1.1#egg=dynamicannotationdb
+-e git+https://github.com/seung-lab/EMAnnotationSchemas.git@marshmallow_3.5.1_fix#egg=emannotationschemas
 multiwrapper
 jsonschema
 middle-auth-client==2.4.3
