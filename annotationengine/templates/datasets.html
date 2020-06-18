@@ -6,6 +6,6 @@
 
 {% block content %}
 {% for dataset in datasets %}
-  <p><a href="{{url_for('dataset',datasetname=dataset)}}" >{{dataset}}</a></p>
+  <p><a href="{{url_for('views.dataset_view',dataset_name=dataset)}}" >{{dataset}}</a></p>
 {% endfor %}
 {% endblock %}
