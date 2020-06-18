@@ -1,6 +1,6 @@
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-from emannotationschemas.models import Metadata
+from dynamicannotationdb.models import Metadata
 
 
 def setup_admin(app, db):
