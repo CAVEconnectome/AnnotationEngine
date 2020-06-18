@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, abort, current_app
+from flask import Blueprint, jsonify, request, abort, current_app, g
 from flask_restx import Namespace, Resource, reqparse, fields
 from flask_accepts import accepts, responds
 
@@ -24,22 +24,22 @@ from typing import List
 
 __version__ = "1.0.6"
 
-api_bp = Namespace("Annotation Engine", description="Annotation Engine")
+authorizations = {
+    'apikey': {
+        'type': 'apiKey',
+        'in': 'query',
+        'name': 'middle_auth_token'
+    }
+}
+
+api_bp = Namespace("Annotation Engine",
+                   authorizations=authorizations,
+                   description="Annotation Engine")
 
 annotation_parser = reqparse.RequestParser()
 annotation_parser.add_argument('em_dataset', type=str, help='Name of EM Dataset')
 annotation_parser.add_argument('table_name', type=str, help='Name of annotation table')
 annotation_parser.add_argument('annotation_ids', type=int, action='split', help='list of annotation ids')    
-
-
-@api_bp.route("/datasets")
-class DatasetResource(Resource):
-    """Dataset Info"""
-    
-    @auth_required
-    def get(self):
-        """Get all Datasets """
-        return get_datasets(), 200
 
 
 def get_schema_from_service(annotation_type, endpoint):
@@ -50,11 +50,22 @@ def get_schema_from_service(annotation_type, endpoint):
     return r.json()
 
 
+@api_bp.route("/dataset/table/<string:em_dataset>")
+class EMDataSetTables(Resource):
+    @auth_required   
+    @api_bp.doc('get_em_dataset_tables', security='apikey')
+    def get(self, em_dataset:str):
+        """ Get list of annotation tables for a dataset"""
+        db = get_db()
+        tables = db._client.get_dataset_tables(em_dataset)
+        return tables, 200
+
+
 @api_bp.route("/dataset/table")
 class Table(Resource):   
     
     @auth_required
-    @api_bp.doc('create_table')
+    @api_bp.doc('create_table', security='apikey')
     @accepts("CreateTableSchema", schema=CreateTableSchema, api=api_bp)
     def post(self):
         """ Create a new annotation table"""
@@ -63,6 +74,8 @@ class Table(Resource):
         metadata_dict = data.get('metadata')
         logging.info(metadata_dict)
         decription = metadata_dict.get('description')
+        if metadata_dict.get('user_id', None) is None:
+            metadata_dict['user_id']=str(g.auth_user["id"])
         if decription is None:
             msg = "Table description required"
             abort(404, msg)
@@ -79,7 +92,7 @@ class Table(Resource):
         return table_info, 200
 
     @auth_required   
-    @api_bp.doc('get_tables')
+    @api_bp.doc('get_tables', security='apikey')
     def get(self):
         """ Get list of annotation tables"""
         db = get_db()
@@ -91,7 +104,7 @@ class Table(Resource):
 class TableInfo(Resource):
 
     @auth_required
-    @api_bp.doc(description="get_table_size")
+    @api_bp.doc(description="get_table_size", security='apikey')
     def get(self, em_dataset:str, table_name: str) -> int:
         """ Get count of rows of an annotation table"""
         table_id = f"{em_dataset}_{table_name}"
@@ -103,7 +116,7 @@ class TableInfo(Resource):
 class Annotations(Resource):
 
     @auth_required
-    @api_bp.doc('get annotations')
+    @api_bp.doc('get annotations', security='apikey')
     @api_bp.expect(annotation_parser)
     def get(self, **kwargs):
         """ Get annotations by list of IDs"""
@@ -126,7 +139,7 @@ class Annotations(Resource):
         return ann, 200
     
     @auth_required
-    @api_bp.doc('post annotation')
+    @api_bp.doc('post annotation', security='apikey')
     @accepts("PutAnnotationSchema", schema=PutAnnotationSchema, api=api_bp)
     def post(self, **kwargs):
         """ Insert annotations """
@@ -152,7 +165,7 @@ class Annotations(Resource):
         return f"Inserted {len(annotations)} annotations", 200
         
     @auth_required
-    @api_bp.doc('update annotation')
+    @api_bp.doc('update annotation', security='apikey')
     @accepts("PutAnnotationSchema", schema=PutAnnotationSchema, api=api_bp)
     def put(self, **kwargs):
         """ Update annotations """
@@ -176,7 +189,7 @@ class Annotations(Resource):
         return f"Updated {len(data)} annotations", 200
 
     @auth_required
-    @api_bp.doc('delete annotation')
+    @api_bp.doc('delete annotation', security='apikey')
     @accepts("DeleteAnnotationSchema", schema=DeleteAnnotationSchema, api=api_bp)
     def delete(self, **kwargs):
         """ Delete annotations """
