@@ -2,7 +2,7 @@ from marshmallow import fields, Schema, post_load
 
 
 class Metadata(Schema):
-    user_id = fields.Str(required=True)
+    user_id = fields.Str(required=False)
     description = fields.Str(required=True)
     reference_table = fields.Str(required=False)
 
