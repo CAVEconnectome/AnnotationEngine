@@ -13,7 +13,7 @@ class TableSchema(Schema):
     schema_type = fields.Str(order=2, required=True)
 
 class CreateTableSchema(TableSchema):
-    metadata = fields.Nested(Metadata, order=3, required=True)
+    metadata = fields.Nested(Metadata, order=3, required=True, example={'description': "my description"})
 
 
 class DeleteAnnotationSchema(TableSchema):
