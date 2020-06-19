@@ -37,8 +37,6 @@ api_bp = Namespace("Annotation Engine",
                    description="Annotation Engine")
 
 annotation_parser = reqparse.RequestParser()
-annotation_parser.add_argument('em_dataset', type=str, help='Name of EM Dataset')
-annotation_parser.add_argument('table_name', type=str, help='Name of annotation table')
 annotation_parser.add_argument('annotation_ids', type=int, action='split', help='list of annotation ids')    
 
 def get_schema_from_service(annotation_type, endpoint):
@@ -101,11 +99,10 @@ class Annotations(Resource):
     @auth_required
     @api_bp.doc('get annotations', security='apikey')
     @api_bp.expect(annotation_parser)
-    def get(self,dataset_name:str, **kwargs):
+    def get(self,dataset_name:str, table_name: str, **kwargs):
         """ Get annotations by list of IDs"""
         args = annotation_parser.parse_args()
         
-        table_name = args['table_name']
         ids = args['annotation_ids']
        
         db = get_db(dataset_name)
@@ -123,10 +120,9 @@ class Annotations(Resource):
     @auth_required
     @api_bp.doc('post annotation', security='apikey')
     @accepts("PutAnnotationSchema", schema=PutAnnotationSchema, api=api_bp)
-    def post(self, dataset_name:str, **kwargs):
+    def post(self, dataset_name:str, table_name: str, **kwargs):
         """ Insert annotations """
         data = request.parsed_obj
-        table_name = data.get('table_name')
         annotations = data.get('annotations')
 
         db = get_db(dataset_name)
@@ -148,11 +144,10 @@ class Annotations(Resource):
     @auth_required
     @api_bp.doc('update annotation', security='apikey')
     @accepts("PutAnnotationSchema", schema=PutAnnotationSchema, api=api_bp)
-    def put(self, dataset_name:str, **kwargs):
+    def put(self, dataset_name:str, table_name: str, **kwargs):
         """ Update annotations """
         data = request.parsed_obj
         
-        table_name = data.get('table_name')
         annotations = data.get('annotations')
 
         db = get_db(dataset_name)
@@ -172,11 +167,10 @@ class Annotations(Resource):
     @auth_required
     @api_bp.doc('delete annotation', security='apikey')
     @accepts("DeleteAnnotationSchema", schema=DeleteAnnotationSchema, api=api_bp)
-    def delete(self, dataset_name:str, **kwargs):
+    def delete(self, dataset_name:str, table_name: str, **kwargs):
         """ Delete annotations """
         data = request.parsed_obj
    
-        table_name = data.get('table_name')
         ids = data.get('annotation_ids')
 
         db = get_db(dataset_name)
