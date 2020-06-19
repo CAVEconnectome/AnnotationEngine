@@ -55,7 +55,7 @@ class Table(Resource):
     @auth_required
     @api_bp.doc('create_table', security='apikey', example = synapse_table_example)
     @accepts("CreateTableSchema", schema=CreateTableSchema, api=api_bp)
-    def post(self, em_dataset:str):
+    def post(self, dataset_name:str):
         """ Create a new annotation table"""
         data = request.parsed_obj
         db = get_db(dataset_name)
