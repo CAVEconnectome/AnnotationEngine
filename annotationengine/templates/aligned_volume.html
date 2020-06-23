@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}{{aligned_volume_name}}{% endblock %}</h1>
+{% endblock %}
+{% block content %}
+<h3>Annotation Tables</h3>
+
+{{df_table|safe}}
+
+{% for table in tables %}
+  <p><a href="{{url_for('views.table_view',aligned_volume=aligned_volume_name, table_name=table)}}" >{{table}}</a></p>
+{% endfor %}
+{% endblock %}

@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-{% for dataset in datasets %}
-  <p><a href="{{url_for('views.dataset_view',dataset_name=dataset)}}" >{{dataset}}</a></p>
+{% for volume in volumes %}
+  <p><a href="{{url_for('views.aligned_volume_view',aligned_volume_name=volume)}}" >{{volume}}</a></p>
 {% endfor %}
 {% endblock %}
