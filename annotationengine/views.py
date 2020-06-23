@@ -1,5 +1,5 @@
 from flask import jsonify, render_template, current_app, make_response, Blueprint
-from annotationengine.dataset import get_datasets
+from annotationengine.aligned_volume import get_aligned_volumes
 from annotationengine.anno_database import get_db
 from dynamicannotationdb.models import Metadata
 import pandas as pd
@@ -11,18 +11,18 @@ views_bp = Blueprint('views', __name__, url_prefix='/annotation/views')
 
 @views_bp.route("/")
 def index():
-    datasets = get_datasets()
-    return render_template('datasets.html',
-                            datasets=datasets,
+    volumes = get_aligned_volumes()
+    return render_template('aligned_volumes.html',
+                            volumes=volumes,
                             version=__version__)
 
 
-@views_bp.route("/dataset/<dataset_name>")
-def dataset_view(dataset_name):
+@views_bp.route("/aligned_volume/<aligned_volume_name>")
+def aligned_volume_view(aligned_volume_name):
     
-    db = get_db()
-    tables = db.get_dataset_tables(dataset_name)
-    query=db.session.query(Metadata).filter(Metadata.dataset_name==dataset_name).\
+    db = get_db(aligned_volume_name)
+    tables = db.get_aligned_volume_tables(aligned_volume_name)
+    query=db.session.query(Metadata).filter(Metadata.aligned_volume_name==aligned_volume_name).\
         filter(Metadata.deleted == None)
     df = pd.read_sql(query.statement, db._client.engine)
     base_user_url = "https://{auth_uri}/api/v1/user/{user_id}"
@@ -34,14 +34,14 @@ def dataset_view(dataset_name):
                                                     x.user_id),
                        axis=1)
 
-    return render_template('dataset.html',
+    return render_template('aligned_volume.html',
                             df_table=df.to_html(escape=False),
                             tables=tables,
-                            dataset_name=dataset_name,
+                            aligned_volume_name=aligned_volume_name,
                             version=__version__)
 
-@views_bp.route("/dataset/<dataset_name>/table/<table_name>")
-def table_view(dataset_name, table_name):
+@views_bp.route("/aligned_volume/<aligned_volume_name>/table/<table_name>")
+def table_view(aligned_volume_name, table_name):
     return render_template('table.html',
-                           dataset_name=dataset_name,
+                           aligned_volume_name=aligned_volume_name,
                            table_name=table_name)
