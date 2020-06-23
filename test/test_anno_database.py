@@ -1,5 +1,5 @@
 # from annotationengine.anno_database import get_db
-# from annotationengine.dataset import get_datasets
+# from annotationengine.aligned_volume import get_aligned_volumes
 # from emannotationschemas import get_types
 # from conftest import mock_info_service
 # import pytest
@@ -14,10 +14,10 @@
 #     with app.app_context():
 #         db = get_db()
 #         types = get_types()
-#         for dataset in get_datasets():
+#         for aligned_volume in get_aligned_volumes():
 #             for type_ in types:
-#                 db.create_table('test', dataset, type_, type_)
-#             mds = db.get_existing_tables_metadata(dataset)
+#                 db.create_table('test', aligned_volume, type_, type_)
+#             mds = db.get_existing_tables_metadata(aligned_volume)
 #             print(mds)
 #             for type_ in types:
 #                 md = next(md for md in mds if md['table_name']==type_)

@@ -238,19 +238,19 @@ if __name__ == "__main__":
 
     client = AnnotationDB(sql_uri=sql_uri)
     
-    dataset_name = 'minnie'
+    aligned_volume_name = 'minnie'
     table_name = 'synapse_test'
     schema_name = 'synapse'
-    table_id = f"{dataset_name}_{table_name}"
+    table_id = f"{aligned_volume_name}_{table_name}"
 
     example_table_description = "This is an example description for this table"
 
-    new_table = client.create_table(dataset_name, 
+    new_table = client.create_table(aligned_volume_name, 
                                     table_name, 
                                     schema_name,
                                     description=example_table_description,
                                     user_id='foo@bar.com')
-    tables = client.get_dataset_tables(dataset_name)
+    tables = client.get_aligned_volume_tables(aligned_volume_name)
     print(tables)
 
     test_sqlalchemy_orm_bulk_insert(sql_uri, 'minnie_synapse_test', 'synapse', synapse_df, 100)
