@@ -40,7 +40,10 @@ def create_app(test_config=None):
         app.config.update(test_config)
 
     apibp = Blueprint('api', __name__, url_prefix='/annotation/api')
-
+    @apibp.route('/versions')
+    def versions():
+        return jsonify([2]), 200
+        
     with app.app_context():
         api = Api(apibp, title="Annotation Engine API", version=__version__, doc="/doc")
         api.add_namespace(api_bp, path='/v2')
