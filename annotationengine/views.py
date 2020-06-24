@@ -1,6 +1,6 @@
 from flask import jsonify, render_template, current_app, make_response, Blueprint
-from annotationengine.aligned_volume import get_aligned_volumes
-from annotationengine.anno_database import get_db
+from .aligned_volume import get_aligned_volumes
+from .anno_database import get_db
 from dynamicannotationdb.models import Metadata
 import pandas as pd
 import os
@@ -21,9 +21,8 @@ def index():
 def aligned_volume_view(aligned_volume_name):
     
     db = get_db(aligned_volume_name)
-    tables = db.get_aligned_volume_tables(aligned_volume_name)
-    query=db.session.query(Metadata).filter(Metadata.aligned_volume_name==aligned_volume_name).\
-        filter(Metadata.deleted == None)
+    tables = db.get_existing_tables()
+    query=db.session.query(Metadata).filter(Metadata.deleted == None)
     df = pd.read_sql(query.statement, db._client.engine)
     base_user_url = "https://{auth_uri}/api/v1/user/{user_id}"
     auth_uri =os.environ['AUTH_URI']

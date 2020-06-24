@@ -3,13 +3,17 @@ from flask import current_app
 import requests
 import logging
 import os
+from annotationframeworkclient.infoservice import InfoServiceClient
+from annotationframeworkclient.auth import AuthClient
 
 
 def get_aligned_volumes():
-    infoservice = current_app.config['INFOSERVICE_ENDPOINT']
-    url = os.path.join(infoservice, "api/v2/aligned_volume")
-    r = requests.get(url)
-    aligned_volume_names = r.json()
+    server= current_app.config['GLOBAL_SERVER']
+    auth = AuthClient(server_address=server)
+    infoclient = InfoServiceClient(server_address=server,
+                                   auth_client=auth,
+                                   api_version=current_app.config.get('INFO_API_VERSION', 2))
+    aligned_volume_names = infoclient.get_aligned_volumes()
     return aligned_volume_names
 
 
