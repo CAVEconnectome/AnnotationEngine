@@ -80,7 +80,7 @@ class Table(Resource):
     def get(self, aligned_volume_name:str):
         """ Get list of annotation tables for a aligned_volume"""
         db = get_db(aligned_volume_name)
-        tables = db._client.get_tables()
+        tables = db.get_tables()
         return tables, 200
 
 @api_bp.route("/aligned_volume_name/<string:aligned_volume_name>/table/<string:table_name>/count")
@@ -91,7 +91,7 @@ class TableInfo(Resource):
     def get(self, aligned_volume_name:str, table_name: str) -> int:
         """ Get count of rows of an annotation table"""
         db = get_db(aligned_volume_name)
-        return db.get_annotation_table_length(table_name), 200
+        return db.get_annotation_table_length(aligned_volume_name, table_name), 200
 
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table/<string:table_name>/annotations")
 class Annotations(Resource):
@@ -103,19 +103,20 @@ class Annotations(Resource):
         """ Get annotations by list of IDs"""
         args = annotation_parser.parse_args()
         
-        ids = args['annotation_ids']
+        annotation_ids = args['annotation_ids']
        
         db = get_db(aligned_volume_name)
 
-        metadata = db.get_table_metadata(table_name)
+        metadata = db.get_table_metadata(aligned_volume_name, table_name)
         schema = metadata.get('schema_type')
-        ann = db.get_annotation_data(table_name, schema, ids)
         
-        if ann is None:
-            msg = f"annotation_id {ids} not in {table_name}"
+        annotations = db.get_annotations(table_name, schema, annotation_ids)
+        
+        if annotations is None:
+            msg = f"annotation_id {annotation_ids} not in {table_name}"
             abort(404, msg)
 
-        return ann, 200
+        return annotations, 200
     
     @auth_required
     @api_bp.doc('post annotation', security='apikey')
@@ -127,7 +128,7 @@ class Annotations(Resource):
 
         db = get_db(aligned_volume_name)
     
-        metadata = db.get_table_metadata(table_name)
+        metadata = db.get_table_metadata(aligned_volume_name, table_name)
         schema = metadata.get('schema_type')
 
         if schema:
@@ -147,20 +148,22 @@ class Annotations(Resource):
     def put(self, aligned_volume_name:str, table_name: str, **kwargs):
         """ Update annotations """
         data = request.parsed_obj
-        
         annotations = data.get('annotations')
 
+        
         db = get_db(aligned_volume_name)
   
-        metadata = db.get_table_metadata(table_name)
+        metadata = db.get_table_metadata(aligned_volume_name, table_name)
         schema = metadata.get('schema_type')
 
         if schema:
-            new_data = [json.loads(annotation) for annotation in annotations]
-            for data in new_data:
-                db.update_annotation_data(table_name,
-                                          schema,
-                                          data)
+            for annotation in annotations:
+                anno_id = annotation.pop('id')
+                db.update_annotations(table_name,
+                                      schema,
+                                      anno_id,
+                                      annotation)
+ 
 
         return f"Updated {len(data)} annotations", 200
 
