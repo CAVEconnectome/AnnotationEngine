@@ -29,6 +29,7 @@ def create_app(test_config=None):
     # Define the Flask Object
     app = Flask(__name__,
                 instance_path=get_instance_folder_path(),
+                static_folder='/annotation/static',
                 instance_relative_config=True)
     app.json_encoder = AEEncoder
     
