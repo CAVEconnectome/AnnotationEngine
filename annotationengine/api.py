@@ -8,7 +8,7 @@ from annotationengine.errors import UnknownAnnotationTypeException
 from annotationengine.errors import SchemaServiceError
 from annotationengine.schemas import CreateTableSchema, DeleteAnnotationSchema, PutAnnotationSchema, FullMetadataSchema
 from annotationengine.api_examples import synapse_table_example
-from middle_auth_client import auth_required, auth_requires_permission
+from middle_auth_client import auth_required, auth_requires_permission, auth_requires_admin
 from jsonschema import validate, ValidationError
 import numpy as np
 import json
@@ -87,15 +87,23 @@ class Table(Resource):
 @api_bp.route("/aligned_volume_name/<string:aligned_volume_name>/table/<string:table_name>")
 @api_bp.param("aligned_volume_name", "AlignedVolume Name")
 @api_bp.param("table_name", "Name of table")
-class TableInfo(Resource):
+class AnnotationTable(Resource):
 
     @auth_required
     @api_bp.doc(description="get table metadata", security='apikey')
     def get(self, aligned_volume_name:str, table_name: str) -> FullMetadataSchema:
-        """ Get count of rows of an annotation table"""
+        """ Get the metadata about an annotation table"""
         db = get_db(aligned_volume_name)
         return db.get_table_metadata(table_name), 200
     
+    @auth_requires_admin
+    @api_bp.doc(description="mark an annotation table for deletion (admin only)", security='apikey')
+    def delete(self, aligned_volume_name:str, table_name: str)-> bool:
+        """ Delete an annotation table (marks for deletion, will suspend materialization, admin only)"""
+        db = get_db(aligned_volume_name)
+        is_deleted = db.delete_table(table_name)
+        return is_deleted, 200
+
 
 @api_bp.route("/aligned_volume_name/<string:aligned_volume_name>/table/<string:table_name>/count")
 class TableInfo(Resource):
@@ -106,6 +114,7 @@ class TableInfo(Resource):
         """ Get count of rows of an annotation table"""
         db = get_db(aligned_volume_name)
         return db.get_annotation_table_length(table_name), 200
+
 
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table/<string:table_name>/annotations")
 class Annotations(Resource):
