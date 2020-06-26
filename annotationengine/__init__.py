@@ -10,6 +10,7 @@ from annotationengine.views import views_bp
 from flask_sqlalchemy import SQLAlchemy
 from flask_restx import Api
 import logging
+from datetime import date, datetime
 
 __version__ = "1.0.6"
 
@@ -22,6 +23,8 @@ class AEEncoder(json.JSONEncoder):
             return obj.tolist()
         if isinstance(obj, np.uint64):
             return int(obj)
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
         return json.JSONEncoder.default(self, obj)
 
 
@@ -32,7 +35,7 @@ def create_app(test_config=None):
                 static_url_path='/annotation/static',
                 instance_relative_config=True)
     app.json_encoder = AEEncoder
-    
+    app.config["RESTX_JSON"] = {"cls": AEEncoder}
     logging.basicConfig(level=logging.DEBUG)
 
     if test_config is None:

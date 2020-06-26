@@ -6,7 +6,7 @@ from annotationengine.anno_database import get_db
 from annotationengine.aligned_volume import get_aligned_volumes
 from annotationengine.errors import UnknownAnnotationTypeException
 from annotationengine.errors import SchemaServiceError
-from annotationengine.schemas import CreateTableSchema, DeleteAnnotationSchema, PutAnnotationSchema
+from annotationengine.schemas import CreateTableSchema, DeleteAnnotationSchema, PutAnnotationSchema, FullMetadataSchema
 from annotationengine.api_examples import synapse_table_example
 from middle_auth_client import auth_required, auth_requires_permission
 from jsonschema import validate, ValidationError
@@ -82,6 +82,20 @@ class Table(Resource):
         db = get_db(aligned_volume_name)
         tables = db.get_tables()
         return tables, 200
+
+
+@api_bp.route("/aligned_volume_name/<string:aligned_volume_name>/table/<string:table_name>")
+@api_bp.param("aligned_volume_name", "AlignedVolume Name")
+@api_bp.param("table_name", "Name of table")
+class TableInfo(Resource):
+
+    @auth_required
+    @api_bp.doc(description="get table metadata", security='apikey')
+    def get(self, aligned_volume_name:str, table_name: str) -> FullMetadataSchema:
+        """ Get count of rows of an annotation table"""
+        db = get_db(aligned_volume_name)
+        return db.get_table_metadata(table_name), 200
+    
 
 @api_bp.route("/aligned_volume_name/<string:aligned_volume_name>/table/<string:table_name>/count")
 class TableInfo(Resource):

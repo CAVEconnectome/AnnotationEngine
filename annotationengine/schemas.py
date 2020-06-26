@@ -1,7 +1,14 @@
 from marshmallow import fields, Schema, post_load
+from flask_marshmallow import Marshmallow
+from dynamicannotationdb import models 
 
+ma = Marshmallow()
 
-class Metadata(Schema):
+class FullMetadataSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = models.Metadata
+
+class MetadataSchema(Schema):
     user_id = fields.Str(required=False)
     description = fields.Str(required=True)
     reference_table = fields.Str(required=False)
@@ -12,7 +19,7 @@ class TableSchema(Schema):
     schema_type = fields.Str(order=1, required=True)
 
 class CreateTableSchema(TableSchema):
-    metadata = fields.Nested(Metadata, order=3, required=True, example={'description': "my description"})
+    metadata = fields.Nested(MetadataSchema, order=3, required=True, example={'description': "my description"})
 
 
 class DeleteAnnotationSchema(Schema):
