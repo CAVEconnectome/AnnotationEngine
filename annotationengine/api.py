@@ -91,7 +91,7 @@ class TableInfo(Resource):
     def get(self, aligned_volume_name:str, table_name: str) -> int:
         """ Get count of rows of an annotation table"""
         db = get_db(aligned_volume_name)
-        return db.get_annotation_table_length(aligned_volume_name, table_name), 200
+        return db.get_annotation_table_length(table_name), 200
 
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table/<string:table_name>/annotations")
 class Annotations(Resource):
@@ -107,7 +107,7 @@ class Annotations(Resource):
        
         db = get_db(aligned_volume_name)
 
-        metadata = db.get_table_metadata(aligned_volume_name, table_name)
+        metadata = db.get_table_metadata( table_name)
         schema = metadata.get('schema_type')
         
         annotations = db.get_annotations(table_name, schema, annotation_ids)
@@ -128,7 +128,7 @@ class Annotations(Resource):
 
         db = get_db(aligned_volume_name)
     
-        metadata = db.get_table_metadata(aligned_volume_name, table_name)
+        metadata = db.get_table_metadata(table_name)
         schema = metadata.get('schema_type')
 
         if schema:
@@ -153,13 +153,13 @@ class Annotations(Resource):
         
         db = get_db(aligned_volume_name)
   
-        metadata = db.get_table_metadata(aligned_volume_name, table_name)
+        metadata = db.get_table_metadata(table_name)
         schema = metadata.get('schema_type')
 
         if schema:
             for annotation in annotations:
                 anno_id = annotation.pop('id')
-                db.update_annotations(table_name,
+                db.update_annotation(table_name,
                                       schema,
                                       anno_id,
                                       annotation)
