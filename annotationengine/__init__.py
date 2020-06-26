@@ -52,7 +52,7 @@ def create_app(test_config=None):
         app.register_blueprint(views_bp)
         db.init_app(app)
         db.create_all()
-        admin = setup_admin(app, db)
+
 
     @app.route("/health")
     def health():
