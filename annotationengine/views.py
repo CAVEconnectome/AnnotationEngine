@@ -32,7 +32,7 @@ def aligned_volume_view(aligned_volume_name):
                                                                          user_id=x.user_id),
                                                     x.user_id),
                        axis=1)
-
+    df['table_name']=df['table_name'].map(lambda x: x.split('__')[-1])
     return render_template('aligned_volume.html',
                             df_table=df.to_html(escape=False),
                             tables=tables,
