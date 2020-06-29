@@ -23,8 +23,8 @@ def aligned_volume_view(aligned_volume_name):
     
     db = get_db(aligned_volume_name)
     table_names = db.get_existing_tables()
-    query=db.session.query(Metadata).filter(Metadata.deleted == None)
-    df = pd.read_sql(query.statement, db._client.engine)
+    query=db.cached_session.query(Metadata).filter(Metadata.deleted == None)
+    df = pd.read_sql(query.statement, db.engine)
     base_user_url = "https://{auth_uri}/api/v1/user/{user_id}"
     auth_uri =os.environ['AUTH_URI']
 
