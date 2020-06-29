@@ -80,7 +80,7 @@ class Table(Resource):
     def get(self, aligned_volume_name:str):
         """ Get list of annotation tables for a aligned_volume"""
         db = get_db(aligned_volume_name)
-        tables = db.get_tables()
+        tables = db.get_existing_tables()
         return tables, 200
 
 
