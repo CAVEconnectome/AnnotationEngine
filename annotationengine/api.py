@@ -80,7 +80,7 @@ class Table(Resource):
     def get(self, aligned_volume_name:str):
         """ Get list of annotation tables for a aligned_volume"""
         db = get_db(aligned_volume_name)
-        tables = db.get_tables()
+        tables = db.get_existing_table_names()
         return tables, 200
 
 
@@ -92,9 +92,9 @@ class TableInfo(Resource):
     @auth_required
     @api_bp.doc(description="get table metadata", security='apikey')
     def get(self, aligned_volume_name:str, table_name: str) -> FullMetadataSchema:
-        """ Get count of rows of an annotation table"""
+        """ Get metadata for a given table"""
         db = get_db(aligned_volume_name)
-        return db.get_table_metadata(table_name), 200
+        return db.get_table_metadata(aligned_volume_name, table_name), 200
     
 
 @api_bp.route("/aligned_volume_name/<string:aligned_volume_name>/table/<string:table_name>/count")
@@ -105,7 +105,7 @@ class TableInfo(Resource):
     def get(self, aligned_volume_name:str, table_name: str) -> int:
         """ Get count of rows of an annotation table"""
         db = get_db(aligned_volume_name)
-        return db.get_annotation_table_length(table_name), 200
+        return db.get_annotation_table_size(aligned_volume_name, table_name), 200
 
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table/<string:table_name>/annotations")
 class Annotations(Resource):
@@ -120,11 +120,8 @@ class Annotations(Resource):
         annotation_ids = args['annotation_ids']
        
         db = get_db(aligned_volume_name)
-
-        metadata = db.get_table_metadata( table_name)
-        schema = metadata.get('schema_type')
         
-        annotations = db.get_annotations(table_name, schema, annotation_ids)
+        annotations = db.get_annotation(table_name, annotation_ids)
         
         if annotations is None:
             msg = f"annotation_id {annotation_ids} not in {table_name}"
@@ -141,18 +138,13 @@ class Annotations(Resource):
         annotations = data.get('annotations')
 
         db = get_db(aligned_volume_name)
-    
-        metadata = db.get_table_metadata(table_name)
-        schema = metadata.get('schema_type')
 
-        if schema:
-            try:
-                db.insert_annotations(table_name,
-                                      schema,
-                                      annotations)
-            except Exception as error:
-                logging.error(f"INSERT FAILED {annotations}")
-                abort(404, error)
+        try:
+            db.insert_annotation(table_name,
+                                  annotations)
+        except Exception as error:
+            logging.error(f"INSERT FAILED {annotations}")
+            abort(404, error)
         
         return f"Inserted {len(annotations)} annotations", 200
         
@@ -162,24 +154,19 @@ class Annotations(Resource):
     def put(self, aligned_volume_name:str, table_name: str, **kwargs):
         """ Update annotations """
         data = request.parsed_obj
+
         annotations = data.get('annotations')
 
-        
         db = get_db(aligned_volume_name)
   
-        metadata = db.get_table_metadata(table_name)
-        schema = metadata.get('schema_type')
+        new_ids = []
 
-        if schema:
-            for annotation in annotations:
-                anno_id = annotation.pop('id')
-                db.update_annotation(table_name,
-                                      schema,
-                                      anno_id,
-                                      annotation)
- 
+        for annotation in annotations:
+            updated_id = db.update_annotation(table_name,   
+                                              annotation)
+            new_ids.append(updated_id)
 
-        return f"Updated {len(data)} annotations", 200
+        return f"{new_ids}", 200
 
     @auth_required
     @api_bp.doc('delete annotation', security='apikey')
@@ -192,12 +179,10 @@ class Annotations(Resource):
 
         db = get_db(aligned_volume_name)
 
-        for anno_id in ids:
-            ann = db.delete_annotation(table_name, anno_id)
-        
-        if ann is None:
-            msg = f"annotation_id {ids} not in {table_name}"
-            abort(404, msg)
+        ann = db.delete_annotation(table_name, ids)
 
-        return ann, 200
+        if ann is None:
+            return f"annotation_id {ids} not in table {table_name}", 404
+            
+        return f"{len(ids)} annotations marked for deletion", 200
 
