@@ -4,7 +4,8 @@ from io import StringIO, TextIOBase
 from emannotationschemas import get_schema
 from emannotationschemas.models import split_annotation_schema
 from multiwrapper import multiprocessing_utils as mu
-from dynamicannotationdb.interface import AnnotationDB
+from dynamicannotationdb.annotation_client import DynamicAnnotationClient
+from dynamicannotationdb.materialization_client import DynamicMaterializationClient
 import pandas as pd
 from collections import OrderedDict
 import time
@@ -88,17 +89,19 @@ def process_dataframe(sql_uri, table_id: str,
     return results
 
 
-def test_sqlalchemy_orm_bulk_insert(sql_uri, table_id, 
+def test_sqlalchemy_orm_bulk_insert(sql_uri, aligned_volume_name,
+                                             table_id, 
                                              schema_name,
                                              dataframe,
                                              chunksize):
     data_mapping = {}
 
-    client = AnnotationDB(sql_uri)
+    client = DynamicAnnotationClient(aligned_volume_name, sql_uri)
+    mat_client = DynamicMaterializationClient(aligned_volume_name, sql_uri)
     schema = get_schema(schema_name)
-
-    AnnotationModel = client.cached_table(table_id)
-    SegmentationModel = client.cached_table(f"{table_id}_segmentation")
+    
+    AnnotationModel = client.get_table_metadata
+    SegmentationModel = mat_client.._cached_table(f"{table_id}_segmentation")
     
     anno_cols = AnnotationModel.__table__.columns.keys()
     seg_cols = SegmentationModel.__table__.columns.keys()
@@ -236,22 +239,26 @@ if __name__ == "__main__":
 
     sql_uri = "postgres://postgres:annodb@localhost:5432/annodb"
 
-    client = AnnotationDB(sql_uri=sql_uri)
+    
     
     aligned_volume_name = 'minnie'
     table_name = 'synapse_test'
     schema_name = 'synapse'
-    table_id = f"{aligned_volume_name}_{table_name}"
+    client = DynamicAnnotationClient(aligned_volume_name, sql_uri)
+
+    #table_id = f"{aligned_volume_name}_{table_name}"
 
     example_table_description = "This is an example description for this table"
 
-    new_table = client.create_table(aligned_volume_name, 
-                                    table_name, 
+    metadata = {
+        'description': example_table_description,
+        'user_id': 'foo@bar.com'
+    }
+    new_table = client.create_table(table_name, 
                                     schema_name,
-                                    description=example_table_description,
-                                    user_id='foo@bar.com')
-    tables = client.get_aligned_volume_tables(aligned_volume_name)
+                                    metadata_dict=metadata)
+    tables = client.get_existing_table_names()
     print(tables)
 
-    test_sqlalchemy_orm_bulk_insert(sql_uri, 'minnie_synapse_test', 'synapse', synapse_df, 100)
+    test_sqlalchemy_orm_bulk_insert(sql_uri, aligned_volume_name, 'minnie_synapse_test', 'synapse', synapse_df, 100)
 
