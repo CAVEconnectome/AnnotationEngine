@@ -276,9 +276,9 @@ if __name__ == "__main__":
                                                 user_id)
     tables = anno_client._get_existing_table_ids()
 
-    if segmentation_table_id not in mat_client._get_existing_table_ids():
-        seg_table = mat_client.create_and_attach_seg_table(
-            table_name, pcg_table_name, pcg_version)
+   # create segmentation table
+    seg_table = mat_client.create_and_attach_seg_table(
+        table_name, pcg_table_name, pcg_version)
 
 
     tables = anno_client._get_existing_table_ids()
