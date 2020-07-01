@@ -13,4 +13,4 @@ flask-restx
 flask-accepts
 marshmallow-sqlalchemy
 requests
-
+cachetools

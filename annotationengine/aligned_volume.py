@@ -5,8 +5,9 @@ import logging
 import os
 from annotationframeworkclient.infoservice import InfoServiceClient
 from annotationframeworkclient.auth import AuthClient
+import cachetools.func
 
-
+@cachetools.func.ttl_cache(maxsize=2, ttl=5 * 60)
 def get_aligned_volumes():
     server= current_app.config['GLOBAL_SERVER']
     auth = AuthClient(server_address=server)
@@ -16,7 +17,7 @@ def get_aligned_volumes():
     aligned_volume_names = infoclient.get_aligned_volumes()
     return aligned_volume_names
 
-
+@cachetools.func.ttl_cache(maxsize=10, ttl=5 * 60)
 def get_aligned_volume(aligned_volume):
     infoservice = current_app.config['INFOSERVICE_ENDPOINT']
     url = os.path.join(infoservice, "api/v2/aligned_volume/{}".format(aligned_volume))

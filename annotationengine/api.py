@@ -39,6 +39,11 @@ api_bp = Namespace("Annotation Engine",
 annotation_parser = reqparse.RequestParser()
 annotation_parser.add_argument('annotation_ids', type=int, action='split', help='list of annotation ids')    
 
+def check_aligned_volume(aligned_volume):
+    aligned_volumes = get_aligned_volumes()
+    if aligned_volume not in aligned_volumes:
+        abort(400, f"aligned volume: {aligned_volume} not valid")
+
 def get_schema_from_service(annotation_type, endpoint):
     url = endpoint + "/type/" + annotation_type
     r = requests.get(url)
@@ -55,6 +60,7 @@ class Table(Resource):
     @accepts("CreateTableSchema", schema=CreateTableSchema, api=api_bp)
     def post(self, aligned_volume_name:str):
         """ Create a new annotation table"""
+        check_aligned_volume(aligned_volume_name)
         data = request.parsed_obj
         db = get_db(aligned_volume_name)
         metadata_dict = data.get('metadata')
@@ -71,7 +77,7 @@ class Table(Resource):
 
             table_info = db.create_table(table_name,
                                          schema_type,
-                                         metadata_dict)
+                                         **metadata_dict)
 
         return table_info, 200
 
@@ -79,6 +85,7 @@ class Table(Resource):
     @api_bp.doc('get_aligned_volume_tables', security='apikey')
     def get(self, aligned_volume_name:str):
         """ Get list of annotation tables for a aligned_volume"""
+        check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
         tables = db.get_existing_table_names()
         return tables, 200
@@ -93,6 +100,7 @@ class AnnotationTable(Resource):
     @api_bp.doc(description="get table metadata", security='apikey')
     def get(self, aligned_volume_name:str, table_name: str) -> FullMetadataSchema:
         """ Get metadata for a given table"""
+        check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
         return db.get_table_metadata(aligned_volume_name, table_name), 200
     
@@ -100,6 +108,7 @@ class AnnotationTable(Resource):
     @api_bp.doc(description="mark an annotation table for deletion (admin only)", security='apikey')
     def delete(self, aligned_volume_name:str, table_name: str)-> bool:
         """ Delete an annotation table (marks for deletion, will suspend materialization, admin only)"""
+        check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
         is_deleted = db.delete_table(table_name)
         return is_deleted, 200
@@ -112,6 +121,7 @@ class TableInfo(Resource):
     @api_bp.doc(description="get_table_size", security='apikey')
     def get(self, aligned_volume_name:str, table_name: str) -> int:
         """ Get count of rows of an annotation table"""
+        check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
         return db.get_annotation_table_size(aligned_volume_name, table_name), 200
 
@@ -124,6 +134,7 @@ class Annotations(Resource):
     @api_bp.expect(annotation_parser)
     def get(self, aligned_volume_name:str, table_name: str, **kwargs):
         """ Get annotations by list of IDs"""
+        check_aligned_volume(aligned_volume_name)
         args = annotation_parser.parse_args()
         
         annotation_ids = args['annotation_ids']
@@ -143,6 +154,7 @@ class Annotations(Resource):
     @accepts("PutAnnotationSchema", schema=PutAnnotationSchema, api=api_bp)
     def post(self, aligned_volume_name:str, table_name: str, **kwargs):
         """ Insert annotations """
+        check_aligned_volume(aligned_volume_name)
         data = request.parsed_obj
         annotations = data.get('annotations')
 
@@ -162,6 +174,7 @@ class Annotations(Resource):
     @accepts("PutAnnotationSchema", schema=PutAnnotationSchema, api=api_bp)
     def put(self, aligned_volume_name:str, table_name: str, **kwargs):
         """ Update annotations """
+        check_aligned_volume(aligned_volume_name)
         data = request.parsed_obj
 
         annotations = data.get('annotations')
@@ -182,6 +195,7 @@ class Annotations(Resource):
     @accepts("DeleteAnnotationSchema", schema=DeleteAnnotationSchema, api=api_bp)
     def delete(self, aligned_volume_name:str, table_name: str, **kwargs):
         """ Delete annotations """
+        check_aligned_volume(aligned_volume_name)
         data = request.parsed_obj
    
         ids = data.get('annotation_ids')
