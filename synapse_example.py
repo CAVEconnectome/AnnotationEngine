@@ -4,7 +4,8 @@ import numpy as np
 import time
 
 from annotationengine import annotation, anno_database
-from dynamicannotationdb.annodb_meta import AnnotationMetaDB
+from dynamicannotationdb.annotation_client import DynamicAnnotationClient
+
 
 HOME = os.path.expanduser("~")
 
@@ -41,7 +42,7 @@ def insert_synases_no_endpoint(syn_df, aligned_volume='pinky100',
     schema = annotation.get_schema_from_service(schema_name,
                                                 schema_endpoint)
 
-    amdb = AnnotationMetaDB()
+    amdb = DynamicAnnotationClient(aligned_volume, )
     amdb._reset_table(user_id, aligned_volume, table_name, schema_name)
 
     syn_df_jsonified = pd.read_json(syn_df.to_json())

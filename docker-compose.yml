@@ -6,13 +6,17 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 80:80
+      - 8081:4001
     volumes:
       - .:/app
+    env_file:
+      - ./.env-docker.dev
+    command: python run.py
+
   db:
     image: mdillon/postgis
     env_file:
-      - ./.env.dev
+      - ./.env-docker.dev
     ports:
       - 5432:5432
     volumes:
