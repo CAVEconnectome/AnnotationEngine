@@ -84,7 +84,7 @@ class Table(Resource):
         return tables, 200
 
 
-@api_bp.route("/aligned_volume_name/<string:aligned_volume_name>/table/<string:table_name>")
+@api_bp.route("/aligned_volume/<string:aligned_volume_name>/table/<string:table_name>")
 @api_bp.param("aligned_volume_name", "AlignedVolume Name")
 @api_bp.param("table_name", "Name of table")
 class AnnotationTable(Resource):
@@ -105,7 +105,7 @@ class AnnotationTable(Resource):
         return is_deleted, 200
 
 
-@api_bp.route("/aligned_volume_name/<string:aligned_volume_name>/table/<string:table_name>/count")
+@api_bp.route("/aligned_volume/<string:aligned_volume_name>/table/<string:table_name>/count")
 class TableInfo(Resource):
 
     @auth_required
