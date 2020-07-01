@@ -12,7 +12,7 @@ class MetadataSchema(Schema):
     user_id = fields.Str(required=False)
     description = fields.Str(required=True)
     reference_table = fields.Str(required=False)
-
+    flat_segmentation_source = fields.Str(required=False)
 
 class TableSchema(Schema):
     table_name = fields.Str(order=0, required=True)   
