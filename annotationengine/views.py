@@ -38,13 +38,14 @@ def aligned_volume_view(aligned_volume_name):
                                                     x.schema_type),
                        axis=1)
     
-    df['table_name']=df['table_name'].map(lambda x: get_table_name_from_table_id(x))
+    table_names=df['table_id'].map(lambda x: get_table_name_from_table_id(x))
+    df.insert(1, 'table_name', table_names)
+    df = df.drop(['table_id'], axis=1)
     df['table_name']=df.apply(lambda x:
                        "<a href='{}'>{}</a>".format(url_for('views.table_view',
                                                             aligned_volume_name=aligned_volume_name,
                                                             table_name=x.table_name), x.table_name),
                        axis=1)
-
     return render_template('aligned_volume.html',
                             df_table=df.to_html(escape=False),
                             tables=table_names,
