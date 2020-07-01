@@ -6,13 +6,14 @@ from emannotationschemas.models import split_annotation_schema
 from multiwrapper import multiprocessing_utils as mu
 from dynamicannotationdb.annotation_client import DynamicAnnotationClient
 from dynamicannotationdb.materialization_client import DynamicMaterializationClient
+from dynamicannotationdb.key_utils import build_table_id, build_segmentation_table_id
 import pandas as pd
 from collections import OrderedDict
 import time
 
 
 def _process_dataframe_worker(args):
-    ind, dataframe, schema, schema_name, data_mapping, sql_uri = args
+    ind, dataframe, schema, schema_name, data_mapping = args
     annotations = []
     segmentations = []
 
@@ -30,6 +31,11 @@ def _process_dataframe_worker(args):
         
         position_data = {key: f"POINTZ({val[0]} {val[1]} {val[2]})" for key, val in annotation_data.items() if 'position' in key}                                       
         
+        ordered_seg_data.update({
+             'id': index,
+             'annotation_id': index,            
+        })
+        
         ordered_anno_data.update({
              'id': index,
              'created': insert_time,
@@ -42,11 +48,8 @@ def _process_dataframe_worker(args):
         )
 
         ordered_anno_data.update(position_data)
+        ordered_seg_data.update(segmentation_data)
 
-        ordered_seg_data.update({
-             'id': index,
-             'annotation_id': index,            
-        })
 
         annotations.append(ordered_anno_data)
         segmentations.append(ordered_seg_data)
@@ -61,13 +64,12 @@ def common_column_set(columns_a, columns_b):
     else:
         return ("There are no common elements")
 
-def process_dataframe(sql_uri, table_id: str, 
-                              schema, 
-                              schema_name: str, 
-                              dataframe, 
-                              data_mapping: dict, 
-                              chunksize: int, 
-                              n_threads: int=16):
+def process_dataframe(schema, 
+                               schema_name: str, 
+                               dataframe, 
+                               data_mapping: dict, 
+                               chunksize: int, 
+                               n_threads: int=16):
 
     timing = []
     multi_args = []
@@ -76,7 +78,7 @@ def process_dataframe(sql_uri, table_id: str,
 
     for i_start in range(0, len(dataframe), chunksize):
         multi_args.append([i_start, dataframe[i_start: i_start + chunksize],
-                           schema, schema_name, data_mapping, sql_uri])       
+                           schema, schema_name, data_mapping])       
 
     multi_start = time.time()
     print("START")
@@ -90,7 +92,9 @@ def process_dataframe(sql_uri, table_id: str,
 
 
 def test_sqlalchemy_orm_bulk_insert(sql_uri, aligned_volume_name,
-                                             table_id, 
+                                             table_name,
+                                             pcg_table_name,
+                                             pcg_version, 
                                              schema_name,
                                              dataframe,
                                              chunksize):
@@ -99,9 +103,12 @@ def test_sqlalchemy_orm_bulk_insert(sql_uri, aligned_volume_name,
     client = DynamicAnnotationClient(aligned_volume_name, sql_uri)
     mat_client = DynamicMaterializationClient(aligned_volume_name, sql_uri)
     schema = get_schema(schema_name)
-    
-    AnnotationModel = client.get_table_metadata
-    SegmentationModel = mat_client.._cached_table(f"{table_id}_segmentation")
+
+    AnnotationModel = client.get_annotation_model(aligned_volume, table_name)
+    SegmentationModel = mat_client.get_segmentation_model(aligned_volume, 
+                                                          table_name,
+                                                          pcg_table_name,
+                                                          pcg_version)
     
     anno_cols = AnnotationModel.__table__.columns.keys()
     seg_cols = SegmentationModel.__table__.columns.keys()
@@ -117,9 +124,9 @@ def test_sqlalchemy_orm_bulk_insert(sql_uri, aligned_volume_name,
         'anno_model': anno_cols,
         'seg_model': seg_cols
         })
-    results = process_dataframe(sql_uri, 
-                                table_id,
-                                schema,
+    table_id = build_table_id(aligned_volume, table_name)
+    
+    results = process_dataframe(schema,
                                 schema_name,
                                 dataframe,
                                 data_mapping,
@@ -202,6 +209,7 @@ def copy_string_iterator(engine, table_id: str,
 
     connection.commit()
 
+
 if __name__ == "__main__":
 
     #####   GENERATE DATA 
@@ -224,7 +232,8 @@ if __name__ == "__main__":
     post_root_id = np.repeat(np.arange(100),10)
     df['pre_pt_root_id'] = pre_root_id
     df['post_pt_root_id'] = post_root_id
-
+    df['pre_pt_supervoxel_id'] = np.random.randint(1,100000, size=(n_samples, 1))
+    df['post_pt_supervoxel_id'] = np.random.randint(1,100000, size=(n_samples, 1))
     df.to_csv('synapses_data.csv', index=False)
 
     synapse_df = pd.read_csv("synapses_data.csv")
@@ -237,28 +246,43 @@ if __name__ == "__main__":
     synapse_df['post_pt_position'] = synapse_df.post_pt_position.apply(literal_eval)
 
 
-    sql_uri = "postgres://postgres:annodb@localhost:5432/annodb"
+    sql_uri = "postgres://postgres:annodb@localhost:5432/minnie"
 
     
-    
-    aligned_volume_name = 'minnie'
+    # table params and metadata
+    aligned_volume = 'minnie'
     table_name = 'synapse_test'
     schema_name = 'synapse'
-    client = DynamicAnnotationClient(aligned_volume_name, sql_uri)
+    description = "This is an example description for this table"
+    user_id = 'foo@bar.com'
+    # segmentation table params
+    pcg_table_name = 'pcg_synapse'
+    pcg_version = 1
+    # initialize dynamic annotation clients
+    anno_client = DynamicAnnotationClient(aligned_volume, sql_uri)
+    mat_client = DynamicMaterializationClient(aligned_volume, sql_uri)  
 
-    #table_id = f"{aligned_volume_name}_{table_name}"
+    # generate table_id for annotation and segmentation tables
+    annotation_table_id = build_table_id(aligned_volume, table_name)
+    segmentation_table_id = build_segmentation_table_id(aligned_volume,
+                                                        table_name,
+                                                        pcg_table_name,
+                                                        pcg_version)
+    # check if tables exist if not make them
+    if annotation_table_id not in anno_client._get_existing_table_ids():
+        anno_table = anno_client.create_table(table_name,
+                                                schema_name,
+                                                description,
+                                                user_id)
+    tables = anno_client._get_existing_table_ids()
 
-    example_table_description = "This is an example description for this table"
+   # create segmentation table
+    seg_table = mat_client.create_and_attach_seg_table(
+        table_name, pcg_table_name, pcg_version)
 
-    metadata = {
-        'description': example_table_description,
-        'user_id': 'foo@bar.com'
-    }
-    new_table = client.create_table(table_name, 
-                                    schema_name,
-                                    metadata_dict=metadata)
-    tables = client.get_existing_table_names()
+
+    tables = anno_client._get_existing_table_ids()
     print(tables)
 
-    test_sqlalchemy_orm_bulk_insert(sql_uri, aligned_volume_name, 'minnie_synapse_test', 'synapse', synapse_df, 100)
-
+    test_sqlalchemy_orm_bulk_insert(
+        sql_uri, aligned_volume, table_name, pcg_table_name, pcg_version, schema_name, synapse_df, 100)
