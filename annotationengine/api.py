@@ -1,7 +1,6 @@
 from flask import Blueprint, jsonify, request, abort, current_app, g
 from flask_restx import Namespace, Resource, reqparse, fields
 from flask_accepts import accepts, responds
-
 from annotationengine.anno_database import get_db
 from annotationengine.aligned_volume import get_aligned_volumes
 from annotationengine.errors import UnknownAnnotationTypeException
