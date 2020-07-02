@@ -41,7 +41,6 @@ def _process_dataframe_worker(args):
              'created': insert_time,
              'deleted': None,
              'superceded_id': None,
-             'type': schema_name,
              'valid': True,
              'size': None
              }
