@@ -160,7 +160,7 @@ class Annotations(Resource):
         db = get_db(aligned_volume_name)
 
         try:
-            db.insert_annotation(table_name,
+            db.insert_annotations(table_name,
                                   annotations)
         except Exception as error:
             logging.error(f"INSERT FAILED {annotations}")
