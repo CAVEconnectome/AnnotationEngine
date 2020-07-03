@@ -140,7 +140,7 @@ class Annotations(Resource):
        
         db = get_db(aligned_volume_name)
         
-        annotations = db.get_annotation(table_name, annotation_ids)
+        annotations = db.get_annotations(table_name, annotation_ids)
         
         if annotations is None:
             msg = f"annotation_id {annotation_ids} not in {table_name}"
