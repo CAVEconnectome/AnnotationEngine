@@ -93,7 +93,6 @@ def process_dataframe(schema,
 def test_sqlalchemy_orm_bulk_insert(sql_uri, aligned_volume_name,
                                              table_name,
                                              pcg_table_name,
-                                             pcg_version, 
                                              schema_name,
                                              dataframe,
                                              chunksize):
@@ -106,8 +105,7 @@ def test_sqlalchemy_orm_bulk_insert(sql_uri, aligned_volume_name,
     AnnotationModel = client.get_annotation_model(aligned_volume, table_name)
     SegmentationModel = mat_client.get_segmentation_model(aligned_volume, 
                                                           table_name,
-                                                          pcg_table_name,
-                                                          pcg_version)
+                                                          pcg_table_name)
     
     anno_cols = AnnotationModel.__table__.columns.keys()
     seg_cols = SegmentationModel.__table__.columns.keys()
@@ -256,7 +254,6 @@ if __name__ == "__main__":
     user_id = 'foo@bar.com'
     # segmentation table params
     pcg_table_name = 'pcg_synapse'
-    pcg_version = 1
     # initialize dynamic annotation clients
     anno_client = DynamicAnnotationClient(aligned_volume, sql_uri)
     mat_client = DynamicMaterializationClient(aligned_volume, sql_uri)  
@@ -265,8 +262,7 @@ if __name__ == "__main__":
     annotation_table_id = build_table_id(aligned_volume, table_name)
     segmentation_table_id = build_segmentation_table_id(aligned_volume,
                                                         table_name,
-                                                        pcg_table_name,
-                                                        pcg_version)
+                                                        pcg_table_name)
     # check if tables exist if not make them
     if annotation_table_id not in anno_client._get_existing_table_ids():
         anno_table = anno_client.create_table(table_name,
@@ -277,11 +273,11 @@ if __name__ == "__main__":
 
    # create segmentation table
     seg_table = mat_client.create_and_attach_seg_table(
-        table_name, pcg_table_name, pcg_version)
+        table_name, pcg_table_name)
 
 
     tables = anno_client._get_existing_table_ids()
     print(tables)
 
     test_sqlalchemy_orm_bulk_insert(
-        sql_uri, aligned_volume, table_name, pcg_table_name, pcg_version, schema_name, synapse_df, 100)
+        sql_uri, aligned_volume, table_name, pcg_table_name, schema_name, synapse_df, 100)
