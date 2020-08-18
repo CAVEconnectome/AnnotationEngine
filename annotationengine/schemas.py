@@ -6,7 +6,7 @@ ma = Marshmallow()
 
 class FullMetadataSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        model = models.Metadata
+        model = models.AnnoMetadata
 
 class MetadataSchema(Schema):
     user_id = fields.Str(required=False)
