@@ -1,6 +1,6 @@
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
-from dynamicannotationdb.models import Metadata
+from dynamicannotationdb.models import AnnoMetadata as Metadata
 from middle_auth_client import auth_required
 from flask import g, redirect, url_for
 from middle_auth_client import auth_requires_admin, auth_required

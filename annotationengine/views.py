@@ -1,7 +1,7 @@
 from flask import jsonify, render_template, current_app, make_response, Blueprint, url_for
 from .aligned_volume import get_aligned_volumes
 from .anno_database import get_db
-from dynamicannotationdb.models import Metadata
+from dynamicannotationdb.models import AnnoMetadata as Metadata
 from dynamicannotationdb.key_utils import get_table_name_from_table_id
 import pandas as pd
 import os
