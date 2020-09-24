@@ -74,9 +74,9 @@ class Table(Resource):
             table_name = data.get('table_name')
             schema_type = data.get('schema_type')
 
-            table_info = db.create_table(table_name,
-                                         schema_type,
-                                         **metadata_dict)
+            table_info = db.create_annotation_table(table_name,
+                                                    schema_type,
+                                                    **metadata_dict)
 
         return table_info, 200
 
@@ -86,7 +86,7 @@ class Table(Resource):
         """ Get list of annotation tables for a aligned_volume"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        tables = db.get_existing_table_names()
+        tables = db._get_existing_table_names()
         return tables, 200
 
 
@@ -101,7 +101,7 @@ class AnnotationTable(Resource):
         """ Get metadata for a given table"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        return db.get_table_metadata(aligned_volume_name, table_name), 200
+        return db.get_table_metadata(table_name), 200
     
     @auth_requires_admin
     @api_bp.doc(description="mark an annotation table for deletion (admin only)", security='apikey')
@@ -122,7 +122,7 @@ class TableInfo(Resource):
         """ Get count of rows of an annotation table"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        return db.get_annotation_table_size(aligned_volume_name, table_name), 200
+        return db.get_annotation_table_size(table_name), 200
 
 
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table/<string:table_name>/annotations")

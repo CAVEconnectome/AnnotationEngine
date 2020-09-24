@@ -22,13 +22,13 @@ def index():
 def aligned_volume_view(aligned_volume_name):
     
     db = get_db(aligned_volume_name)
-    table_names = db.get_existing_table_names()
-    query=db.cached_session.query(Metadata).filter(Metadata.deleted == None)
+    table_names = db._get_existing_table_names()
+    query = db.cached_session.query(Metadata).filter(Metadata.deleted == None)
     df = pd.read_sql(query.statement, db.engine)
     base_user_url = "https://{auth_uri}/api/v1/user/{user_id}"
-    auth_uri =os.environ['AUTH_URI']
+    auth_uri = os.environ['AUTH_URI']
     base_schema_url = current_app.config['SCHEMA_SERVICE_ENDPOINT'] + "views/type/{schema_type}/view"
-    df['user_id']=df.apply(lambda x:
+    df['user_id'] = df.apply(lambda x:
                        "<a href='{}'>{}</a>".format(base_user_url.format(auth_uri=auth_uri,
                                                                          user_id=x.user_id),
                                                     x.user_id),
@@ -38,9 +38,6 @@ def aligned_volume_view(aligned_volume_name):
                                                     x.schema_type),
                        axis=1)
     
-    table_names=df['table_id'].map(lambda x: get_table_name_from_table_id(x))
-    df.insert(1, 'table_name', table_names)
-    df = df.drop(['table_id'], axis=1)
     df['table_name']=df.apply(lambda x:
                        "<a href='{}'>{}</a>".format(url_for('views.table_view',
                                                             aligned_volume_name=aligned_volume_name,
