@@ -4,21 +4,20 @@ services:
     image: 'annotation:tag'
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dev.Dockerfile
     ports:
-      - 8081:4001
+      - 8082:4001
     volumes:
       - .:/app
     env_file:
       - ./.env-docker.dev
     command: python run.py
-
   db:
     image: mdillon/postgis
     env_file:
       - ./.env-docker.dev
     ports:
-      - 5432:5432
+      - 5434:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./entrypoint.sh:/var/lib/postgresql/entrypoint.sh
@@ -26,13 +25,7 @@ services:
       test: "pg_isready -h localhost -p 5432 -q -U postgres"
       interval: 3s
       timeout: 5s
-      retries: 5
-  adminer:
-    image: adminer
-    ports:
-      - 8080:8080
-    links:
-      - db
-        
+  #     retries: 5
+
 volumes:
   postgres_data:
