@@ -1,24 +1,30 @@
 from marshmallow import fields, Schema, post_load
+from flask_marshmallow import Marshmallow
+from dynamicannotationdb import models 
 
+ma = Marshmallow()
 
-class Metadata(Schema):
+class FullMetadataSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = models.AnnoMetadata
+
+class MetadataSchema(Schema):
     user_id = fields.Str(required=False)
     description = fields.Str(required=True)
     reference_table = fields.Str(required=False)
-
+    flat_segmentation_source = fields.Str(required=False)
 
 class TableSchema(Schema):
-    em_dataset = fields.Str(order=0, required=True)
-    table_name = fields.Str(order=1, required=True)   
-    schema_type = fields.Str(order=2, required=True)
+    table_name = fields.Str(order=0, required=True)   
+    schema_type = fields.Str(order=1, required=True)
 
 class CreateTableSchema(TableSchema):
-    metadata = fields.Nested(Metadata, order=3, required=True)
+    metadata = fields.Nested(MetadataSchema, order=3, required=True, example={'description': "my description"})
 
 
-class DeleteAnnotationSchema(TableSchema):
+class DeleteAnnotationSchema(Schema):
     annotation_ids = fields.List(fields.Int, required=True)
     
 
-class PutAnnotationSchema(TableSchema):
+class PutAnnotationSchema(Schema):
     annotations = fields.List(fields.Dict, required=True)

@@ -19,7 +19,7 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 # get the appropriate sqlalchemy model
-# for the annotation type and dataset
+# for the annotation type and aligned_volume
 SynapseModel = model_dict['pinky40']['synapse']
 
 #print(session.query(SynapseModel).count())

@@ -79,26 +79,26 @@
 
 
 # @pytest.fixture(scope='session')
-# def test_dataset():
+# def test_aligned_volume():
 #     return TEST_DATASET_NAME
 
 
 # @pytest.fixture(scope='session')
-# def app(test_dataset, bigtable_settings):
+# def app(test_aligned_volume, bigtable_settings):
 #     bt_project, bt_table = bigtable_settings
 
 #     with requests_mock.Mocker() as m:
-#         dataset_url = os.path.join(INFOSERVICE_ENDPOINT, 'api/datasets')
-#         m.get(dataset_url, json=[test_dataset])
-#         dataset_info_url = os.path.join(INFOSERVICE_ENDPOINT,
-#                                         'api/dataset/{}'.format(test_dataset))
-#         dataset_d = {
+#         aligned_volume_url = os.path.join(INFOSERVICE_ENDPOINT, 'api/aligned_volumes')
+#         m.get(aligned_volume_url, json=[test_aligned_volume])
+#         aligned_volume_info_url = os.path.join(INFOSERVICE_ENDPOINT,
+#                                         'api/aligned_volume/{}'.format(test_aligned_volume))
+#         aligned_volume_d = {
 #             "annotation_engine_endpoint": "http://35.237.200.246",
 #             "id": 1,
-#             "name": test_dataset,
+#             "name": test_aligned_volume,
 #             "pychunkgraph_endpoint": PYCHUNKEDGRAPH_ENDPOINT,
 #         }
-#         m.get(dataset_info_url, json=dataset_d)
+#         m.get(aligned_volume_info_url, json=aligned_volume_d)
 #         app = create_app(
 #             {
 #                 'project_id': 'test',
@@ -109,7 +109,7 @@
 #                 'BIGTABLE_CONFIG': {
 #                     'emulate': True
 #                 },
-#                 'CHUNKGRAPH_TABLE_ID': test_dataset
+#                 'CHUNKGRAPH_TABLE_ID': test_aligned_volume
 #             }
 #         )
 
@@ -131,11 +131,11 @@
 
 
 # def mock_info_service(requests_mock):
-#     dataset_url = os.path.join(INFOSERVICE_ENDPOINT, 'api/datasets')
-#     requests_mock.get(dataset_url, json=[TEST_DATASET_NAME])
-#     dataset_info_url = os.path.join(INFOSERVICE_ENDPOINT,
-#                                     'api/dataset/{}'.format(TEST_DATASET_NAME))
-#     dataset_d = {
+#     aligned_volume_url = os.path.join(INFOSERVICE_ENDPOINT, 'api/aligned_volumes')
+#     requests_mock.get(aligned_volume_url, json=[TEST_DATASET_NAME])
+#     aligned_volume_info_url = os.path.join(INFOSERVICE_ENDPOINT,
+#                                     'api/aligned_volume/{}'.format(TEST_DATASET_NAME))
+#     aligned_volume_d = {
 #         "annotation_engine_endpoint": "http://35.237.200.246",
 #         "flat_segmentation_source": TEST_PATH,
 #         "id": 1,
@@ -144,4 +144,4 @@
 #         "pychunkgraph_endpoint": "http://pcg/segmentation",
 #         "pychunkgraph_segmentation_source": TEST_PATH
 #     }
-#     requests_mock.get(dataset_info_url, json=dataset_d)
+#     requests_mock.get(aligned_volume_info_url, json=aligned_volume_d)

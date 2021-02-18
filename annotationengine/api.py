@@ -1,14 +1,13 @@
 from flask import Blueprint, jsonify, request, abort, current_app, g
 from flask_restx import Namespace, Resource, reqparse, fields
 from flask_accepts import accepts, responds
-
 from annotationengine.anno_database import get_db
-from annotationengine.dataset import get_datasets
+from annotationengine.aligned_volume import get_aligned_volumes
 from annotationengine.errors import UnknownAnnotationTypeException
 from annotationengine.errors import SchemaServiceError
-from annotationengine.schemas import CreateTableSchema, DeleteAnnotationSchema, PutAnnotationSchema
-
-from middle_auth_client import auth_required, auth_requires_permission
+from annotationengine.schemas import CreateTableSchema, DeleteAnnotationSchema, PutAnnotationSchema, FullMetadataSchema
+from annotationengine.api_examples import synapse_table_example
+from middle_auth_client import auth_required, auth_requires_permission, auth_requires_admin
 from jsonschema import validate, ValidationError
 import numpy as np
 import json
@@ -37,10 +36,12 @@ api_bp = Namespace("Annotation Engine",
                    description="Annotation Engine")
 
 annotation_parser = reqparse.RequestParser()
-annotation_parser.add_argument('em_dataset', type=str, help='Name of EM Dataset')
-annotation_parser.add_argument('table_name', type=str, help='Name of annotation table')
 annotation_parser.add_argument('annotation_ids', type=int, action='split', help='list of annotation ids')    
 
+def check_aligned_volume(aligned_volume):
+    aligned_volumes = get_aligned_volumes()
+    if aligned_volume not in aligned_volumes:
+        abort(400, f"aligned volume: {aligned_volume} not valid")
 
 def get_schema_from_service(annotation_type, endpoint):
     url = endpoint + "/type/" + annotation_type
@@ -50,27 +51,17 @@ def get_schema_from_service(annotation_type, endpoint):
     return r.json()
 
 
-@api_bp.route("/dataset/table/<string:em_dataset>")
-class EMDataSetTables(Resource):
-    @auth_required   
-    @api_bp.doc('get_em_dataset_tables', security='apikey')
-    def get(self, em_dataset:str):
-        """ Get list of annotation tables for a dataset"""
-        db = get_db()
-        tables = db._client.get_dataset_tables(em_dataset)
-        return tables, 200
-
-
-@api_bp.route("/dataset/table")
+@api_bp.route("/aligned_volume/<string:aligned_volume_name>/table")
 class Table(Resource):   
     
     @auth_required
-    @api_bp.doc('create_table', security='apikey')
+    @api_bp.doc('create_table', security='apikey', example = synapse_table_example)
     @accepts("CreateTableSchema", schema=CreateTableSchema, api=api_bp)
-    def post(self):
+    def post(self, aligned_volume_name:str):
         """ Create a new annotation table"""
+        check_aligned_volume(aligned_volume_name)
         data = request.parsed_obj
-        db = get_db()
+        db = get_db(aligned_volume_name)
         metadata_dict = data.get('metadata')
         logging.info(metadata_dict)
         decription = metadata_dict.get('description')
@@ -80,133 +71,140 @@ class Table(Resource):
             msg = "Table description required"
             abort(404, msg)
         else:
-            em_dataset = data.get('em_dataset')
             table_name = data.get('table_name')
             schema_type = data.get('schema_type')
 
-            table_info = db.create_table(em_dataset,
-                                         table_name,
-                                         schema_type,
-                                         metadata_dict)
+            table_info = db.create_annotation_table(table_name,
+                                                    schema_type,
+                                                    **metadata_dict)
 
         return table_info, 200
 
     @auth_required   
-    @api_bp.doc('get_tables', security='apikey')
-    def get(self):
-        """ Get list of annotation tables"""
-        db = get_db()
-        table_info = db.get_existing_tables()
+    @api_bp.doc('get_aligned_volume_tables', security='apikey')
+    def get(self, aligned_volume_name:str):
+        """ Get list of annotation tables for a aligned_volume"""
+        check_aligned_volume(aligned_volume_name)
+        db = get_db(aligned_volume_name)
+        tables = db._get_existing_table_names()
+        return tables, 200
 
-        return table_info, 200
 
-@api_bp.route("/dataset/count/<string:em_dataset>/<string:table_name>")
+@api_bp.route("/aligned_volume/<string:aligned_volume_name>/table/<string:table_name>")
+@api_bp.param("aligned_volume_name", "AlignedVolume Name")
+@api_bp.param("table_name", "Name of table")
+class AnnotationTable(Resource):
+
+    @auth_required
+    @api_bp.doc(description="get table metadata", security='apikey')
+    def get(self, aligned_volume_name:str, table_name: str) -> FullMetadataSchema:
+        """ Get metadata for a given table"""
+        check_aligned_volume(aligned_volume_name)
+        db = get_db(aligned_volume_name)
+        return db.get_table_metadata(table_name), 200
+    
+    @auth_requires_admin
+    @api_bp.doc(description="mark an annotation table for deletion (admin only)", security='apikey')
+    def delete(self, aligned_volume_name:str, table_name: str)-> bool:
+        """ Delete an annotation table (marks for deletion, will suspend materialization, admin only)"""
+        check_aligned_volume(aligned_volume_name)
+        db = get_db(aligned_volume_name)
+        is_deleted = db.delete_table(table_name)
+        return is_deleted, 200
+
+
+@api_bp.route("/aligned_volume/<string:aligned_volume_name>/table/<string:table_name>/count")
 class TableInfo(Resource):
 
     @auth_required
     @api_bp.doc(description="get_table_size", security='apikey')
-    def get(self, em_dataset:str, table_name: str) -> int:
+    def get(self, aligned_volume_name:str, table_name: str) -> int:
         """ Get count of rows of an annotation table"""
-        table_id = f"{em_dataset}_{table_name}"
-        
-        db = get_db()
-        return db.get_annotation_table_length(table_id), 200
+        check_aligned_volume(aligned_volume_name)
+        db = get_db(aligned_volume_name)
+        return db.get_annotation_table_size(table_name), 200
 
-@api_bp.route("/dataset/annotations")
+
+@api_bp.route("/aligned_volume/<string:aligned_volume_name>/table/<string:table_name>/annotations")
 class Annotations(Resource):
 
     @auth_required
     @api_bp.doc('get annotations', security='apikey')
     @api_bp.expect(annotation_parser)
-    def get(self, **kwargs):
+    def get(self, aligned_volume_name:str, table_name: str, **kwargs):
         """ Get annotations by list of IDs"""
+        check_aligned_volume(aligned_volume_name)
         args = annotation_parser.parse_args()
-        em_dataset = args['em_dataset']
-        table_name = args['table_name']
-        ids = args['annotation_ids']
-       
-        db = get_db()
-
-        table_id = f"{em_dataset}_{table_name}"
-        metadata = db.get_table_metadata(table_id)
-        schema = metadata.get('schema_type')
-        ann = db.get_annotation_data(table_id, schema, ids)
         
-        if ann is None:
-            msg = f"annotation_id {ids} not in {table_id}"
+        annotation_ids = args['annotation_ids']
+       
+        db = get_db(aligned_volume_name)
+        
+        annotations = db.get_annotations(table_name, annotation_ids)
+        
+        if annotations is None:
+            msg = f"annotation_id {annotation_ids} not in {table_name}"
             abort(404, msg)
 
-        return ann, 200
+        return annotations, 200
     
     @auth_required
     @api_bp.doc('post annotation', security='apikey')
     @accepts("PutAnnotationSchema", schema=PutAnnotationSchema, api=api_bp)
-    def post(self, **kwargs):
+    def post(self, aligned_volume_name:str, table_name: str, **kwargs):
         """ Insert annotations """
+        check_aligned_volume(aligned_volume_name)
         data = request.parsed_obj
-        em_dataset = data.get('em_dataset')
-        table_name = data.get('table_name')
         annotations = data.get('annotations')
 
-        db = get_db()
-        table_id = f"{em_dataset}_{table_name}"
-        metadata = db.get_table_metadata(table_id)
-        schema = metadata.get('schema_type')
+        db = get_db(aligned_volume_name)
 
-        if schema:
-            try:
-                db.insert_annotations(table_id,
-                                      schema,
-                                      annotations)
-            except Exception as error:
-                logging.error(f"INSERT FAILED {annotations}")
-                abort(404, error)
+        try:
+            db.insert_annotations(table_name,
+                                  annotations)
+        except Exception as error:
+            logging.error(f"INSERT FAILED {annotations}")
+            abort(404, error)
         
         return f"Inserted {len(annotations)} annotations", 200
         
     @auth_required
     @api_bp.doc('update annotation', security='apikey')
     @accepts("PutAnnotationSchema", schema=PutAnnotationSchema, api=api_bp)
-    def put(self, **kwargs):
+    def put(self, aligned_volume_name:str, table_name: str, **kwargs):
         """ Update annotations """
+        check_aligned_volume(aligned_volume_name)
         data = request.parsed_obj
-        em_dataset = data.get('em_dataset')
-        table_name = data.get('table_name')
+
         annotations = data.get('annotations')
 
-        db = get_db()
-        table_id = f"{em_dataset}_{table_name}"
-        metadata = db.get_table_metadata(table_id)
-        schema = metadata.get('schema_type')
+        db = get_db(aligned_volume_name)
+  
+        new_ids = []
 
-        if schema:
-            new_data = [json.loads(annotation) for annotation in annotations]
-            for data in new_data:
-                db.update_annotation_data(table_id,
-                                          schema,
-                                          data)
+        for annotation in annotations:
+            updated_id = db.update_annotation(table_name,   
+                                              annotation)
+            new_ids.append(updated_id)
 
-        return f"Updated {len(data)} annotations", 200
+        return f"{new_ids}", 200
 
     @auth_required
     @api_bp.doc('delete annotation', security='apikey')
     @accepts("DeleteAnnotationSchema", schema=DeleteAnnotationSchema, api=api_bp)
-    def delete(self, **kwargs):
+    def delete(self, aligned_volume_name:str, table_name: str, **kwargs):
         """ Delete annotations """
+        check_aligned_volume(aligned_volume_name)
         data = request.parsed_obj
-        em_dataset = data.get('em_dataset')
-        table_name = data.get('table_name')
+   
         ids = data.get('annotation_ids')
 
-        db = get_db()
+        db = get_db(aligned_volume_name)
 
-        table_id = f"{em_dataset}_{table_name}"
-        for anno_id in ids:
-            ann = db.delete_annotation(table_id, anno_id)
-        
+        ann = db.delete_annotation(table_name, ids)
+
         if ann is None:
-            msg = f"annotation_id {ids} not in {table_id}"
-            abort(404, msg)
-
-        return ann, 200
+            return f"annotation_id {ids} not in table {table_name}", 404
+            
+        return f"{len(ids)} annotations marked for deletion", 200
 

@@ -13,8 +13,10 @@ class BaseConfig(object):
     SQLALCHEMY_DATABASE_URI = 'postgres://postgres:annodb@db:5432/annodb'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     NEUROGLANCER_URL = "https://neuroglancer-demo.appspot.com"
-    INFOSERVICE_ENDPOINT = "https://www.dynamicannotationframework.com/info/"
-    SCHEMA_SERVICE_ENDPOINT = "https://www.dynamicannotationframework.com/schema/"
+    INFOSERVICE_ENDPOINT = "http://globalv1.daf-apis.com/info"
+    AUTH_URI="https://globalv1.daf-apis.com/auth"
+    GLOBAL_SERVER="https://globalv1.daf-apis.com/auth"
+    SCHEMA_SERVICE_ENDPOINT = "https://globalv1.daf-apis.com/schema/"
     TESTING = False
     LOGGING_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
     LOGGING_LOCATION = HOME + '/annoeng/bookshelf.log'

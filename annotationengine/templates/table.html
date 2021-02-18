@@ -1,7 +1,16 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}{{dataset_name}} {{table_name}}{% endblock %}</h1>
+  <h1>{% block title %}{{aligned_volume_name}} {{table_name}}{% endblock %}</h1>
 {% endblock %}
 
-<h3>{{dataset_name + "  " + table_name}}</h3>
+{% block content %}
+<p>
+# annotations: {{table_size}}</p>
+<p>
+Description: {{table_description}}
+</p>
+
+{{df_table|safe}}
+
+{% endblock %}
