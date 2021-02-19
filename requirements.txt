@@ -1,5 +1,5 @@
 Flask
-DynamicAnnotationDB>=2.0.0
+DynamicAnnotationDB>=2.0.1
 emannotationschemas>=3.1.1
 annotationframeworkclient>=2.5.0
 multiwrapper
