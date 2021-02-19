@@ -1,7 +1,7 @@
 Flask
--e git+https://github.com/seung-lab/DynamicAnnotationDB.git@mat_refactor#egg=dynamicannotationdb
--e git+https://github.com/seung-lab/EMAnnotationSchemas.git@mat_refactor#egg=emannotationschemas
--e git+https://github.com/seung-lab/AnnotationFrameworkClient.git@authclient_fcc#egg=annotationframeworkclient
+DynamicAnnotationDB>=2.0.0
+emannotationschemas>=3.0.0
+annotationframeworkclient>=2.5.0
 multiwrapper
 jsonschema
 middle-auth-client==2.4.3
