@@ -8,7 +8,7 @@ from geoalchemy2.elements import WKBElement
 import pandas as pd
 import numpy as np
 import os
-__version__ = "1.0.6"
+__version__ = "2.0.0"
 
 views_bp = Blueprint('views', __name__, url_prefix='/annotation/views')
 

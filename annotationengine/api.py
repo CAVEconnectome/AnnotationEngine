@@ -21,7 +21,7 @@ import logging
 from enum import Enum
 from typing import List
 
-__version__ = "1.0.6"
+__version__ = "2.0.0"
 
 authorizations = {
     'apikey': {

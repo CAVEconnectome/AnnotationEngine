@@ -12,7 +12,7 @@ from flask_restx import Api
 import logging
 from datetime import date, datetime
 
-__version__ = "1.0.6"
+__version__ = "2.0.0"
 
 
 db = SQLAlchemy(model_class=Base)
