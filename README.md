@@ -14,9 +14,9 @@ python setup.py install
 Presently only python 3.6 is supported and tested.
 
 # Configuration
-DynamicAnnotationDb depends upon Google BigTable, so in order to run, you must configure your environment to be able to connect to your google account, so setup the google SDK on your system. 
+DynamicAnnotationDb is backed by POSTGRES, through sqlalchemy. So in order to run, you must configure your environment to be able to connect to your POSTGRES instance.
 
-Then you must edit a configuration file.  See [template](annotationengine/instance/dev_config.py) for example.  Note the emulate flag which will bypass credentials. To specify the path to the cloudvolume segmentation datasets and the bigtable instance that you wish to connect this server to.  You can then specify this configuration file by setting the environment variable ANNOTATION_ENGINE_SETTINGS to the path of the configuration. See (config)[annotationengine/config.py] for details on how the app is configured.
+Then you must edit a configuration file.  See [template](annotationengine/instance/dev_config.py) for example.  You can then specify this configuration file by setting the environment variable ANNOTATION_ENGINE_SETTINGS to the path of the configuration. See (config)[annotationengine/config.py] for details on how the app is configured.
 
 # Running
 A development server can be started on port 7000 with
