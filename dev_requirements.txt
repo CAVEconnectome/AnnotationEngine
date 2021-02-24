@@ -4,7 +4,7 @@ git+https://github.com/seung-lab/AnnotationFrameworkClient.git@authclient_fcc#eg
 Flask
 multiwrapper
 jsonschema
-middle-auth-client==2.4.3
+middle-auth-client==3.0.1
 flask_sqlalchemy
 flask_cors
 flask-marshmallow
