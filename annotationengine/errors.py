@@ -13,8 +13,8 @@ class AnnotationNotFoundException(AnnotationEngineException):
     pass
 
 
-class DataSetNotFoundException(AnnotationEngineException):
-    ''' error raised when a dataset is not found '''
+class AlignedVolumeNotFoundException(AnnotationEngineException):
+    ''' error raised when a aligned_volume is not found '''
 
 
 class SchemaServiceError(AnnotationEngineException):

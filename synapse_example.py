@@ -4,7 +4,8 @@ import numpy as np
 import time
 
 from annotationengine import annotation, anno_database
-from dynamicannotationdb.annodb_meta import AnnotationMetaDB
+from dynamicannotationdb.annotation_client import DynamicAnnotationClient
+
 
 HOME = os.path.expanduser("~")
 
@@ -32,7 +33,7 @@ def load_synapses(path=HOME + "/Downloads/pinky100_final.df",
     return df
 
 
-def insert_synases_no_endpoint(syn_df, dataset_name='pinky100',
+def insert_synases_no_endpoint(syn_df, aligned_volume='pinky100',
                                schema_name="synapse",
                                table_name="pni_synapses",
                                user_id="PNI"):
@@ -41,11 +42,11 @@ def insert_synases_no_endpoint(syn_df, dataset_name='pinky100',
     schema = annotation.get_schema_from_service(schema_name,
                                                 schema_endpoint)
 
-    amdb = AnnotationMetaDB()
-    amdb._reset_table(user_id, dataset_name, table_name, schema_name)
+    amdb = DynamicAnnotationClient(aligned_volume, )
+    amdb._reset_table(user_id, aligned_volume, table_name, schema_name)
 
     syn_df_jsonified = pd.read_json(syn_df.to_json())
-    annotation.import_dataframe(amdb, dataset_name, table_name, schema_name,
+    annotation.import_dataframe(amdb, aligned_volume, table_name, schema_name,
                                 syn_df_jsonified, user_id, schema, n_threads=1)
 
 if __name__ == "__main__":

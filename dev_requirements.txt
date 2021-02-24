@@ -1,0 +1,16 @@
+git+https://github.com/seung-lab/DynamicAnnotationDB.git@mat_refactor#egg=dynamicannotationdb
+git+https://github.com/seung-lab/EMAnnotationSchemas.git@mat_refactor#egg=emannotationschemas
+git+https://github.com/seung-lab/AnnotationFrameworkClient.git@authclient_fcc#egg=annotationframeworkclient
+Flask
+multiwrapper
+jsonschema
+middle-auth-client==2.4.3
+flask_sqlalchemy
+flask_cors
+flask-marshmallow
+flask-admin
+flask-restx
+flask-accepts
+marshmallow-sqlalchemy
+requests
+cachetools

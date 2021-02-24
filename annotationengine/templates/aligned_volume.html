@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}{{aligned_volume_name}}{% endblock %}</h1>
+{% endblock %}
+{% block content %}
+<h3>Annotation Tables</h3>
+
+{{df_table|safe}}
+
+{% endblock %}

@@ -106,7 +106,7 @@ venv.bak/
 
 data/
 .DS_Store
-
+*.csv
 test-reports/
 client-secret.json
 credentials.tar.gz

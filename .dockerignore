@@ -115,3 +115,7 @@ venv.bak/
 .mypy_cache/
 .vscode/
 Dockerfile
+
+*.csv
+
+src/

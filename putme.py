@@ -17,7 +17,7 @@ synapse_d = [{
             'position': [31, 31, 0],
         }
 }]
-url = '{}/annotation/dataset/{}/synapse'.format(url_base, 'demo')
+url = '{}/annotation/aligned_volume/{}/synapse'.format(url_base, 'demo')
 
 
 response = requests.post(url, data=json.dumps(synapse_d))

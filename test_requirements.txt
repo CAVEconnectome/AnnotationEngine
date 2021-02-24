@@ -9,4 +9,4 @@ flake8>=3.0.4
 pylint>=1.5.4
 codecov
 requests-mock
-emannotationschemas>=0.3.5
+emannotationschemas>=2.0.0

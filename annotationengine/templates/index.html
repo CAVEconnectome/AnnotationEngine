@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}{{title}}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<p><a href="{{url_for('views.index')}}">Aligned Volumes</a></p>
+
+{% endblock %}
