@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, abort, current_app, g, Response
+from flask import Blueprint, config, jsonify, request, abort, current_app, g, Response
 from flask_restx import Namespace, Resource, reqparse, fields
 from flask_accepts import accepts, responds
 from annotationengine.anno_database import get_db
@@ -128,7 +128,7 @@ class TableInfo(Resource):
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table/<string:table_name>/annotations")
 class Annotations(Resource):
 
-    @auth_required
+    @auth_requires_permission('view', dataset=current_app.config['AUTH_DATABASE_NAME'])
     @api_bp.doc('get annotations', security='apikey')
     @api_bp.expect(annotation_parser)
     def get(self, aligned_volume_name:str, table_name: str, **kwargs):
@@ -148,7 +148,7 @@ class Annotations(Resource):
 
         return annotations, 200
     
-    @auth_required
+    @auth_requires_permission('edit', dataset=current_app.config['AUTH_DATABASE_NAME'])
     @api_bp.doc('post annotation', security='apikey')
     @accepts("PutAnnotationSchema", schema=PutAnnotationSchema, api=api_bp)
     def post(self, aligned_volume_name:str, table_name: str, **kwargs):
@@ -170,7 +170,7 @@ class Annotations(Resource):
         
         return f"Inserted {len(annotations)} annotations", 200
         
-    @auth_required
+    @auth_requires_permission('edit', dataset=current_app.config['AUTH_DATABASE_NAME'])
     @api_bp.doc('update annotation', security='apikey')
     @accepts("PutAnnotationSchema", schema=PutAnnotationSchema, api=api_bp)
     def put(self, aligned_volume_name:str, table_name: str, **kwargs):
@@ -195,7 +195,7 @@ class Annotations(Resource):
 
         return f"{new_ids}", 200
 
-    @auth_required
+    @auth_requires_permission('edit', dataset=current_app.config['AUTH_DATABASE_NAME'])
     @api_bp.doc('delete annotation', security='apikey')
     @accepts("DeleteAnnotationSchema", schema=DeleteAnnotationSchema, api=api_bp)
     def delete(self, aligned_volume_name:str, table_name: str, **kwargs):
