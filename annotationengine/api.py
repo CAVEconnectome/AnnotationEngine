@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, abort, current_app, g
+from flask import Blueprint, jsonify, request, abort, current_app, g, Response
 from flask_restx import Namespace, Resource, reqparse, fields
 from flask_accepts import accepts, responds
 from annotationengine.anno_database import get_db
@@ -154,10 +154,12 @@ class Annotations(Resource):
     def post(self, aligned_volume_name:str, table_name: str, **kwargs):
         """ Insert annotations """
         check_aligned_volume(aligned_volume_name)
+        db = get_db(aligned_volume_name)
+        metadata=db.get_table_metadata(table_name)
+        if(metadata['user_id']!=str(g.auth_user["id"])):
+            resp = Response("Unauthorized: You did not create this table", 401)
         data = request.parsed_obj
         annotations = data.get('annotations')
-
-        db = get_db(aligned_volume_name)
 
         try:
             db.insert_annotations(table_name,
@@ -174,12 +176,16 @@ class Annotations(Resource):
     def put(self, aligned_volume_name:str, table_name: str, **kwargs):
         """ Update annotations """
         check_aligned_volume(aligned_volume_name)
+        db = get_db(aligned_volume_name)
+        metadata=db.get_table_metadata(table_name)
+        if(metadata['user_id']!=str(g.auth_user["id"])):
+            resp = Response("Unauthorized: You did not create this table", 401)
+
         data = request.parsed_obj
 
         annotations = data.get('annotations')
 
-        db = get_db(aligned_volume_name)
-  
+
         new_ids = []
 
         for annotation in annotations:
@@ -195,6 +201,11 @@ class Annotations(Resource):
     def delete(self, aligned_volume_name:str, table_name: str, **kwargs):
         """ Delete annotations """
         check_aligned_volume(aligned_volume_name)
+        db = get_db(aligned_volume_name)
+        metadata=db.get_table_metadata(table_name)
+        if(metadata['user_id']!=str(g.auth_user["id"])):
+            resp = Response("Unauthorized: You did not create this table", 401)
+
         data = request.parsed_obj
    
         ids = data.get('annotation_ids')
