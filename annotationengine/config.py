@@ -21,7 +21,7 @@ class BaseConfig(object):
     LOGGING_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
     LOGGING_LOCATION = HOME + '/annoeng/bookshelf.log'
     LOGGING_LEVEL = logging.DEBUG
-
+    AUTH_DATABASE_NAME = "minnie65"
 
 config = {
     "development": "annotationengine.config.BaseConfig",
