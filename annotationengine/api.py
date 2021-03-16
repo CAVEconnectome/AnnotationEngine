@@ -73,8 +73,7 @@ class Table(Resource):
         else:
             table_name = data.get('table_name')
             schema_type = data.get('schema_type')
-            if table_name.isupper():
-                table_name = table_name.lower()
+            table_name = table_name.lower()
             table_info = db.create_annotation_table(table_name,
                                                     schema_type,
                                                     **metadata_dict)
