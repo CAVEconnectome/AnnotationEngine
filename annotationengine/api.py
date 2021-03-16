@@ -72,13 +72,20 @@ class Table(Resource):
             abort(404, msg)
         else:
             table_name = data.get('table_name')
+            headers=None
+            if not table_name.islower():
+                headers = {
+                    'Warning': f'201 - "Table name "{table_name}" needs to be lower case. Table will be posted to the database as "{table_name.lower()}"'}
+                table_name = table_name.lower()
             schema_type = data.get('schema_type')
             table_name = table_name.lower()
             table_info = db.create_annotation_table(table_name,
                                                     schema_type,
                                                     **metadata_dict)
 
-        return table_info, 200
+        return Response(table_info,
+                        headers=headers)
+
 
     @auth_required   
     @api_bp.doc('get_aligned_volume_tables', security='apikey')
