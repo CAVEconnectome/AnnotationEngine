@@ -22,7 +22,6 @@ class BaseConfig(object):
     LOGGING_LOCATION = HOME + "/annoeng/bookshelf.log"
     LOGGING_LEVEL = logging.DEBUG
     AUTH_DATABASE_NAME = "minnie65"
-    DEFAULT_VOXEL_RESOLUTION = [4.0, 4.0, 40.0]
 
 
 config = {
