@@ -70,6 +70,12 @@ class Table(Resource):
         if decription is None:
             msg = "Table description required"
             abort(404, msg)
+        if metadata_dict.get('voxel_resolution_x', None) is None:
+            metadata_dict['voxel_resolution_x']=1.0
+        if metadata_dict.get('voxel_resolution_y', None) is None:
+            metadata_dict['voxel_resolution_y']=1.0
+        if metadata_dict.get('voxel_resolution_z', None) is None:
+            metadata_dict['voxel_resolution_z']=1.0
         else:
             table_name = data.get('table_name')
             headers=None
