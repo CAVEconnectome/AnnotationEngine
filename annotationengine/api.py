@@ -71,14 +71,14 @@ class Table(Resource):
             msg = "Table description required"
             abort(404, msg)
         if metadata_dict.get('voxel_resolution_x', None) is None:
-            metadata_dict['voxel_resolution_x']=1.0
+            metadata_dict['voxel_resolution_x']=current_app.config['DEFAULT_VOXEL_RESOLUTION'][0]
         if metadata_dict.get('voxel_resolution_y', None) is None:
-            metadata_dict['voxel_resolution_y']=1.0
+            metadata_dict['voxel_resolution_y']=current_app.config['DEFAULT_VOXEL_RESOLUTION'][1]
         if metadata_dict.get('voxel_resolution_z', None) is None:
-            metadata_dict['voxel_resolution_z']=1.0
+            metadata_dict['voxel_resolution_z']=current_app.config['DEFAULT_VOXEL_RESOLUTION'][2]
         else:
             table_name = data.get('table_name')
-            headers=None
+            headers=Nones
             if not table_name.islower():
                 headers = {
                     'Warning': f'201 - "Table name "{table_name}" needs to be lower case. Table will be posted to the database as "{table_name.lower()}"'}
