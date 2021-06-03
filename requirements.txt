@@ -1,5 +1,4 @@
 Flask
-DynamicAnnotationDB>=2.0.1
 -e git+git://github.com/seung-lab/DynamicAnnotationDB.git@voxel_resolution#egg=dynamicannotationdb
 emannotationschemas>=3.1.1
 annotationframeworkclient>=2.5.0
