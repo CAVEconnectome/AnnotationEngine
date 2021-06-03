@@ -78,7 +78,7 @@ class Table(Resource):
             metadata_dict['voxel_resolution_z']=current_app.config['DEFAULT_VOXEL_RESOLUTION'][2]
         else:
             table_name = data.get('table_name')
-            headers=Nones
+            headers=None
             if not table_name.islower():
                 headers = {
                     'Warning': f'201 - "Table name "{table_name}" needs to be lower case. Table will be posted to the database as "{table_name.lower()}"'}
