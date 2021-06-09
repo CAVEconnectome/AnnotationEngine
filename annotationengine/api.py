@@ -7,6 +7,7 @@ from annotationengine.errors import UnknownAnnotationTypeException
 from annotationengine.errors import SchemaServiceError
 from annotationengine.schemas import CreateTableSchema, DeleteAnnotationSchema, PutAnnotationSchema, FullMetadataSchema
 from annotationengine.api_examples import synapse_table_example
+from dynamicannotationdb.errors import TableAlreadyExists, TableNameNotFound
 from middle_auth_client import auth_required, auth_requires_permission, auth_requires_admin
 from jsonschema import validate, ValidationError
 import numpy as np
@@ -79,10 +80,12 @@ class Table(Resource):
                 table_name = table_name.lower()
             schema_type = data.get('schema_type')
             table_name = table_name.lower()
-            table_info = db.create_annotation_table(table_name,
+            try:
+                table_info = db.create_annotation_table(table_name,
                                                     schema_type,
                                                     **metadata_dict)
-
+            except (TableAlreadyExists):
+                abort(400, f"Table {table_name} already exists")
         return Response(table_info,
                         headers=headers)
 

@@ -1,5 +1,5 @@
-Flask
-DynamicAnnotationDB>=2.0.1
+Flask<2.0
+dynamicannotationdb>=3.0.0
 emannotationschemas>=3.1.1
 annotationframeworkclient>=2.5.0
 multiwrapper
@@ -7,9 +7,9 @@ jsonschema
 middle-auth-client==3.2.5
 flask_sqlalchemy
 flask_cors
-flask-marshmallow
+flask-marshmallow==0.14.0
 flask-admin
-flask-restx
+flask-restx==0.4.0
 flask-accepts
 marshmallow-sqlalchemy
 requests

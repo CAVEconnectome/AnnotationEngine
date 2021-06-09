@@ -10,33 +10,34 @@ class BaseConfig(object):
     # Statement for enabling the development environment
     DEBUG = True
     proj_dir = os.path.split(get_app_base_path())[0]
-    SQLALCHEMY_DATABASE_URI = 'postgres://postgres:annodb@db:5432/annodb'
+    SQLALCHEMY_DATABASE_URI = "postgres://postgres:annodb@db:5432/annodb"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     NEUROGLANCER_URL = "https://neuroglancer-demo.appspot.com"
     INFOSERVICE_ENDPOINT = "http://globalv1.daf-apis.com/info"
-    AUTH_URI="https://globalv1.daf-apis.com/auth"
-    GLOBAL_SERVER="https://globalv1.daf-apis.com/auth"
+    AUTH_URI = "https://globalv1.daf-apis.com/auth"
+    GLOBAL_SERVER = "https://globalv1.daf-apis.com/auth"
     SCHEMA_SERVICE_ENDPOINT = "https://globalv1.daf-apis.com/schema/"
     TESTING = False
-    LOGGING_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
-    LOGGING_LOCATION = HOME + '/annoeng/bookshelf.log'
+    LOGGING_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
+    LOGGING_LOCATION = HOME + "/annoeng/bookshelf.log"
     LOGGING_LEVEL = logging.DEBUG
     AUTH_DATABASE_NAME = "minnie65"
+
 
 config = {
     "development": "annotationengine.config.BaseConfig",
     "testing": "annotationengine.config.BaseConfig",
-    "default": "annotationengine.config.BaseConfig"
+    "default": "annotationengine.config.BaseConfig",
 }
 
 
 def configure_app(app):
-    config_name = os.getenv('FLASK_CONFIGURATION', 'default')
+    config_name = os.getenv("FLASK_CONFIGURATION", "default")
     # object-based default configuration
     app.config.from_object(config[config_name])
-    if 'ANNOTATION_ENGINE_SETTINGS' in os.environ.keys():
-        app.config.from_envvar('ANNOTATION_ENGINE_SETTINGS')
+    if "ANNOTATION_ENGINE_SETTINGS" in os.environ.keys():
+        app.config.from_envvar("ANNOTATION_ENGINE_SETTINGS")
     # instance-folders configuration
-    app.config.from_pyfile('config.cfg', silent=True)
+    app.config.from_pyfile("config.cfg", silent=True)
 
     return app
