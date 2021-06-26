@@ -1,6 +1,6 @@
 Flask<2.0
 dynamicannotationdb>=3.0.0
-emannotationschemas>=3.1.1
+emannotationschemas>=3.2.2
 annotationframeworkclient>=2.5.0
 multiwrapper
 jsonschema
