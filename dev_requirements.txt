@@ -1,5 +1,5 @@
-git+https://github.com/seung-lab/DynamicAnnotationDB.git@mat_refactor#egg=dynamicannotationdb
-git+https://github.com/seung-lab/EMAnnotationSchemas.git@mat_refactor#egg=emannotationschemas
+dynamicannotationdb
+emannotationschemas
 caveclient
 Flask
 multiwrapper
