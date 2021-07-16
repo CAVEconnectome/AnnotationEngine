@@ -4,7 +4,7 @@ emannotationschemas>=3.2.3
 caveclient>=4.0.0
 multiwrapper
 jsonschema
-middle-auth-client==3.2.5
+middle-auth-client>=3.6.4
 flask_sqlalchemy
 flask_cors
 flask-marshmallow==0.14.0
