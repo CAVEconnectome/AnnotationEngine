@@ -5,6 +5,7 @@ from dynamicannotationdb.models import AnnoMetadata as Metadata
 from dynamicannotationdb.key_utils import get_table_name_from_table_id
 from geoalchemy2.shape import to_shape, from_shape
 from geoalchemy2.elements import WKBElement
+from middle_auth_client import auth_requires_permission
 import pandas as pd
 import numpy as np
 import os
@@ -51,8 +52,8 @@ def index():
                             volumes=volumes,
                             version=__version__)
 
-
 @views_bp.route("/aligned_volume/<aligned_volume_name>")
+@auth_requires_permission('view', table_arg='aligned_volume_name', resource_namespace='aligned_volume')
 def aligned_volume_view(aligned_volume_name):
     
     db = get_db(aligned_volume_name)
@@ -82,8 +83,8 @@ def aligned_volume_view(aligned_volume_name):
                             tables=table_names,
                             aligned_volume_name=aligned_volume_name,
                             version=__version__)
-
 @views_bp.route("/aligned_volume/<aligned_volume_name>/table/<table_name>")
+@auth_requires_permission('view', table_arg='aligned_volume_name', resource_namespace='aligned_volume')
 def table_view(aligned_volume_name, table_name):
     db = get_db(aligned_volume_name)
     table_size = db.get_annotation_table_size(table_name)

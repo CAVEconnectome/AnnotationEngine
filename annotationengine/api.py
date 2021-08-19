@@ -55,7 +55,7 @@ def get_schema_from_service(annotation_type, endpoint):
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table")
 class Table(Resource):   
     
-    @auth_required
+    @auth_requires_permission('edit', table_arg='aligned_volume_name', resource_namespace='aligned_volume')
     @api_bp.doc('create_table', security='apikey', example = synapse_table_example)
     @accepts("CreateTableSchema", schema=CreateTableSchema, api=api_bp)
     def post(self, aligned_volume_name:str):
@@ -90,7 +90,7 @@ class Table(Resource):
                         headers=headers)
 
 
-    @auth_required   
+    @auth_requires_permission('view', table_arg='aligned_volume_name', resource_namespace='aligned_volume')
     @api_bp.doc('get_aligned_volume_tables', security='apikey')
     def get(self, aligned_volume_name:str):
         """ Get list of annotation tables for a aligned_volume"""
@@ -105,7 +105,7 @@ class Table(Resource):
 @api_bp.param("table_name", "Name of table")
 class AnnotationTable(Resource):
 
-    @auth_required
+    @auth_requires_permission('view', table_arg='aligned_volume_name', resource_namespace='aligned_volume')
     @api_bp.doc(description="get table metadata", security='apikey')
     def get(self, aligned_volume_name:str, table_name: str) -> FullMetadataSchema:
         """ Get metadata for a given table"""
@@ -126,7 +126,7 @@ class AnnotationTable(Resource):
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table/<string:table_name>/count")
 class TableInfo(Resource):
 
-    @auth_required
+    @auth_requires_permission('view', table_arg='aligned_volume_name', resource_namespace='aligned_volume')
     @api_bp.doc(description="get_table_size", security='apikey')
     def get(self, aligned_volume_name:str, table_name: str) -> int:
         """ Get count of rows of an annotation table"""
@@ -138,7 +138,7 @@ class TableInfo(Resource):
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table/<string:table_name>/annotations")
 class Annotations(Resource):
 
-    @auth_requires_permission('view', dataset=os.environ['AUTH_DATABASE_NAME'])
+    @auth_requires_permission('view', table_arg='aligned_volume_name', resource_namespace='aligned_volume')
     @api_bp.doc('get annotations', security='apikey')
     @api_bp.expect(annotation_parser)
     def get(self, aligned_volume_name:str, table_name: str, **kwargs):
@@ -158,7 +158,7 @@ class Annotations(Resource):
 
         return annotations, 200
     
-    @auth_requires_permission('edit', dataset=os.environ['AUTH_DATABASE_NAME'])
+    @auth_requires_permission('edit', table_arg='aligned_volume_name', resource_namespace='aligned_volume')
     @api_bp.doc('post annotation', security='apikey')
     @accepts("PutAnnotationSchema", schema=PutAnnotationSchema, api=api_bp)
     def post(self, aligned_volume_name:str, table_name: str, **kwargs):
@@ -205,7 +205,7 @@ class Annotations(Resource):
 
         return f"{new_ids}", 200
 
-    @auth_requires_permission('edit', dataset=os.environ['AUTH_DATABASE_NAME'])
+    @auth_requires_permission('edit', table_arg='aligned_volume_name', resource_namespace='aligned_volume')
     @api_bp.doc('delete annotation', security='apikey')
     @accepts("DeleteAnnotationSchema", schema=DeleteAnnotationSchema, api=api_bp)
     def delete(self, aligned_volume_name:str, table_name: str, **kwargs):
