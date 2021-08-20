@@ -29,9 +29,9 @@ click==7.1.2
     # via flask
 decorator==5.0.9
     # via ipython
-dynamicannotationdb==3.0.0
+dynamicannotationdb==3.0.1
     # via -r requirements.in
-emannotationschemas==3.2.3
+emannotationschemas==3.2.5
     # via
     #   -r requirements.in
     #   dynamicannotationdb
