@@ -14,7 +14,7 @@ from flask_restx import Api
 import logging
 from datetime import date, datetime
 
-__version__ = "3.2.3"
+__version__ = "3.2.4"
 
 
 db = SQLAlchemy(model_class=Base)
