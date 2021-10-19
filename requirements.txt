@@ -31,7 +31,7 @@ decorator==5.0.9
     # via ipython
 dynamicannotationdb==3.0.1
     # via -r requirements.in
-emannotationschemas==3.2.5
+emannotationschemas==3.3.0
     # via
     #   -r requirements.in
     #   dynamicannotationdb
