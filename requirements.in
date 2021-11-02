@@ -9,7 +9,7 @@ flask_sqlalchemy
 flask_cors
 flask-marshmallow==0.14.0
 flask-admin
-flask-restx==0.4.0
+flask-restx==0.5.1
 flask-accepts
 marshmallow-sqlalchemy
 requests

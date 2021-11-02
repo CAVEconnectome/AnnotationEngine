@@ -33,6 +33,16 @@ emannotationschemas==3.4.1
     # via
     #   -r requirements.in
     #   dynamicannotationdb
+flask==1.1.4
+    # via
+    #   -r requirements.in
+    #   emannotationschemas
+    #   flask-admin
+    #   flask-cors
+    #   flask-marshmallow
+    #   flask-restx
+    #   flask-sqlalchemy
+    #   middle-auth-client
 flask-accepts==0.18.2
     # via
     #   -r requirements.in
@@ -47,23 +57,13 @@ flask-cors==3.0.10
     #   emannotationschemas
 flask-marshmallow==0.14.0
     # via -r requirements.in
-flask-restx==0.4.0
+flask-restx==0.5.1
     # via
     #   -r requirements.in
     #   emannotationschemas
     #   flask-accepts
 flask-sqlalchemy==2.5.1
     # via -r requirements.in
-flask==1.1.4
-    # via
-    #   -r requirements.in
-    #   emannotationschemas
-    #   flask-admin
-    #   flask-cors
-    #   flask-marshmallow
-    #   flask-restx
-    #   flask-sqlalchemy
-    #   middle-auth-client
 furl==2.1.2
     # via middle-auth-client
 geoalchemy2==0.9.3
@@ -72,10 +72,10 @@ geoalchemy2==0.9.3
     #   emannotationschemas
 idna==3.2
     # via requests
-ipython-genutils==0.2.0
-    # via traitlets
 ipython==7.26.0
     # via caveclient
+ipython-genutils==0.2.0
+    # via traitlets
 itsdangerous==1.1.0
     # via flask
 jedi==0.18.0
@@ -93,10 +93,6 @@ markupsafe==2.0.1
     #   jinja2
     #   mako
     #   wtforms
-marshmallow-jsonschema==0.10.0
-    # via emannotationschemas
-marshmallow-sqlalchemy==0.26.1
-    # via -r requirements.in
 marshmallow==3.5.1
     # via
     #   dynamicannotationdb
@@ -105,6 +101,10 @@ marshmallow==3.5.1
     #   flask-marshmallow
     #   marshmallow-jsonschema
     #   marshmallow-sqlalchemy
+marshmallow-jsonschema==0.10.0
+    # via emannotationschemas
+marshmallow-sqlalchemy==0.26.1
+    # via -r requirements.in
 matplotlib-inline==0.1.2
     # via ipython
 middle-auth-client==3.8.1
