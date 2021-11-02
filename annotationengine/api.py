@@ -191,6 +191,7 @@ class Annotations(Resource):
         metadata = db.get_table_metadata(table_name)
         if metadata["user_id"] != str(g.auth_user["id"]):
             resp = Response("Unauthorized: You did not create this table", 401)
+            return resp
         data = request.parsed_obj
         annotations = data.get("annotations")
 
@@ -214,7 +215,7 @@ class Annotations(Resource):
         metadata = db.get_table_metadata(table_name)
         if metadata["user_id"] != str(g.auth_user["id"]):
             resp = Response("Unauthorized: You did not create this table", 401)
-
+            return resp
         data = request.parsed_obj
 
         annotations = data.get("annotations")
@@ -239,7 +240,7 @@ class Annotations(Resource):
         metadata = db.get_table_metadata(table_name)
         if metadata["user_id"] != str(g.auth_user["id"]):
             resp = Response("Unauthorized: You did not create this table", 401)
-
+            return resp
         data = request.parsed_obj
 
         ids = data.get("annotation_ids")
