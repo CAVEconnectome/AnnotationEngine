@@ -90,7 +90,7 @@ class Table(Resource):
                 }
                 table_name = table_name.lower()
             schema_type = data.get("schema_type")
-            table_name = table_name.lower()
+            table_name = table_name.lower().replace(" ", "_")
             try:
                 table_info = db.create_annotation_table(
                     table_name, schema_type, **metadata_dict
