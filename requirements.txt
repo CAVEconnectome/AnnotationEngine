@@ -42,9 +42,9 @@ deprecated==1.2.13
     # via
     #   dynamicannotationdb
     #   redis
-dynamicannotationdb==3.1.0
+dynamicannotationdb==3.1.2
     # via -r requirements.in
-emannotationschemas==3.5.0
+emannotationschemas==3.5.1
     # via
     #   -r requirements.in
     #   dynamicannotationdb
