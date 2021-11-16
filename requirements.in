@@ -1,6 +1,6 @@
 Flask<2.0
-dynamicannotationdb>=3.0.2
-emannotationschemas>=3.4.1
+dynamicannotationdb>=3.1.0
+emannotationschemas>=3.5.0
 caveclient>=4.0.0
 multiwrapper
 jsonschema
@@ -9,7 +9,7 @@ flask_sqlalchemy
 flask_cors
 flask-marshmallow==0.14.0
 flask-admin
-flask-restx==0.4.0
+flask-restx
 flask-accepts
 marshmallow-sqlalchemy
 requests

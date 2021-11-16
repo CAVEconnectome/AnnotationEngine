@@ -75,10 +75,10 @@ class Table(Resource):
         db = get_db(aligned_volume_name)
         metadata_dict = data.get("metadata")
         logging.info(metadata_dict)
-        decription = metadata_dict.get("description")
+        description = metadata_dict.get("description")
         if metadata_dict.get("user_id", None) is None:
             metadata_dict["user_id"] = str(g.auth_user["id"])
-        if decription is None:
+        if description is None:
             msg = "Table description required"
             abort(404, msg)
         else:
@@ -90,7 +90,7 @@ class Table(Resource):
                 }
                 table_name = table_name.lower()
             schema_type = data.get("schema_type")
-            table_name = table_name.lower()
+            table_name = table_name.lower().replace(" ", "_")
             try:
                 table_info = db.create_annotation_table(
                     table_name, schema_type, **metadata_dict

@@ -1,8 +1,13 @@
-from marshmallow import fields, Schema, post_load
-from flask_marshmallow import Marshmallow
 from dynamicannotationdb import models
+from flask_marshmallow import Marshmallow
+from marshmallow import Schema, fields
 
 ma = Marshmallow()
+
+
+class OptionalTableMetadataSchema(Schema):
+    reference_table = fields.Str(required=False, example="synapse_table")
+    track_target_id_updates = fields.Bool(required=False)
 
 
 class FullMetadataSchema(ma.SQLAlchemyAutoSchema):
@@ -15,7 +20,11 @@ class MetadataSchema(Schema):
     description = fields.Str(
         required=True, example="my annotation table to track cells made by John Doe"
     )
-    reference_table = fields.Str(required=False, example="synapse_table")
+    table_metadata = fields.Nested(
+        OptionalTableMetadataSchema,
+        required=False,
+        example='{"reference_table":"synapse_table", "track_target_id_updates": False}',
+    )
     flat_segmentation_source = fields.Str(
         required=False, example="precomputed://gs://my_cloud_bucket/image"
     )
