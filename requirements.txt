@@ -49,9 +49,9 @@ deprecated==1.2.13
     #   dynamicannotationdb
     #   emannotationschemas
     #   redis
-dynamicannotationdb==3.1.4
+dynamicannotationdb==3.1.5
     # via -r requirements.in
-emannotationschemas==3.5.2
+emannotationschemas==3.5.3
     # via
     #   -r requirements.in
     #   dynamicannotationdb
