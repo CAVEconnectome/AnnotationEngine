@@ -31,7 +31,7 @@ import logging
 from enum import Enum
 from typing import List
 
-__version__ = "3.4.2"
+__version__ = "3.4.3"
 
 authorizations = {
     "apikey": {"type": "apiKey", "in": "query", "name": "middle_auth_token"}
