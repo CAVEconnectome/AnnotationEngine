@@ -10,7 +10,7 @@ class BaseConfig(object):
     # Statement for enabling the development environment
     DEBUG = True
     proj_dir = os.path.split(get_app_base_path())[0]
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:postgres@localhost:5432/annodb"
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:postgres@localhost:5432/annotation"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     NEUROGLANCER_URL = "https://neuroglancer-demo.appspot.com"
     INFOSERVICE_ENDPOINT = "http://globalv1.daf-apis.com/info"
@@ -27,11 +27,13 @@ class BaseConfig(object):
 class TestConfig(BaseConfig):
     ENV = "testing"
     TESTING = True
+    AUTH_DISABLED = True
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:postgres@localhost:5432/test_aligned_volume"
 
 
 config = {
     "development": "annotationengine.config.BaseConfig",
-    "testing": "annotationengine.config.BaseConfig",
+    "testing": "annotationengine.config.TestConfig",
     "default": "annotationengine.config.BaseConfig",
 }
 
