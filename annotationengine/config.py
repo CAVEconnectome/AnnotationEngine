@@ -23,6 +23,9 @@ class BaseConfig(object):
     LOGGING_LEVEL = logging.DEBUG
     AUTH_DATABASE_NAME = "minnie65"
 
+class DevConfig(BaseConfig):
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:annodb@db:5432/annodb"
+
 
 class TestConfig(BaseConfig):
     ENV = "testing"
@@ -32,7 +35,7 @@ class TestConfig(BaseConfig):
 
 
 config = {
-    "development": "annotationengine.config.BaseConfig",
+    "development": "annotationengine.config.DevConfig",
     "testing": "annotationengine.config.TestConfig",
     "default": "annotationengine.config.BaseConfig",
 }
