@@ -11,7 +11,7 @@ from annotationengine.schemas import (
     FullMetadataSchema,
 )
 from annotationengine.api_examples import synapse_table_example
-from dynamicannotationdb.errors import TableAlreadyExists
+from dynamicannotationdb.errors import TableAlreadyExists, AnnotationInsertLimitExceeded
 from middle_auth_client import (
     auth_requires_permission,
     auth_requires_admin,
@@ -188,6 +188,9 @@ class Annotations(Resource):
 
         try:
             inserted_ids = db.insert_annotations(table_name, annotations)
+        except AnnotationInsertLimitExceeded as limit_error:
+            logging.error(f"INSERT LIMIT EXCEEDED {limit_error}")
+            abort(413, limit_error)
         except Exception as error:
             logging.error(f"INSERT FAILED {annotations}")
             abort(404, error)
