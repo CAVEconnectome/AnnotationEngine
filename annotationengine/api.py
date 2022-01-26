@@ -1,9 +1,8 @@
-from flask import Blueprint, config, jsonify, request, abort, current_app, g, Response
-from flask_restx import Namespace, Resource, reqparse, fields
-from flask_accepts import accepts, responds
+from flask import request, abort, g, Response
+from flask_restx import Namespace, Resource, reqparse
+from flask_accepts import accepts
 from annotationengine.anno_database import get_db
 from annotationengine.aligned_volume import get_aligned_volumes
-from annotationengine.errors import UnknownAnnotationTypeException
 from annotationengine.errors import SchemaServiceError
 from annotationengine.schemas import (
     CreateTableSchema,
@@ -12,24 +11,16 @@ from annotationengine.schemas import (
     FullMetadataSchema,
 )
 from annotationengine.api_examples import synapse_table_example
-from dynamicannotationdb.errors import TableAlreadyExists, TableNameNotFound
+from dynamicannotationdb.errors import TableAlreadyExists
 from middle_auth_client import (
-    auth_required,
     auth_requires_permission,
     auth_requires_admin,
 )
-from jsonschema import validate, ValidationError
-import numpy as np
-import json
-import pandas as pd
+
+
 from multiwrapper import multiprocessing_utils as mu
-import time
-import collections
-import os
 import requests
 import logging
-from enum import Enum
-from typing import List
 
 __version__ = "3.4.4"
 
@@ -196,12 +187,12 @@ class Annotations(Resource):
         annotations = data.get("annotations")
 
         try:
-            db.insert_annotations(table_name, annotations)
+            inserted_ids = db.insert_annotations(table_name, annotations)
         except Exception as error:
             logging.error(f"INSERT FAILED {annotations}")
             abort(404, error)
 
-        return f"Inserted {len(annotations)} annotations", 200
+        return inserted_ids, 200
 
     @auth_requires_permission(
         "edit", table_arg="aligned_volume_name", resource_namespace="aligned_volume"
@@ -226,7 +217,7 @@ class Annotations(Resource):
             updated_id = db.update_annotation(table_name, annotation)
             new_ids.append(updated_id)
 
-        return f"{new_ids}", 200
+        return new_ids, 200
 
     @auth_requires_permission(
         "edit", table_arg="aligned_volume_name", resource_namespace="aligned_volume"
@@ -247,9 +238,9 @@ class Annotations(Resource):
 
         db = get_db(aligned_volume_name)
 
-        ann = db.delete_annotation(table_name, ids)
+        deleted_ids = db.delete_annotation(table_name, ids)
 
-        if ann is None:
+        if deleted_ids is None:
             return f"annotation_id {ids} not in table {table_name}", 404
 
-        return f"{len(ids)} annotations marked for deletion", 200
+        return deleted_ids, 200
