@@ -1,126 +1,166 @@
-# import pytest
-# from annotationengine import create_app
-# import tempfile
-# from google.cloud import bigtable, exceptions
-# import subprocess
-# from annotationengine.anno_database import DoNothingCreds
-# import grpc
-# from time import sleep
-# import os
-# from signal import SIGTERM
-# import requests_mock
-# from emannotationschemas.blueprint_app import get_type_schema, get_types
+import logging
+import time
+import uuid
+import warnings
+import os
+import tempfile
+import json
+
+import docker
+import psycopg2
+import pytest
+from annotationengine import create_app, db
+from flask import appcontext_pushed, g, current_app
+
+logging.basicConfig(level=logging.DEBUG)
+test_logger = logging.getLogger()
 
 
-# INFOSERVICE_ENDPOINT = "http://infoservice"
-# SCHEMA_SERVICE_ENDPOINT = "http://schemaservice"
-# TEST_DATASET_NAME = 'test'
-# tempdir = tempfile.mkdtemp()
-# TEST_PATH = "file:/{}".format(tempdir)
-# PYCHUNKEDGRAPH_ENDPOINT = "http://pcg/segmentation"
+INFOSERVICE_ENDPOINT = "http://infoservice"
+SCHEMA_SERVICE_ENDPOINT = "http://schemaservice"
+TEST_DATASET_NAME = "test"
+tempdir = tempfile.mkdtemp()
+TEST_PATH = "file:/{}".format(tempdir)
+PYCHUNKEDGRAPH_ENDPOINT = "http://pcg/segmentation"
 
 
-# @pytest.fixture(scope='session')
-# def bigtable_settings():
-#     return 'annos_test', 'cg_test'
+def pytest_addoption(parser):
+    parser.addoption(
+        "--docker",
+        action="store",
+        default=False,
+        help="Use docker for postgres testing",
+    )
 
 
-# @pytest.fixture(scope='session', autouse=True)
-# def bigtable_client(request, bigtable_settings):
-#     # setup Emulator
-#     cg_project, cg_table = bigtable_settings
-#     bt_emul_host = "localhost:8086"
-#     os.environ["BIGTABLE_EMULATOR_HOST"] = bt_emul_host
-#     bigtables_emulator = subprocess.Popen(["gcloud",
-#                                            "beta",
-#                                            "emulators",
-#                                            "bigtable",
-#                                            "start",
-#                                            "--host-port",
-#                                            bt_emul_host],
-#                                           preexec_fn=os.setsid,
-#                                           stdout=subprocess.PIPE)
-
-#     startup_msg = "Waiting for BigTables Emulator to start up at {}..."
-#     print('bteh', startup_msg.format(os.environ["BIGTABLE_EMULATOR_HOST"]))
-#     c = bigtable.Client(project=cg_project,
-#                         credentials=DoNothingCreds(),
-#                         admin=True)
-#     retries = 5
-#     while retries > 0:
-#         try:
-#             c.list_instances()
-#         except exceptions._Rendezvous as e:
-#             # Good error - means emulator is up!
-#             if e.code() == grpc.StatusCode.UNIMPLEMENTED:
-#                 print(" Ready!")
-#                 break
-#             elif e.code() == grpc.StatusCode.UNAVAILABLE:
-#                 sleep(1)
-#             retries -= 1
-#             print(".")
-#     if retries == 0:
-#         print("\nCouldn't start Bigtable Emulator."
-#               " Make sure it is setup correctly.")
-#         exit(1)
-
-#     yield c
-
-#     # setup Emulator-Finalizer
-#     def fin():
-#         try:
-#             gid = os.getpgid(bigtables_emulator.pid)
-#             os.killpg(gid, SIGTERM)
-#         except ProcessLookupError:
-#             pass
-#         bigtables_emulator.wait()
-#         print('BigTable stopped')
-#     request.addfinalizer(fin)
+@pytest.fixture(scope="session")
+def docker_mode(request):
+    return request.config.getoption("--docker")
 
 
-# @pytest.fixture(scope='session')
-# def test_aligned_volume():
-#     return TEST_DATASET_NAME
+def pytest_configure(config):
+    config.addinivalue_line("markers", "docker: use postgres in docker")
 
 
-# @pytest.fixture(scope='session')
-# def app(test_aligned_volume, bigtable_settings):
-#     bt_project, bt_table = bigtable_settings
-
-#     with requests_mock.Mocker() as m:
-#         aligned_volume_url = os.path.join(INFOSERVICE_ENDPOINT, 'api/aligned_volumes')
-#         m.get(aligned_volume_url, json=[test_aligned_volume])
-#         aligned_volume_info_url = os.path.join(INFOSERVICE_ENDPOINT,
-#                                         'api/aligned_volume/{}'.format(test_aligned_volume))
-#         aligned_volume_d = {
-#             "annotation_engine_endpoint": "http://35.237.200.246",
-#             "id": 1,
-#             "name": test_aligned_volume,
-#             "pychunkgraph_endpoint": PYCHUNKEDGRAPH_ENDPOINT,
-#         }
-#         m.get(aligned_volume_info_url, json=aligned_volume_d)
-#         app = create_app(
-#             {
-#                 'project_id': 'test',
-#                 'emulate': True,
-#                 'TESTING': True,
-#                 'INFOSERVICE_ENDPOINT':  INFOSERVICE_ENDPOINT,
-#                 'SCHEMA_SERVICE_ENDPOINT': SCHEMA_SERVICE_ENDPOINT,
-#                 'BIGTABLE_CONFIG': {
-#                     'emulate': True
-#                 },
-#                 'CHUNKGRAPH_TABLE_ID': test_aligned_volume
-#             }
-#         )
-
-#     yield app
+@pytest.fixture(scope="session")
+def database_metadata() -> dict:
+    yield {
+        "postgis_docker_image": "postgis/postgis:13-master",
+        "db_host": "localhost",
+        "sql_uri": "postgresql://postgres:postgres@localhost:5432/test_aligned_volume",
+    }
 
 
-# @pytest.fixture(scope='session')
-# def client(app):
-#     return app.test_client()
+@pytest.fixture(scope="session")
+def test_aligned_volume():
+    return TEST_DATASET_NAME
 
 
+@pytest.fixture(scope="module")
+def client():
+    flask_app = create_app(config_name="testing")
+    test_logger.info("Starting test flask app...")
+
+    # Create a test client using the Flask application configured for testing
+    with flask_app.test_client() as testing_client:
+        # Establish an application context
+        with flask_app.app_context():
+            db.create_all()
+            yield testing_client
+            db.drop_all()
+
+
+@pytest.fixture(scope="module")
+def app_config(client):
+    logging.info(current_app.config["AUTH_DISABLED"])
+    yield client.application
+
+
+@pytest.fixture()
+def modify_g(client):
+    g.user = "test"
+    g.id = 1
+
+
+@pytest.fixture()
+def mock_info_service():
+    aligned_volume_url = os.path.join(INFOSERVICE_ENDPOINT, "api/aligned_volumes")
+    aligned_volume_url.get(aligned_volume_url, json=[TEST_DATASET_NAME])
+    aligned_volume_info_url = os.path.join(
+        INFOSERVICE_ENDPOINT, "api/aligned_volume/{}".format(TEST_DATASET_NAME)
+    )
+    aligned_volume_d = {
+        "annotation_engine_endpoint": "http://35.237.200.246",
+        "flat_segmentation_source": TEST_PATH,
+        "id": 1,
+        "image_source": TEST_PATH,
+        "name": TEST_DATASET_NAME,
+        "pychunkgraph_endpoint": "http://pcg/segmentation",
+        "pychunkgraph_segmentation_source": TEST_PATH,
+    }
+    return json(aligned_volume_d)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def postgis_server(docker_mode, database_metadata: dict) -> None:
+
+    postgis_docker_image = database_metadata["postgis_docker_image"]
+    sql_uri = database_metadata["sql_uri"]
+
+    if docker_mode:
+        test_logger.info(f"PULLING {postgis_docker_image} IMAGE")
+        try:
+            docker_client = docker.from_env()
+            docker_client.images.pull(repository=postgis_docker_image)
+        except Exception:
+            test_logger.exception("Failed to pull postgres image")
+
+        container_name = f"test_postgis_server_{uuid.uuid4()}"
+
+        test_container = docker_client.containers.run(
+            image=postgis_docker_image,
+            detach=True,
+            hostname="test_postgres",
+            auto_remove=True,
+            name=container_name,
+            environment=[
+                "POSTGRES_USER=postgres",
+                "POSTGRES_PASSWORD=postgres",
+                "POSTGRES_DB=test_aligned_volume",
+            ],
+            ports={"5432/tcp": 5432},
+        )
+
+        test_logger.info("STARTING IMAGE")
+        try:
+            time.sleep(10)
+            check_database(sql_uri)
+        except Exception as e:
+            raise (e)
+    yield
+    if docker_mode:
+        warnings.filterwarnings(
+            action="ignore", message="unclosed", category=ResourceWarning
+        )
+        container = docker_client.containers.get(container_name)
+        container.stop()
+
+
+def check_database(sql_uri: str) -> None:  # pragma: no cover
+    try:
+        test_logger.info("ATTEMPT TO CONNECT")
+        conn = psycopg2.connect(sql_uri)
+        cur = conn.cursor()
+        cur.execute("SELECT 1")
+        test_logger.info("CONNECTED")
+
+        cur.close()
+        conn.close()
+    except Exception as e:
+        test_logger.info(e)
+
+
+# @pytest.fixture(scope="session")
 # def mock_schema_service(requests_mock):
 #     types_url = os.path.join(SCHEMA_SERVICE_ENDPOINT, 'type')
 #     types = get_types()
@@ -129,7 +169,7 @@
 #         url = os.path.join(SCHEMA_SERVICE_ENDPOINT, 'type', type_)
 #         requests_mock.get(url, json=get_type_schema(type_))
 
-
+# @pytest.fixture(scope="session")
 # def mock_info_service(requests_mock):
 #     aligned_volume_url = os.path.join(INFOSERVICE_ENDPOINT, 'api/aligned_volumes')
 #     requests_mock.get(aligned_volume_url, json=[TEST_DATASET_NAME])

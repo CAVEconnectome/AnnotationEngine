@@ -4,7 +4,7 @@ from flask_marshmallow import Marshmallow
 from marshmallow.utils import _Missing
 import numpy as np
 from emannotationschemas.models import Base
-from annotationengine.config import configure_app
+from annotationengine.config import configure_app, config
 from annotationengine.utils import get_instance_folder_path
 from annotationengine.api import api_bp
 from annotationengine.admin import setup_admin
@@ -33,7 +33,7 @@ class AEEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def create_app(test_config=None):
+def create_app(config_name: str = None):
     # Define the Flask Object
     app = Flask(
         __name__,
@@ -49,10 +49,10 @@ def create_app(test_config=None):
     app.config["RESTX_JSON"] = {"cls": AEEncoder}
     logging.basicConfig(level=logging.DEBUG)
 
-    if test_config is None:
-        app = configure_app(app)
+    if config_name:
+        app.config.from_object(config[config_name])
     else:
-        app.config.update(test_config)
+        app = configure_app(app)
 
     apibp = Blueprint("api", __name__, url_prefix="/annotation/api")
 

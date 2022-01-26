@@ -8,30 +8,30 @@ alembic==1.7.5
     # via dynamicannotationdb
 aniso8601==9.0.1
     # via flask-restx
-attrs==21.2.0
+attrs==21.4.0
     # via jsonschema
 backcall==0.2.0
     # via ipython
-cachetools==4.2.4
+cachetools==5.0.0
     # via
     #   -r requirements.in
     #   caveclient
     #   middle-auth-client
-caveclient==4.4.1
+caveclient==4.11.0
     # via -r requirements.in
 certifi==2021.10.8
     # via requests
-charset-normalizer==2.0.7
+charset-normalizer==2.0.10
     # via requests
 click==7.1.2
     # via flask
-decorator==5.0.9
+decorator==5.1.1
     # via ipython
 deprecated==1.2.13
     # via redis
-dynamicannotationdb==3.1.7
+dynamicannotationdb==3.1.8
     # via -r requirements.in
-emannotationschemas==3.5.4
+emannotationschemas==3.5.7
     # via
     #   -r requirements.in
     #   dynamicannotationdb
@@ -68,25 +68,24 @@ flask-sqlalchemy==2.5.1
     # via -r requirements.in
 furl==2.1.3
     # via middle-auth-client
-geoalchemy2==0.9.4
+geoalchemy2==0.10.2
     # via
     #   dynamicannotationdb
     #   emannotationschemas
 idna==3.3
     # via requests
-importlib-metadata==4.8.2
+importlib-metadata==4.10.1
     # via
     #   alembic
     #   jsonschema
+    #   redis
 importlib-resources==5.4.0
     # via alembic
-ipython==7.26.0
+ipython==7.31.1
     # via caveclient
-ipython-genutils==0.2.0
-    # via traitlets
 itsdangerous==1.1.0
     # via flask
-jedi==0.18.0
+jedi==0.18.1
     # via ipython
 jinja2==2.11.3
     # via flask
@@ -96,7 +95,7 @@ jsonschema==3.2.0
     #   dynamicannotationdb
     #   emannotationschemas
     #   flask-restx
-mako==1.1.5
+mako==1.1.6
     # via alembic
 markupsafe==2.0.1
     # via
@@ -113,9 +112,9 @@ marshmallow==3.5.1
     #   marshmallow-sqlalchemy
 marshmallow-jsonschema==0.10.0
     # via emannotationschemas
-marshmallow-sqlalchemy==0.26.1
+marshmallow-sqlalchemy==0.27.0
     # via -r requirements.in
-matplotlib-inline==0.1.2
+matplotlib-inline==0.1.3
     # via ipython
 middle-auth-client==3.9.0
     # via
@@ -123,9 +122,9 @@ middle-auth-client==3.9.0
     #   emannotationschemas
 multiwrapper==0.1.1
     # via -r requirements.in
-networkx==2.6.2
+networkx==2.6.3
     # via caveclient
-numpy==1.21.4
+numpy==1.21.5
     # via
     #   caveclient
     #   emannotationschemas
@@ -134,19 +133,21 @@ numpy==1.21.4
     #   pyarrow
 orderedmultidict==1.0.1
     # via furl
-packaging==21.2
-    # via geoalchemy2
-pandas==1.3.4
+packaging==21.3
+    # via
+    #   geoalchemy2
+    #   redis
+pandas==1.3.5
     # via
     #   caveclient
     #   emannotationschemas
-parso==0.8.2
+parso==0.8.3
     # via jedi
 pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-prompt-toolkit==3.0.19
+prompt-toolkit==3.0.24
     # via ipython
 psycopg2-binary==2.8.5
     # via
@@ -154,27 +155,27 @@ psycopg2-binary==2.8.5
     #   emannotationschemas
 ptyprocess==0.7.0
     # via pexpect
-pyarrow==5.0.0
+pyarrow==6.0.1
     # via caveclient
-pygments==2.10.0
+pygments==2.11.2
     # via ipython
-pyparsing==2.4.7
+pyparsing==3.0.7
     # via packaging
-pyrsistent==0.18.0
+pyrsistent==0.18.1
     # via jsonschema
 python-dateutil==2.8.1
     # via
     #   emannotationschemas
     #   pandas
-pytz==2020.1
+pytz==2021.3
     # via
     #   dynamicannotationdb
     #   emannotationschemas
     #   flask-restx
     #   pandas
-redis==4.0.0
+redis==4.1.1
     # via middle-auth-client
-requests==2.26.0
+requests==2.27.1
     # via
     #   -r requirements.in
     #   caveclient
@@ -200,14 +201,16 @@ sqlalchemy==1.3.24
     #   flask-sqlalchemy
     #   geoalchemy2
     #   marshmallow-sqlalchemy
-traitlets==5.0.5
+traitlets==5.1.1
     # via
     #   ipython
     #   matplotlib-inline
-typing-extensions==4.0.0
+typing-extensions==4.0.1
     # via importlib-metadata
-urllib3==1.26.7
-    # via requests
+urllib3==1.26.8
+    # via
+    #   caveclient
+    #   requests
 wcwidth==0.2.5
     # via prompt-toolkit
 werkzeug==1.0.1
@@ -217,9 +220,9 @@ werkzeug==1.0.1
     #   flask-restx
 wrapt==1.13.3
     # via deprecated
-wtforms==3.0.0
+wtforms==3.0.1
     # via flask-admin
-zipp==3.6.0
+zipp==3.7.0
     # via
     #   importlib-metadata
     #   importlib-resources
