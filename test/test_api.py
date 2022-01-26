@@ -2,12 +2,18 @@ import json
 import logging
 import sys
 from unittest import mock
-from contextlib import contextmanager
-from flask import Flask, g
 
 sys.modules["annotationengine.api.check_aligned_volume"] = mock.MagicMock()
 
 aligned_volume_name = "test_aligned_volume"
+
+
+class TestHealthEndpoint:
+    def test_health_endpoint(self, client):
+        url = "annotation/api/versions"
+        response = client.get(url)
+        logging.info(response)
+        assert response.json == [2]
 
 
 class TestTableEndpoints:
@@ -30,14 +36,16 @@ class TestTableEndpoints:
             "annotationengine.api.check_aligned_volume"
         ) as mock_aligned_volumes:
             mock_aligned_volumes.return_value = aligned_volume_name
+
             response = client.post(
                 url,
-                data=json.dumps(data),
+                json=data,
                 content_type="application/json",
-                follow_redirects=False,
+                follow_redirects=True,
             )
-            logging.info(response.location)
-            logging.info(f"RETURN VALUE {response.json}")
+            logging.info(response)
+            logging.info(f"RETURN VALUE {response}")
+            assert response.json == {}
 
     def test_post_table_to_be_deleted(self, client):
         logging.info(client)
@@ -62,7 +70,7 @@ class TestTableEndpoints:
                 url,
                 data=json.dumps(data),
                 content_type="application/json",
-                follow_redirects=True,
+                follow_redirects=False,
             )
             logging.info(response)
 
@@ -75,7 +83,7 @@ class TestTableEndpoints:
         ) as mock_aligned_volumes:
             mock_aligned_volumes.return_value = aligned_volume_name
             response = client.get(
-                url, content_type="application/json", follow_redirects=True
+                url, content_type="application/json", follow_redirects=False
             )
             logging.info(response)
 
@@ -94,7 +102,7 @@ class TestAnnotationTableEndpoints:
         ) as mock_aligned_volumes:
             mock_aligned_volumes.return_value = aligned_volume_name
 
-            response = client.get(url, follow_redirects=True)
+            response = client.get(url, follow_redirects=False)
             logging.info(response.json)
 
             metadata = {
@@ -169,6 +177,7 @@ class TestAnnotationsEndpoints:
                 follow_redirects=False,
             )
             logging.info(response)
+            assert response.json == [1]
 
     def test_get_annotations(self, client):
         url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table/test_table/annotations"
@@ -179,6 +188,7 @@ class TestAnnotationsEndpoints:
             mock_aligned_volumes.return_value = aligned_volume_name
             response = client.get(url, data=json.dumps(data), follow_redirects=False)
             logging.info(response)
+            assert response.json == [1]
 
     def test_update_annotations(self, client):
         url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table/test_table/annotations"
@@ -198,10 +208,11 @@ class TestAnnotationsEndpoints:
             mock_aligned_volumes.return_value = aligned_volume_name
             response = client.post(url, data=json.dumps(data), follow_redirects=False)
             logging.info(response)
+            assert response.json == {1: 2}
 
     def test_delete_annotations(self, client):
         url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table/test_table/annotations"
-        data = {"annotation_ids": [1]}
+        data = {"annotation_ids": [2]}
 
         with mock.patch(
             "annotationengine.api.check_aligned_volume"
@@ -209,3 +220,4 @@ class TestAnnotationsEndpoints:
             mock_aligned_volumes.return_value = aligned_volume_name
             response = client.delete(url, data=json.dumps(data), follow_redirects=False)
             logging.info(response)
+            assert response.json == [2]
