@@ -7,13 +7,13 @@ services:
       - ./.env-docker.dev
     ports:
       - 5432:5432
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+      #volumes:
+      #- postgres_data:/var/lib/postgresql/data
       # - ./entrypoint.sh:/var/lib/postgresql/entrypoint.sh
     healthcheck:
-      test: "pg_isready -h localhost -p 5432 -q -U postgres"
-      interval: 3s
-      timeout: 5s
+      test: "pg_isready -d $POSTGRES_DB -h localhost -p 5432 -q -U postgres"
+      interval: 5s
+      timeout: 15s
       retries: 5
   adminer:
     image: adminer
@@ -33,6 +33,8 @@ services:
     env_file:
       - ./.env-docker.dev
     depends_on:
+      - db
+    links:
       - db
 
 volumes:

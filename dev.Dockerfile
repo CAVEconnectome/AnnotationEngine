@@ -6,6 +6,7 @@ RUN  git config --global http.sslVerify false && \
 RUN python -m pip install --upgrade pip
 COPY dev_requirements.txt /app/.
 RUN  pip install -r dev_requirements.txt
+COPY test_requirements.txt /app/.
+RUN pip install -r test_requirements.txt
 COPY timeout.conf /etc/nginx/conf.d/
 COPY . /app
- 

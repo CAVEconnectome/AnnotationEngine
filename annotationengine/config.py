@@ -23,15 +23,18 @@ class BaseConfig(object):
     LOGGING_LEVEL = logging.DEBUG
     AUTH_DATABASE_NAME = "minnie65"
 
+
 class DevConfig(BaseConfig):
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:annodb@db:5432/annodb"
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:annodb@db:5432/test_aligned_volume"
 
 
 class TestConfig(BaseConfig):
     ENV = "testing"
     TESTING = True
     AUTH_DISABLED = True
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:postgres@localhost:5432/test_aligned_volume"
+    SQLALCHEMY_DATABASE_URI = (
+        "postgresql://postgres:postgres@localhost:5432/test_aligned_volume"
+    )
 
 
 config = {
