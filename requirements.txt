@@ -116,7 +116,7 @@ marshmallow-sqlalchemy==0.27.0
     # via -r requirements.in
 matplotlib-inline==0.1.3
     # via ipython
-middle-auth-client==3.9.1
+middle-auth-client==3.11.0
     # via
     #   -r requirements.in
     #   emannotationschemas
