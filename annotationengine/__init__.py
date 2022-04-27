@@ -11,6 +11,7 @@ from annotationengine.admin import setup_admin
 from annotationengine.views import views_bp
 from flask_sqlalchemy import SQLAlchemy
 from flask_restx import Api
+from flask_migrate import Migrate
 import logging
 from datetime import date, datetime
 
@@ -18,7 +19,7 @@ __version__ = "3.6.6"
 
 
 db = SQLAlchemy(model_class=Base)
-
+migrate = Migrate()
 
 class AEEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -66,7 +67,7 @@ def create_app(config_name: str = None):
         app.register_blueprint(apibp)
         app.register_blueprint(views_bp)
         db.init_app(app)
-        db.create_all()
+        migrate.init_app(app, db)
 
     @app.route("/health")
     def health():
