@@ -8,6 +8,7 @@ middle-auth-client>=3.11.1
 flask_sqlalchemy
 flask_cors
 flask-marshmallow==0.14.0
+flask-migrate
 flask-admin
 flask-restx
 flask-accepts
