@@ -22,7 +22,7 @@ from multiwrapper import multiprocessing_utils as mu
 import requests
 import logging
 
-__version__ = "3.6.6"
+__version__ = "3.7.0"
 
 authorizations = {
     "apikey": {"type": "apiKey", "in": "query", "name": "middle_auth_token"}
