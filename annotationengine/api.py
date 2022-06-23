@@ -20,7 +20,7 @@ from multiwrapper import multiprocessing_utils as mu
 
 from .api_examples import synapse_table_example
 
-__version__ = "3.7.1"
+__version__ = "3.8.0"
 
 authorizations = {
     "apikey": {"type": "apiKey", "in": "query", "name": "middle_auth_token"}
