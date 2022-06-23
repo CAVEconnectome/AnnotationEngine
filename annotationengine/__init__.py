@@ -3,7 +3,7 @@ import json
 from flask_marshmallow import Marshmallow
 from marshmallow.utils import _Missing
 import numpy as np
-from emannotationschemas.models import Base
+from dynamicannotationdb.models import Base
 from annotationengine.config import configure_app, config
 from annotationengine.utils import get_instance_folder_path
 from annotationengine.api import api_bp
@@ -67,6 +67,7 @@ def create_app(config_name: str = None):
         app.register_blueprint(views_bp)
         db.init_app(app)
         db.create_all()
+        
 
     @app.route("/health")
     def health():

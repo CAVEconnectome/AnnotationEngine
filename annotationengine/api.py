@@ -1,26 +1,24 @@
-from flask import request, abort, g, Response
-from flask_restx import Namespace, Resource, reqparse
-from flask_accepts import accepts
-from annotationengine.anno_database import get_db
+import logging
+
+import requests
 from annotationengine.aligned_volume import get_aligned_volumes
+from annotationengine.anno_database import get_db
 from annotationengine.errors import SchemaServiceError
 from annotationengine.schemas import (
     CreateTableSchema,
     DeleteAnnotationSchema,
-    PutAnnotationSchema,
     FullMetadataSchema,
+    PutAnnotationSchema,
 )
-from annotationengine.api_examples import synapse_table_example
-from dynamicannotationdb.errors import TableAlreadyExists, AnnotationInsertLimitExceeded
-from middle_auth_client import (
-    auth_requires_permission,
-    auth_requires_admin,
-)
-
-
+from dynamicannotationdb.errors import AnnotationInsertLimitExceeded, TableAlreadyExists
+from dynamicannotationdb.models import AnalysisTable, AnalysisVersion, Base
+from flask import Response, abort, g, request
+from flask_accepts import accepts
+from flask_restx import Namespace, Resource, reqparse
+from middle_auth_client import auth_requires_admin, auth_requires_permission
 from multiwrapper import multiprocessing_utils as mu
-import requests
-import logging
+
+from .api_examples import synapse_table_example
 
 __version__ = "3.8.0"
 
@@ -45,7 +43,7 @@ def check_aligned_volume(aligned_volume):
 
 
 def get_schema_from_service(annotation_type, endpoint):
-    url = endpoint + "/type/" + annotation_type
+    url = f"{endpoint}/type/{annotation_type}"
     r = requests.get(url)
     if r.status_code != 200:
         raise (SchemaServiceError(r.text))
@@ -83,7 +81,7 @@ class Table(Resource):
             schema_type = data.get("schema_type")
             table_name = table_name.lower().replace(" ", "_")
             try:
-                table_info = db.create_annotation_table(
+                table_info = db.annotation.create_table(
                     table_name, schema_type, **metadata_dict
                 )
             except (TableAlreadyExists):
@@ -98,7 +96,7 @@ class Table(Resource):
         """Get list of annotation tables for a aligned_volume"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        tables = db._get_existing_table_names()
+        tables = db.database._get_existing_table_names()
         return tables, 200
 
 
@@ -114,7 +112,7 @@ class AnnotationTable(Resource):
         """Get metadata for a given table"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        return db.get_table_metadata(table_name), 200
+        return db.database.get_table_metadata(table_name), 200
 
     @auth_requires_admin
     @api_bp.doc(
@@ -125,7 +123,7 @@ class AnnotationTable(Resource):
         """Delete an annotation table (marks for deletion, will suspend materialization, admin only)"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        is_deleted = db.delete_table(table_name)
+        is_deleted = db.annotation.delete_table(table_name)
         return is_deleted, 200
 
 
@@ -141,7 +139,7 @@ class TableInfo(Resource):
         """Get count of rows of an annotation table"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        return db.get_annotation_table_size(table_name), 200
+        return db.database.get_annotation_table_size(table_name), 200
 
 
 @api_bp.route(
@@ -162,7 +160,7 @@ class Annotations(Resource):
 
         db = get_db(aligned_volume_name)
 
-        annotations = db.get_annotations(table_name, annotation_ids)
+        annotations = db.annotation.get_annotations(table_name, annotation_ids)
 
         if annotations is None:
             msg = f"annotation_id {annotation_ids} not in {table_name}"
@@ -179,15 +177,14 @@ class Annotations(Resource):
         """Insert annotations"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        metadata = db.get_table_metadata(table_name)
+        metadata = db.database.get_table_metadata(table_name)
         if metadata["user_id"] != str(g.auth_user["id"]):
-            resp = Response("Unauthorized: You did not create this table", 401)
-            return resp
+            return Response("Unauthorized: You did not create this table", 401)
         data = request.parsed_obj
         annotations = data.get("annotations")
 
         try:
-            inserted_ids = db.insert_annotations(table_name, annotations)
+            inserted_ids = db.annotation.insert_annotations(table_name, annotations)
         except AnnotationInsertLimitExceeded as limit_error:
             logging.error(f"INSERT LIMIT EXCEEDED {limit_error}")
             abort(413, limit_error)
@@ -206,10 +203,9 @@ class Annotations(Resource):
         """Update annotations"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        metadata = db.get_table_metadata(table_name)
+        metadata = db.database.get_table_metadata(table_name)
         if metadata["user_id"] != str(g.auth_user["id"]):
-            resp = Response("Unauthorized: You did not create this table", 401)
-            return resp
+            return Response("Unauthorized: You did not create this table", 401)
         data = request.parsed_obj
 
         annotations = data.get("annotations")
@@ -217,7 +213,7 @@ class Annotations(Resource):
         new_ids = []
 
         for annotation in annotations:
-            updated_id = db.update_annotation(table_name, annotation)
+            updated_id = db.annotation.update_annotation(table_name, annotation)
             new_ids.append(updated_id)
 
         return new_ids, 200
@@ -231,17 +227,16 @@ class Annotations(Resource):
         """Delete annotations"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        metadata = db.get_table_metadata(table_name)
+        metadata = db.database.get_table_metadata(table_name)
         if metadata["user_id"] != str(g.auth_user["id"]):
-            resp = Response("Unauthorized: You did not create this table", 401)
-            return resp
+            return Response("Unauthorized: You did not create this table", 401)
         data = request.parsed_obj
 
         ids = data.get("annotation_ids")
 
         db = get_db(aligned_volume_name)
 
-        deleted_ids = db.delete_annotation(table_name, ids)
+        deleted_ids = db.annotation.delete_annotation(table_name, ids)
 
         if deleted_ids is None:
             return f"annotation_id {ids} not in table {table_name}", 404
