@@ -66,13 +66,13 @@ def index():
 def aligned_volume_view(aligned_volume_name):
 
     db = get_db(aligned_volume_name)
-    table_names = db._get_existing_table_names()
+    table_names = db.database._get_existing_table_names()
     query = (
-        db.cached_session.query(Metadata)
+        db.database.cached_session.query(Metadata)
         .filter(Metadata.deleted == None)
         .filter(Metadata.valid == True)
     )
-    df = pd.read_sql(query.statement, db.engine)
+    df = pd.read_sql(query.statement, db.database.engine)
     base_user_url = "https://{auth_uri}/api/v1/user/{user_id}"
     auth_uri = os.environ["AUTH_URI"]
     base_schema_url = (
@@ -117,10 +117,10 @@ def aligned_volume_view(aligned_volume_name):
 )
 def table_view(aligned_volume_name, table_name):
     db = get_db(aligned_volume_name)
-    table_size = db.get_annotation_table_size(table_name)
-    md = db.get_table_metadata(table_name)
-    Model = db.get_annotation_model(table_name)
-    query = db.session.query(Model).limit(15)
+    table_size = db.database.get_annotation_table_size(table_name)
+    md = db.database.get_table_metadata(table_name)
+    Model = db.database._get_model_from_table_name(table_name)
+    query = db.database.cached_session.query(Model).limit(15)
     top15_df = pd.read_sql(query.statement, db.engine)
     top15_df = fix_wkb_columns(top15_df)
     return render_template(
