@@ -31,7 +31,7 @@ deprecated==1.2.13
     # via redis
 dynamicannotationdb==5.0.2
     # via -r requirements.in
-emannotationschemas==5.0.0
+emannotationschemas==5.0.2
     # via
     #   -r requirements.in
     #   dynamicannotationdb
@@ -68,7 +68,7 @@ flask-sqlalchemy==2.5.1
     # via -r requirements.in
 furl==2.1.3
     # via middle-auth-client
-geoalchemy2==0.10.2
+geoalchemy2==0.11.1
     # via
     #   dynamicannotationdb
     #   emannotationschemas
