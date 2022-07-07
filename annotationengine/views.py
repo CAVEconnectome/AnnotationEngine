@@ -121,7 +121,7 @@ def table_view(aligned_volume_name, table_name):
     md = db.database.get_table_metadata(table_name)
     Model = db.database._get_model_from_table_name(table_name)
     query = db.database.cached_session.query(Model).limit(15)
-    top15_df = pd.read_sql(query.statement, db.engine)
+    top15_df = pd.read_sql(query.statement, db.database.engine)
     top15_df = fix_wkb_columns(top15_df)
     return render_template(
         "table.html",
