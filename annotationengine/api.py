@@ -1,6 +1,16 @@
 import logging
 
 import requests
+from dynamicannotationdb.errors import (
+    AnnotationInsertLimitExceeded,
+    TableAlreadyExists,
+    UpdateAnnotationError,
+)
+from flask import Response, abort, g, request
+from flask_accepts import accepts
+from flask_restx import Namespace, Resource, reqparse
+from middle_auth_client import auth_requires_admin, auth_requires_permission
+
 from annotationengine.aligned_volume import get_aligned_volumes
 from annotationengine.anno_database import get_db
 from annotationengine.errors import SchemaServiceError
@@ -10,13 +20,6 @@ from annotationengine.schemas import (
     FullMetadataSchema,
     PutAnnotationSchema,
 )
-from dynamicannotationdb.errors import AnnotationInsertLimitExceeded, TableAlreadyExists
-from dynamicannotationdb.models import AnalysisTable, AnalysisVersion, Base
-from flask import Response, abort, g, request
-from flask_accepts import accepts
-from flask_restx import Namespace, Resource, reqparse
-from middle_auth_client import auth_requires_admin, auth_requires_permission
-from multiwrapper import multiprocessing_utils as mu
 
 from .api_examples import synapse_table_example
 
@@ -213,8 +216,13 @@ class Annotations(Resource):
         new_ids = []
 
         for annotation in annotations:
-            updated_id = db.annotation.update_annotation(table_name, annotation)
-            new_ids.append(updated_id)
+            try:
+                updated_id = db.annotation.update_annotation(table_name, annotation)
+                new_ids.append(updated_id)
+            except UpdateAnnotationError as update_error:
+                abort(409, update_error)
+            except Exception as error:
+                abort(400, error)
 
         return new_ids, 200
 
