@@ -190,7 +190,7 @@ class Annotations(Resource):
             inserted_ids = db.annotation.insert_annotations(table_name, annotations)
         except AnnotationInsertLimitExceeded as limit_error:
             logging.error(f"INSERT LIMIT EXCEEDED {limit_error}")
-            abort(413, limit_error)
+            abort(413, str(limit_error))
         except Exception as error:
             logging.error(f"INSERT FAILED {annotations}")
             abort(404, error)
@@ -220,7 +220,7 @@ class Annotations(Resource):
                 updated_id = db.annotation.update_annotation(table_name, annotation)
                 new_ids.append(updated_id)
             except UpdateAnnotationError as update_error:
-                abort(409, update_error)
+                abort(409, str(update_error))
             except Exception as error:
                 abort(400, error)
 
