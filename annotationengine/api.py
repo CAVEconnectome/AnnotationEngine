@@ -33,6 +33,12 @@ api_bp = Namespace(
     "Annotation Engine", authorizations=authorizations, description="Annotation Engine"
 )
 
+
+@api_bp.errorhandler
+def handle_invalid_usage(error):
+    return {"message": str(error)}, getattr(error, "code", 500)
+
+
 annotation_parser = reqparse.RequestParser()
 annotation_parser.add_argument(
     "annotation_ids", type=int, action="split", help="list of annotation ids"
@@ -89,6 +95,8 @@ class Table(Resource):
                 )
             except (TableAlreadyExists):
                 abort(400, f"Table {table_name} already exists")
+            except Exception as e:
+                abort(400, str(e))
         return Response(table_info, headers=headers)
 
     @auth_requires_permission(
