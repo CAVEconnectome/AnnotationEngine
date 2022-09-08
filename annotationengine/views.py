@@ -76,7 +76,7 @@ def aligned_volume_view(aligned_volume_name):
     base_user_url = "https://{auth_uri}/api/v1/user/{user_id}"
     auth_uri = os.environ["AUTH_URI"]
     base_schema_url = (
-        current_app.config["SCHEMA_SERVICE_ENDPOINT"] + "views/type/{schema_type}/view"
+        current_app.config["SCHEMA_SERVICE_ENDPOINT"] + "/views/type/{schema_type}/view"
     )
     df["user_id"] = df.apply(
         lambda x: "<a href='{}'>{}</a>".format(
