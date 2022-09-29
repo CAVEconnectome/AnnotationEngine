@@ -23,7 +23,7 @@ from annotationengine.schemas import (
 
 from .api_examples import synapse_table_example
 
-__version__ = "4.1.0"
+__version__ = "4.1.1"
 
 authorizations = {
     "apikey": {"type": "apiKey", "in": "query", "name": "middle_auth_token"}
