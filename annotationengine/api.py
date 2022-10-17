@@ -23,6 +23,7 @@ from annotationengine.schemas import (
     DeleteAnnotationSchema,
     FullMetadataSchema,
     PutAnnotationSchema,
+    UpdateMetadataSchema,
 )
 
 from .api_examples import synapse_table_example
