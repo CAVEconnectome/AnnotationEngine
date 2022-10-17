@@ -109,7 +109,7 @@ class Table(Resource):
     )
     @api_bp.doc("update_table", security="apikey", example=synapse_table_update_example)
     @accepts("UpdateMetadataSchema", schema=UpdateMetadataSchema, api=api_bp)
-    def put(self, aligned_volume_name: str):
+    def put(self, aligned_volume_name: str)-> FullMetadataSchema:
         data = request.parsed_obj
         db = get_db(aligned_volume_name)
         metadata_dict = data.get("metadata")
@@ -120,8 +120,8 @@ class Table(Resource):
         old_md = db.annotation.get_table_metadata(table_name)
         if old_md["user_id"] != str(g.auth_user["id"]):
             abort(401, "only the owner of the table can change its metadata")
-        db.annotation.update_table_metadata(table_name, **metadata_dict)
-        return 200
+        new_md= db.annotation.update_table_metadata(table_name, **metadata_dict)
+        return new_md, 200
 
     @auth_requires_permission(
         "view", table_arg="aligned_volume_name", resource_namespace="aligned_volume"
