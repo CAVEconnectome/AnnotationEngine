@@ -9,7 +9,11 @@ from dynamicannotationdb.errors import (
 from flask import Response, abort, g, request
 from flask_accepts import accepts
 from flask_restx import Namespace, Resource, reqparse
-from middle_auth_client import auth_requires_admin, auth_requires_permission
+from middle_auth_client import (
+    auth_requires_admin,
+    auth_requires_permission,
+    users_share_common_group,
+)
 
 from annotationengine.aligned_volume import get_aligned_volumes
 from annotationengine.anno_database import get_db
@@ -100,6 +104,25 @@ class Table(Resource):
         return Response(table_info, headers=headers)
 
     @auth_requires_permission(
+        "edit", table_arg="aligned_volume_name", resource_namespace="aligned_volume"
+    )
+    @api_bp.doc("update_table", security="apikey", example=synapse_table_example)
+    @accepts("UpdateMetadataSchema", schema=UpdateMetadataSchema, api=api_bp)
+    def put(self, aligned_volume_name: str):
+        data = request.parsed_obj
+        db = get_db(aligned_volume_name)
+        metadata_dict = data.get("metadata")
+        if metadata_dict.get("user_id", None) is None:
+            metadata_dict["user_id"] = str(g.auth_user["id"])
+
+        table_name = data.get("table_name")
+        old_md = db.annotation.get_table_metadata(table_name)
+        if old_md["user_id"] != str(g.auth_user["id"]):
+            abort(401, "only the owner of the table can change its metadata")
+        db.annotation.update_table_metadata(table_name, **metadata_dict)
+        return 200
+
+    @auth_requires_permission(
         "view", table_arg="aligned_volume_name", resource_namespace="aligned_volume"
     )
     @api_bp.doc("get_aligned_volume_tables", security="apikey")
@@ -125,13 +148,21 @@ class AnnotationTable(Resource):
         db = get_db(aligned_volume_name)
         return db.database.get_table_metadata(table_name), 200
 
-    @auth_requires_admin
+    @auth_requires_permission(
+        "edit", table_arg="aligned_volume_name", resource_namespace="aligned_volume"
+    )
     @api_bp.doc(
-        description="mark an annotation table for deletion (admin only)",
+        description="mark an annotation table for deletion",
         security="apikey",
     )
     def delete(self, aligned_volume_name: str, table_name: str) -> bool:
         """Delete an annotation table (marks for deletion, will suspend materialization, admin only)"""
+        metadata = db.database.get_table_metadata(table_name)
+        if metadata["user_id"] != str(g.auth_user["id"]):
+            return Response(
+                f"Unauthorized: only the creator of this table (user_id: {metadata['user_id']} can delete this table.",
+                401,
+            )
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
         is_deleted = db.annotation.delete_table(table_name)
@@ -190,7 +221,14 @@ class Annotations(Resource):
         db = get_db(aligned_volume_name)
         metadata = db.database.get_table_metadata(table_name)
         if metadata["user_id"] != str(g.auth_user["id"]):
-            return Response("Unauthorized: You did not create this table", 401)
+            if metadata["allow_group_edit"]:
+                if not users_share_common_group(metadata["user_id"]):
+                    return Response(
+                        "Unauthorized: You do not share a common group with the creator of this table.",
+                        401,
+                    )
+            else:
+                return Response("Unauthorized: You did not create this table", 401)
         data = request.parsed_obj
         annotations = data.get("annotations")
 
