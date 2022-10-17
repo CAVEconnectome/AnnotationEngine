@@ -26,7 +26,7 @@ from annotationengine.schemas import (
     UpdateMetadataSchema,
 )
 
-from .api_examples import synapse_table_example
+from .api_examples import synapse_table_example, synapse_table_update_example
 
 __version__ = "4.1.1"
 
@@ -107,7 +107,7 @@ class Table(Resource):
     @auth_requires_permission(
         "edit", table_arg="aligned_volume_name", resource_namespace="aligned_volume"
     )
-    @api_bp.doc("update_table", security="apikey", example=synapse_table_example)
+    @api_bp.doc("update_table", security="apikey", example=synapse_table_update_example)
     @accepts("UpdateMetadataSchema", schema=UpdateMetadataSchema, api=api_bp)
     def put(self, aligned_volume_name: str):
         data = request.parsed_obj
