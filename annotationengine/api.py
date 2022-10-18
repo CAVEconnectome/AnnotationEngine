@@ -117,9 +117,9 @@ class Table(Resource):
             metadata_dict["user_id"] = str(g.auth_user["id"])
 
         table_name = data.get("table_name")
-        old_md = db.annotation.get_table_metadata(table_name)
+        old_md = db.database.get_table_metadata(table_name)
         if old_md["user_id"] != str(g.auth_user["id"]):
-            abort(401, "only the owner of the table can change its metadata")
+            abort(401, "Only the owner of the table can change its metadata")
         new_md= db.annotation.update_table_metadata(table_name, **metadata_dict)
         return new_md, 200
 
