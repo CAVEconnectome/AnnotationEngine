@@ -16,7 +16,7 @@ from middle_auth_client import (
 )
 
 from annotationengine.aligned_volume import get_aligned_volumes
-from annotationengine.anno_database import get_db
+from annotationengine.anno_database import get_db, check_write_permission, check_read_permission, check_ownership
 from annotationengine.errors import SchemaServiceError
 from annotationengine.schemas import (
     CreateTableSchema,
@@ -117,9 +117,8 @@ class Table(Resource):
             metadata_dict["user_id"] = str(g.auth_user["id"])
 
         table_name = data.get("table_name")
-        old_md = db.database.get_table_metadata(table_name)
-        if old_md["user_id"] != str(g.auth_user["id"]):
-            abort(401, "Only the owner of the table can change its metadata")
+        check_ownership(db, table_name)
+        
         new_md= db.annotation.update_table_metadata(table_name, **metadata_dict)
         return new_md, 200
 
@@ -158,14 +157,9 @@ class AnnotationTable(Resource):
     )
     def delete(self, aligned_volume_name: str, table_name: str) -> bool:
         """Delete an annotation table (marks for deletion, will suspend materialization, admin only)"""
-        metadata = db.database.get_table_metadata(table_name)
-        if metadata["user_id"] != str(g.auth_user["id"]):
-            return Response(
-                f"Unauthorized: only the creator of this table (user_id: {metadata['user_id']} can delete this table.",
-                401,
-            )
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
+        check_ownership(db, table_name)
         is_deleted = db.annotation.delete_table(table_name)
         return is_deleted, 200
 
@@ -182,6 +176,7 @@ class TableInfo(Resource):
         """Get count of rows of an annotation table"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
+        check_read_permission(db, table_name)
         return db.database.get_annotation_table_size(table_name), 200
 
 
@@ -197,12 +192,11 @@ class Annotations(Resource):
     def get(self, aligned_volume_name: str, table_name: str, **kwargs):
         """Get annotations by list of IDs"""
         check_aligned_volume(aligned_volume_name)
+        db = get_db(aligned_volume_name)
+        check_read_permission(db, table_name)
         args = annotation_parser.parse_args()
 
         annotation_ids = args["annotation_ids"]
-
-        db = get_db(aligned_volume_name)
-
         annotations = db.annotation.get_annotations(table_name, annotation_ids)
 
         if annotations is None:
@@ -220,16 +214,7 @@ class Annotations(Resource):
         """Insert annotations"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        metadata = db.database.get_table_metadata(table_name)
-        if metadata["user_id"] != str(g.auth_user["id"]):
-            if metadata["allow_group_edit"]:
-                if not users_share_common_group(metadata["user_id"]):
-                    return Response(
-                        "Unauthorized: You do not share a common group with the creator of this table.",
-                        401,
-                    )
-            else:
-                return Response("Unauthorized: You did not create this table", 401)
+        check_write_permission(db, table_name)
         data = request.parsed_obj
         annotations = data.get("annotations")
 
@@ -253,9 +238,7 @@ class Annotations(Resource):
         """Update annotations"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        metadata = db.database.get_table_metadata(table_name)
-        if metadata["user_id"] != str(g.auth_user["id"]):
-            return Response("Unauthorized: You did not create this table", 401)
+        check_write_permission(db, table_name)
         data = request.parsed_obj
 
         annotations = data.get("annotations")
@@ -282,15 +265,11 @@ class Annotations(Resource):
         """Delete annotations"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        metadata = db.database.get_table_metadata(table_name)
-        if metadata["user_id"] != str(g.auth_user["id"]):
-            return Response("Unauthorized: You did not create this table", 401)
+        check_write_permission(db, table_name)
+       
         data = request.parsed_obj
 
         ids = data.get("annotation_ids")
-
-        db = get_db(aligned_volume_name)
-
         deleted_ids = db.annotation.delete_annotation(table_name, ids)
 
         if deleted_ids is None:
