@@ -1,4 +1,4 @@
-from flask import current_app, abort
+from flask import current_app, abort, g
 from dynamicannotationdb import DynamicAnnotationInterface
 from middle_auth_client import (
     users_share_common_group
