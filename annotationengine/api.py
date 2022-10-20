@@ -150,7 +150,8 @@ class AnnotationTable(Resource):
         headers = None
         if md.get('warning_text',None) is not None:
             headers={"Warning":md['warning_text']}
-
+        else:
+            md['warning_text']=None
         return Response(md, headers=headers, mimetype="application/json")
 
     @auth_requires_permission(
