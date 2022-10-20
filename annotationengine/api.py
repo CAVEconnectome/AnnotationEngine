@@ -201,13 +201,19 @@ class Annotations(Resource):
         args = annotation_parser.parse_args()
 
         annotation_ids = args["annotation_ids"]
+
+        md = db.database.get_table_metadata(table_name)
+        headers = None
+        if md.get('notice_text',None) is not None:
+            headers={"Warning":f"Table Owner Notice: {md['notice_text']}"}
+
         annotations = db.annotation.get_annotations(table_name, annotation_ids)
 
         if annotations is None:
             msg = f"annotation_id {annotation_ids} not in {table_name}"
             abort(404, msg)
 
-        return annotations, 200
+        return annotations, 200, headers
 
     @auth_requires_permission(
         "edit", table_arg="aligned_volume_name", resource_namespace="aligned_volume"
