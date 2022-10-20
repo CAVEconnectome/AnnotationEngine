@@ -148,8 +148,8 @@ class AnnotationTable(Resource):
         db = get_db(aligned_volume_name)
         md = db.database.get_table_metadata(table_name)
         headers = None
-        if md.get('warning_text',None) is not None:
-            headers={"Warning":f"Table Owner Notice: {md['warning_text']}"}
+        if md.get('notice_text',None) is not None:
+            headers={"Warning":f"Table Owner Notice: {md['notice_text']}"}
         return md, 201, headers
 
     @auth_requires_permission(

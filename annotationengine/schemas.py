@@ -25,7 +25,7 @@ class UMetadataSchema(Schema):
     )
     read_permission = fields.Bool(required=False)
     write_permission = fields.Str(required=False)
-    warning_text = fields.Str(required=False)
+    notice_text = fields.Str(required=False)
 
 
 class MetadataSchema(Schema):
@@ -46,7 +46,7 @@ class MetadataSchema(Schema):
     voxel_resolution_z = fields.Float(required=True, example=1.0)
     read_permission = fields.Bool(required=False, default="PUBLIC")
     write_permission = fields.Str(required=False, default="PRIVATE")
-    warning_text = fields.Str(required=False)
+    notice_text = fields.Str(required=False)
 
 class TableSchema(Schema):
     table_name = fields.Str(order=0, required=True, example="my_cell_type_table")
