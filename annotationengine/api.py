@@ -150,9 +150,7 @@ class AnnotationTable(Resource):
         headers = None
         if md.get('warning_text',None) is not None:
             headers={"Warning":md['warning_text']}
-        else:
-            md['warning_text']=None
-        return Response(md, headers=headers, mimetype="application/json")
+        return md, 201, headers
 
     @auth_requires_permission(
         "edit", table_arg="aligned_volume_name", resource_namespace="aligned_volume"
