@@ -146,7 +146,12 @@ class AnnotationTable(Resource):
         """Get metadata for a given table"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        return db.database.get_table_metadata(table_name), 200
+        md = db.database.get_table_metadata(table_name)
+        headers = None
+        if md.get('warning_text',None) is not None:
+            headers={"Warning":md['warning_text']}
+
+        return Response(md, headers=headers, mimetype="application/json")
 
     @auth_requires_permission(
         "edit", table_arg="aligned_volume_name", resource_namespace="aligned_volume"
