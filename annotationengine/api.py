@@ -149,7 +149,7 @@ class AnnotationTable(Resource):
         md = db.database.get_table_metadata(table_name)
         headers = None
         if md.get('warning_text',None) is not None:
-            headers={"Warning":md['warning_text']}
+            headers={"Warning":f"Table Owner Warning: {md['warning_text']}"}
         return md, 201, headers
 
     @auth_requires_permission(
