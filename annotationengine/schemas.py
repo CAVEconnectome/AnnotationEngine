@@ -23,7 +23,7 @@ class UMetadataSchema(Schema):
     flat_segmentation_source = fields.Str(
         required=False, example="precomputed://gs://my_cloud_bucket/image"
     )
-    read_permission = fields.Bool(required=False)
+    read_permission = fields.Str(required=False)
     write_permission = fields.Str(required=False)
     notice_text = fields.Str(required=False)
 
@@ -44,7 +44,7 @@ class MetadataSchema(Schema):
     voxel_resolution_x = fields.Float(required=True, example=1.0)
     voxel_resolution_y = fields.Float(required=True, example=1.0)
     voxel_resolution_z = fields.Float(required=True, example=1.0)
-    read_permission = fields.Bool(required=False, default="PUBLIC")
+    read_permission = fields.Str(required=False, default="PUBLIC")
     write_permission = fields.Str(required=False, default="PRIVATE")
     notice_text = fields.Str(required=False)
 
