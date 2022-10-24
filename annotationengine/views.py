@@ -1,16 +1,13 @@
 from flask import (
-    jsonify,
     render_template,
     current_app,
-    make_response,
     Blueprint,
     url_for,
 )
 from .aligned_volume import get_aligned_volumes
-from .anno_database import get_db
+from .anno_database import get_db, check_read_permission
 from dynamicannotationdb.models import AnnoMetadata as Metadata
-from dynamicannotationdb.key_utils import get_table_name_from_table_id
-from geoalchemy2.shape import to_shape, from_shape
+from geoalchemy2.shape import to_shape
 from geoalchemy2.elements import WKBElement
 from middle_auth_client import auth_requires_permission
 import pandas as pd
@@ -117,6 +114,7 @@ def aligned_volume_view(aligned_volume_name):
 )
 def table_view(aligned_volume_name, table_name):
     db = get_db(aligned_volume_name)
+    check_read_permission(db, table_name)
     table_size = db.database.get_annotation_table_size(table_name)
     md = db.database.get_table_metadata(table_name)
     Model = db.database._get_model_from_table_name(table_name)

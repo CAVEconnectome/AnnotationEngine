@@ -15,6 +15,19 @@ class FullMetadataSchema(ma.SQLAlchemyAutoSchema):
         model = models.AnnoMetadata
 
 
+class UMetadataSchema(Schema):
+    user_id = fields.Str(required=False, example="1")
+    description = fields.Str(
+        required=False, example="my annotation table to track cells made by John Doe"
+    )
+    flat_segmentation_source = fields.Str(
+        required=False, example="precomputed://gs://my_cloud_bucket/image"
+    )
+    read_permission = fields.Str(required=False)
+    write_permission = fields.Str(required=False)
+    notice_text = fields.Str(required=False)
+
+
 class MetadataSchema(Schema):
     user_id = fields.Str(required=False, example="1")
     description = fields.Str(
@@ -31,12 +44,22 @@ class MetadataSchema(Schema):
     voxel_resolution_x = fields.Float(required=True, example=1.0)
     voxel_resolution_y = fields.Float(required=True, example=1.0)
     voxel_resolution_z = fields.Float(required=True, example=1.0)
-
+    read_permission = fields.Str(required=False, default="PUBLIC")
+    write_permission = fields.Str(required=False, default="PRIVATE")
+    notice_text = fields.Str(required=False)
 
 class TableSchema(Schema):
     table_name = fields.Str(order=0, required=True, example="my_cell_type_table")
     schema_type = fields.Str(order=1, required=True, example="cell_type_local")
 
+class UpdateMetadataSchema(Schema):
+    table_name = fields.Str(order=0, required=True, example="my_cell_type_table")
+    metadata = fields.Nested(
+        UMetadataSchema,
+        order=1,
+        required=True,
+        example={"description": "my description"},
+    )
 
 class CreateTableSchema(TableSchema):
     metadata = fields.Nested(
