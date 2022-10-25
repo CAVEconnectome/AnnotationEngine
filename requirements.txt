@@ -29,7 +29,7 @@ decorator==5.1.1
     # via ipython
 deprecated==1.2.13
     # via redis
-dynamicannotationdb==5.3.1
+dynamicannotationdb==5.3.2
     # via -r requirements.in
 emannotationschemas==5.2.2
     # via
