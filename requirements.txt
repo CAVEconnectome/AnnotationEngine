@@ -29,9 +29,9 @@ decorator==5.1.1
     # via ipython
 deprecated==1.2.13
     # via redis
-dynamicannotationdb==5.3.3
+dynamicannotationdb==5.3.4
     # via -r requirements.in
-emannotationschemas==5.2.3
+emannotationschemas==5.3.0
     # via
     #   -r requirements.in
     #   dynamicannotationdb
@@ -213,6 +213,7 @@ wcwidth==0.2.5
     # via prompt-toolkit
 werkzeug==1.0.1
     # via
+    #   emannotationschemas
     #   flask
     #   flask-accepts
     #   flask-restx
