@@ -1,6 +1,6 @@
 Flask<2.0
-emannotationschemas>=5.3.0
-dynamicannotationdb>=5.3.4
+emannotationschemas>=5.4.0
+dynamicannotationdb>=5.4.0
 caveclient>=4.0.0
 multiwrapper
 jsonschema<4.0
