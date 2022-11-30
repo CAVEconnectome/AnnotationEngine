@@ -8,7 +8,7 @@ from dynamicannotationdb.errors import (
 )
 from flask import Response, abort, g, request
 from flask_accepts import accepts
-from flask_restx import Namespace, Resource, reqparse
+from flask_restx import Namespace, Resource, reqparse, inputs
 from middle_auth_client import (
     auth_requires_admin,
     auth_requires_permission,
@@ -16,7 +16,12 @@ from middle_auth_client import (
 )
 
 from annotationengine.aligned_volume import get_aligned_volumes
-from annotationengine.anno_database import get_db, check_write_permission, check_read_permission, check_ownership
+from annotationengine.anno_database import (
+    get_db,
+    check_write_permission,
+    check_read_permission,
+    check_ownership,
+)
 from annotationengine.errors import SchemaServiceError
 from annotationengine.schemas import (
     CreateTableSchema,
@@ -47,6 +52,15 @@ def handle_invalid_usage(error):
 annotation_parser = reqparse.RequestParser()
 annotation_parser.add_argument(
     "annotation_ids", type=int, action="split", help="list of annotation ids"
+)
+
+query_parser = reqparse.RequestParser()
+query_parser.add_argument(
+    "filter_valid",
+    type=inputs.boolean,
+    default=True,
+    location="args",
+    help="whether to only return valid items",
 )
 
 
@@ -109,7 +123,7 @@ class Table(Resource):
     )
     @api_bp.doc("update_table", security="apikey", example=synapse_table_update_example)
     @accepts("UpdateMetadataSchema", schema=UpdateMetadataSchema, api=api_bp)
-    def put(self, aligned_volume_name: str)-> FullMetadataSchema:
+    def put(self, aligned_volume_name: str) -> FullMetadataSchema:
         data = request.parsed_obj
         db = get_db(aligned_volume_name)
         metadata_dict = data.get("metadata")
@@ -118,19 +132,21 @@ class Table(Resource):
 
         table_name = data.get("table_name")
         check_ownership(db, table_name)
-        
-        new_md= db.annotation.update_table_metadata(table_name, **metadata_dict)
+
+        new_md = db.annotation.update_table_metadata(table_name, **metadata_dict)
         return new_md, 200
 
     @auth_requires_permission(
         "view", table_arg="aligned_volume_name", resource_namespace="aligned_volume"
     )
     @api_bp.doc("get_aligned_volume_tables", security="apikey")
+    @api_bp.expect(query_parser)
     def get(self, aligned_volume_name: str):
         """Get list of annotation tables for a aligned_volume"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        tables = db.database._get_existing_table_names()
+        args=query_parser.parse_args()
+        tables = db.database._get_existing_table_names(filter_valid=args.get('filter_valid', True))
         return tables, 200
 
 
@@ -148,8 +164,8 @@ class AnnotationTable(Resource):
         db = get_db(aligned_volume_name)
         md = db.database.get_table_metadata(table_name)
         headers = None
-        if md.get('notice_text',None) is not None:
-            headers={"Warning":f"Table Owner Notice: {md['notice_text']}"}
+        if md.get("notice_text", None) is not None:
+            headers = {"Warning": f"Table Owner Notice: {md['notice_text']}"}
         return md, 201, headers
 
     @auth_requires_permission(
@@ -204,8 +220,8 @@ class Annotations(Resource):
 
         md = db.database.get_table_metadata(table_name)
         headers = None
-        if md.get('notice_text',None) is not None:
-            headers={"Warning":f"Table Owner Notice: {md['notice_text']}"}
+        if md.get("notice_text", None) is not None:
+            headers = {"Warning": f"Table Owner Notice: {md['notice_text']}"}
 
         annotations = db.annotation.get_annotations(table_name, annotation_ids)
 
@@ -276,7 +292,7 @@ class Annotations(Resource):
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
         check_write_permission(db, table_name)
-       
+
         data = request.parsed_obj
 
         ids = data.get("annotation_ids")
