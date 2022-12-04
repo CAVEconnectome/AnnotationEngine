@@ -33,7 +33,7 @@ from annotationengine.schemas import (
 
 from .api_examples import synapse_table_example, synapse_table_update_example
 
-__version__ = "4.4.0"
+__version__ = "4.5.0"
 
 authorizations = {
     "apikey": {"type": "apiKey", "in": "query", "name": "middle_auth_token"}
