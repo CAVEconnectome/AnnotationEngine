@@ -19,8 +19,8 @@ def check_write_permission(db, table_name):
             if not users_share_common_group(metadata["user_id"]):
                 abort(401, 
                         "Unauthorized: You cannot write because you do not share a common group with the creator of this table.")
-            else:
-                abort(401, "Unauthorized: The table can only be written to by owner")
+        else:
+            abort(401, "Unauthorized: The table can only be written to by owner")
     return metadata
 
 def check_read_permission(db, table_name):
