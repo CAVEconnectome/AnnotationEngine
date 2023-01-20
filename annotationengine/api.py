@@ -1,4 +1,5 @@
 import logging
+from urllib.error import HTTPError
 
 import requests
 from dynamicannotationdb.errors import (
@@ -6,7 +7,7 @@ from dynamicannotationdb.errors import (
     TableAlreadyExists,
     UpdateAnnotationError,
 )
-from flask import Response, abort, g, request
+from flask import Response, abort, g, request, current_app
 from flask_accepts import accepts
 from flask_restx import Namespace, Resource, reqparse, inputs
 from middle_auth_client import (
@@ -15,7 +16,14 @@ from middle_auth_client import (
     users_share_common_group,
 )
 
-from annotationengine.aligned_volume import get_aligned_volumes
+from caveclient.materializationengine import MaterializationClient
+from caveclient.auth import AuthClient
+
+from annotationengine.aligned_volume import (
+    get_aligned_volumes,
+    get_datastacks_from_aligned_volumes,
+    get_datastack_info,
+)
 from annotationengine.anno_database import (
     get_db,
     check_write_permission,
@@ -76,6 +84,34 @@ def get_schema_from_service(annotation_type, endpoint):
     if r.status_code != 200:
         raise (SchemaServiceError(r.text))
     return r.json()
+
+
+def trigger_supervoxel_lookup(aligned_volume_name: str, table_name: str):
+
+    # look up datastacks with this
+    datastacks = get_datastacks_from_aligned_volumes(aligned_volume_name)
+
+    server = current_app.config["GLOBAL_SERVER"]
+    auth = AuthClient(server_address=server)
+
+    for datastack in datastacks:
+        ds_info = get_datastack_info(datastack_name=datastack)
+        local_server = ds_info["local_server"]
+        # if not local server is configured we can't trigger this datastack
+        if local_server is None:
+            continue
+        matclient = MaterializationClient(
+            server_address=local_server,
+            datastack_name=datastack,
+            auth_client=auth,
+        )
+        try:
+            matclient.lookup_supervoxel_ids(table_name, datastack)
+        except HTTPError as e:
+            logging.warning(
+                f"""Could not trigger lookup of table {table_name} in datastack {datastack} at server {local_server}.
+Encountered status code {e.status_code} and message {e}"""
+            )
 
 
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table")
@@ -145,8 +181,10 @@ class Table(Resource):
         """Get list of annotation tables for a aligned_volume"""
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        args=query_parser.parse_args()
-        tables = db.database._get_existing_table_names(filter_valid=args.get('filter_valid', True))
+        args = query_parser.parse_args()
+        tables = db.database._get_existing_table_names(
+            filter_valid=args.get("filter_valid", True)
+        )
         return tables, 200
 
 
@@ -252,6 +290,8 @@ class Annotations(Resource):
         except Exception as error:
             logging.error(f"INSERT FAILED {annotations}")
             abort(404, error)
+
+        trigger_supervoxel_lookup(aligned_volume_name, table_name)
 
         return inserted_ids, 200
 
