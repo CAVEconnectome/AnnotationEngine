@@ -1,5 +1,4 @@
 import logging
-from urllib.error import HTTPError
 
 import requests
 from dynamicannotationdb.errors import (
@@ -104,14 +103,18 @@ def trigger_supervoxel_lookup(aligned_volume_name: str, table_name: str):
             server_address=local_server,
             datastack_name=datastack,
             auth_client=auth,
+            version=1,
         )
         try:
             matclient.lookup_supervoxel_ids(table_name, datastack)
-        except HTTPError as e:
-            logging.warning(
-                f"""Could not trigger lookup of table {table_name} in datastack {datastack} at server {local_server}.
-Encountered status code {e.status_code} and message {e}"""
-            )
+        except requests.HTTPError as e:
+            if e.response.status_code == 404:
+                logging.warning(
+                    f"""Could not trigger lookup of table {table_name} in datastack {datastack} at server {local_server}.
+Encountered status code {e.response.status_code} and message {e}"""
+                )
+            else:
+                raise (e)
 
 
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table")
