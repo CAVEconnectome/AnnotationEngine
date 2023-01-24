@@ -113,6 +113,11 @@ def trigger_supervoxel_lookup(aligned_volume_name: str, table_name: str):
                     f"""Could not trigger lookup of table {table_name} in datastack {datastack} at server {local_server}.
 Encountered status code {e.response.status_code} and message {e}"""
                 )
+            elif (e.response.status_code == 403):
+                logging.warning(
+                    f"""Permission error, could not trigger lookup of table {table_name} in datastack {datastack} at server {local_server}.
+Encountered status code {e.response.status_code} and message {e}"""
+                )
             else:
                 raise (e)
 
