@@ -85,7 +85,7 @@ def get_schema_from_service(annotation_type, endpoint):
     return r.json()
 
 
-def trigger_supervoxel_lookup(aligned_volume_name: str, table_name: str):
+def trigger_supervoxel_lookup(aligned_volume_name: str, table_name: str, inserted_ids: list):
 
     # look up datastacks with this
     datastacks = get_datastacks_from_aligned_volumes(aligned_volume_name)
@@ -106,7 +106,9 @@ def trigger_supervoxel_lookup(aligned_volume_name: str, table_name: str):
             version=1,
         )
         try:
-            matclient.lookup_supervoxel_ids(table_name, datastack)
+            matclient.lookup_supervoxel_ids(table_name,
+             annotation_ids=inserted_ids, 
+             datastack_name=datastack)
         except requests.HTTPError as e:
             if e.response.status_code == 404:
                 logging.warning(
@@ -299,7 +301,7 @@ class Annotations(Resource):
             logging.error(f"INSERT FAILED {annotations}")
             abort(404, error)
 
-        trigger_supervoxel_lookup(aligned_volume_name, table_name)
+        trigger_supervoxel_lookup(aligned_volume_name, table_name, inserted_ids)
 
         return inserted_ids, 200
 
@@ -328,6 +330,7 @@ class Annotations(Resource):
             except Exception as error:
                 abort(400, error)
 
+        trigger_supervoxel_lookup(aligned_volume_name, table_name, new_ids)
         return new_ids, 200
 
     @auth_requires_permission(
