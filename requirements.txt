@@ -17,7 +17,7 @@ cachetools==5.0.0
     #   -r requirements.in
     #   caveclient
     #   middle-auth-client
-caveclient==4.20.0
+caveclient==4.20.1
     # via -r requirements.in
 certifi==2021.10.8
     # via requests
