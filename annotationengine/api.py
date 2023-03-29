@@ -329,8 +329,8 @@ class Annotations(Resource):
                 abort(409, str(update_error))
             except Exception as error:
                 abort(400, error)
-
-        trigger_supervoxel_lookup(aligned_volume_name, table_name, new_ids)
+        new_roots = [v for v in new_ids.values()]
+        trigger_supervoxel_lookup(aligned_volume_name, table_name, new_roots)
         return new_ids, 200
 
     @auth_requires_permission(
