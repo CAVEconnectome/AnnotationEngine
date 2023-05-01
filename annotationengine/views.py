@@ -115,9 +115,11 @@ def aligned_volume_view(aligned_volume_name):
 def table_view(aligned_volume_name, table_name):
     db = get_db(aligned_volume_name)
     check_read_permission(db, table_name)
-    table_size = db.database.get_annotation_table_size(table_name)
     md = db.database.get_table_metadata(table_name)
+    if md['reference_table']:
+        RefModel = db.database.cached_table(md['reference_table'])
     Model = db.database._get_model_from_table_name(table_name)
+    table_size = db.database.get_annotation_table_size(table_name)
     query = db.database.cached_session.query(Model).limit(15)
     top15_df = pd.read_sql(query.statement, db.database.engine)
     top15_df = fix_wkb_columns(top15_df)
