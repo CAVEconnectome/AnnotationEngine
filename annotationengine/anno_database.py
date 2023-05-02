@@ -12,16 +12,20 @@ def get_db(aligned_volume) -> DynamicAnnotationInterface:
         cache[aligned_volume] = DynamicAnnotationInterface(sql_url, aligned_volume)
     return cache[aligned_volume]
 
+
 def check_write_permission(db, table_name):
     metadata = db.database.get_table_metadata(table_name)
     if metadata["user_id"] != str(g.auth_user["id"]):
-        if metadata["write_permission"]=="GROUP":
+        if metadata["write_permission"] == "GROUP":
             if not users_share_common_group(metadata["user_id"]):
-                abort(401, 
-                        "Unauthorized: You cannot write because you do not share a common group with the creator of this table.")
+                abort(401,
+                      "Unauthorized: You cannot write because you do not share a common group with the creator of this table.")
+        elif metadata["write_permission"] == "PUBLIC":
+            return metadata
         else:
             abort(401, "Unauthorized: The table can only be written to by owner")
     return metadata
+
 
 def check_read_permission(db, table_name):
     metadata = db.database.get_table_metadata(table_name)
@@ -33,6 +37,7 @@ def check_read_permission(db, table_name):
         if metadata["user_id"] != str(g.auth_user["id"]):
             abort(401, "Unauthorized: The table can only be read by its owner")
     return metadata
+
 
 def check_ownership(db, table_name):
     metadata = db.database.get_table_metadata(table_name)
