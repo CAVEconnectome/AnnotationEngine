@@ -14,7 +14,7 @@ from middle_auth_client import (
     auth_requires_permission,
     users_share_common_group,
 )
-
+from marshmallow import ValidationError
 from caveclient.materializationengine import MaterializationClient
 from caveclient.auth import AuthClient
 
@@ -297,6 +297,8 @@ class Annotations(Resource):
         except AnnotationInsertLimitExceeded as limit_error:
             logging.error(f"INSERT LIMIT EXCEEDED {limit_error}")
             abort(413, str(limit_error))
+        except ValidationError as validation_error:
+            abort(422, validation_error.messages)
         except Exception as error:
             logging.error(f"INSERT FAILED {annotations}")
             abort(404, error)
@@ -327,6 +329,8 @@ class Annotations(Resource):
                 new_ids.append(updated_id)
             except UpdateAnnotationError as update_error:
                 abort(409, str(update_error))
+            except ValidationError as validation_error:
+                abort(422, validation_error.messages)
             except Exception as error:
                 abort(400, error)
         new_roots = [v for v in new_ids]
