@@ -326,15 +326,15 @@ class Annotations(Resource):
         for annotation in annotations:
             try:
                 updated_id = db.annotation.update_annotation(table_name, annotation)
-                new_ids.append(updated_id)
+                (old_id, new_id), = updated_id.items()
+                new_ids.append(new_id)
             except UpdateAnnotationError as update_error:
                 abort(409, str(update_error))
             except ValidationError as validation_error:
                 abort(422, validation_error.messages)
             except Exception as error:
                 abort(400, error)
-        new_roots = [v for v in new_ids]
-        trigger_supervoxel_lookup(aligned_volume_name, table_name, new_roots)
+        trigger_supervoxel_lookup(aligned_volume_name, table_name, new_ids)
         return new_ids, 200
 
     @auth_requires_permission(
