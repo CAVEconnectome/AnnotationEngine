@@ -120,8 +120,7 @@ Encountered status code {e.response.status_code} and message {e}"""
                     f"""Permission error, could not trigger lookup of table {table_name} in datastack {datastack} at server {local_server}.
 Encountered status code {e.response.status_code} and message {e}"""
                 )
-            else:
-                raise (e)
+            raise(e)
 
 
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table")
@@ -334,7 +333,10 @@ class Annotations(Resource):
                 abort(422, validation_error.messages)
             except Exception as error:
                 abort(400, error)
-        trigger_supervoxel_lookup(aligned_volume_name, table_name, new_ids)
+        try:
+            trigger_supervoxel_lookup(aligned_volume_name, table_name, new_ids)
+        except Exception as e:
+            abort(500, e)
         return new_ids, 200
 
     @auth_requires_permission(
