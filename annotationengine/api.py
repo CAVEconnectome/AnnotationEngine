@@ -336,7 +336,7 @@ class Annotations(Resource):
         try:
             trigger_supervoxel_lookup(aligned_volume_name, table_name, new_ids)
         except Exception as e:
-            abort(500, e)
+            logging.error(f"Lookup SVID workflow failed: {e}")
         return new_ids, 200
 
     @auth_requires_permission(
