@@ -85,7 +85,9 @@ def get_schema_from_service(annotation_type, endpoint):
     return r.json()
 
 
-def trigger_supervoxel_lookup(aligned_volume_name: str, table_name: str, inserted_ids: list):
+def trigger_supervoxel_lookup(
+    aligned_volume_name: str, table_name: str, inserted_ids: list
+):
 
     # look up datastacks with this
     datastacks = get_datastacks_from_aligned_volumes(aligned_volume_name)
@@ -106,22 +108,21 @@ def trigger_supervoxel_lookup(aligned_volume_name: str, table_name: str, inserte
             version=1,
         )
         try:
-            matclient.lookup_supervoxel_ids(table_name,
-             annotation_ids=inserted_ids, 
-             datastack_name=datastack)
+            matclient.lookup_supervoxel_ids(
+                table_name, annotation_ids=inserted_ids, datastack_name=datastack
+            )
         except requests.HTTPError as e:
             if e.response.status_code == 404:
                 logging.warning(
                     f"""Could not trigger lookup of table {table_name} in datastack {datastack} at server {local_server}.
 Encountered status code {e.response.status_code} and message {e}"""
                 )
-            elif (e.response.status_code == 403):
+            elif e.response.status_code == 403:
                 logging.warning(
                     f"""Permission error, could not trigger lookup of table {table_name} in datastack {datastack} at server {local_server}.
 Encountered status code {e.response.status_code} and message {e}"""
                 )
-            else:
-                raise (e)
+            raise (e)
 
 
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table")
@@ -326,15 +327,18 @@ class Annotations(Resource):
         for annotation in annotations:
             try:
                 updated_id = db.annotation.update_annotation(table_name, annotation)
-                new_ids.append(updated_id)
+                ((old_id, new_id),) = updated_id.items()
+                new_ids.append(new_id)
             except UpdateAnnotationError as update_error:
                 abort(409, str(update_error))
             except ValidationError as validation_error:
                 abort(422, validation_error.messages)
             except Exception as error:
                 abort(400, error)
-        new_roots = [v for v in new_ids]
-        trigger_supervoxel_lookup(aligned_volume_name, table_name, new_roots)
+        try:
+            trigger_supervoxel_lookup(aligned_volume_name, table_name, new_ids)
+        except Exception as e:
+            logging.error(f"Lookup SVID workflow failed: {e}")
         return new_ids, 200
 
     @auth_requires_permission(
