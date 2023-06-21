@@ -122,7 +122,8 @@ Encountered status code {e.response.status_code} and message {e}"""
                     f"""Permission error, could not trigger lookup of table {table_name} in datastack {datastack} at server {local_server}.
 Encountered status code {e.response.status_code} and message {e}"""
                 )
-            raise (e)
+            else:
+                logging.warning(f"""Exception during supervoxel lookup: {e}""")
 
 
 @api_bp.route("/aligned_volume/<string:aligned_volume_name>/table")
