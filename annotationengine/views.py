@@ -130,4 +130,5 @@ def table_view(aligned_volume_name, table_name):
         table_size=table_size,
         df_table=top15_df.to_html(escape=False),
         table_description=md["description"],
+        version=__version__,
     )

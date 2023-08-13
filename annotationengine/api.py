@@ -10,13 +10,13 @@ from flask import Response, abort, g, request, current_app
 from flask_accepts import accepts
 from flask_restx import Namespace, Resource, reqparse, inputs
 from middle_auth_client import (
-    auth_requires_admin,
-    auth_requires_permission,
-    users_share_common_group,
+    auth_requires_permission
 )
 from marshmallow import ValidationError
 from caveclient.materializationengine import MaterializationClient
 from caveclient.auth import AuthClient
+import werkzeug
+import traceback
 
 from annotationengine.aligned_volume import (
     get_aligned_volumes,
@@ -49,6 +49,38 @@ authorizations = {
 api_bp = Namespace(
     "Annotation Engine", authorizations=authorizations, description="Annotation Engine"
 )
+
+
+@api_bp.errorhandler(Exception)
+def unhandled_exception(e):
+    status_code = 500
+    user_ip = str(request.remote_addr)
+    tb = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
+
+    current_app.logger.error(
+        {
+            "message": str(e),
+            "user_id": user_ip,
+            "user_ip": user_ip,
+            "request_url": request.url,
+            "request_data": request.data,
+            "response_code": status_code,
+            "traceback": tb,
+        }
+    )
+
+    resp = {
+        "code": status_code,
+        "message": str(e),
+        "traceback": tb,
+    }
+
+    return resp, status_code
+
+
+@api_bp.errorhandler(werkzeug.exceptions.BadRequest)
+def bad_request_exception(e):
+    raise e
 
 
 @api_bp.errorhandler
