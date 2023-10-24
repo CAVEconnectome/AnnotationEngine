@@ -356,12 +356,13 @@ class Annotations(Resource):
         annotations = data.get("annotations")
 
         new_ids = []
-
+        updated_ids_mapping = {}
         for annotation in annotations:
             try:
-                updated_id = db.annotation.update_annotation(table_name, annotation)
-                ((old_id, new_id),) = updated_id.items()
-                new_ids.append(new_id)
+                update_id_map = db.annotation.update_annotation(table_name, annotation)
+                ((old_id, new_id),) = update_id_map.items()
+                new_ids.append(new_id) # send a list of new ids to the supervoxel lookup
+                updated_ids_mapping[old_id] = new_id # return a mapping of old to new ids
             except UpdateAnnotationError as update_error:
                 abort(409, str(update_error))
             except ValidationError as validation_error:
@@ -372,7 +373,7 @@ class Annotations(Resource):
             trigger_supervoxel_lookup(aligned_volume_name, table_name, new_ids)
         except Exception as e:
             logging.error(f"Lookup SVID workflow failed: {e}")
-        return new_ids, 200
+        return updated_ids_mapping, 200
 
     @auth_requires_permission(
         "edit", table_arg="aligned_volume_name", resource_namespace="aligned_volume"
