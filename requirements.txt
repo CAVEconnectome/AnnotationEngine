@@ -33,7 +33,7 @@ deprecated==1.2.13
     # via redis
 dynamicannotationdb==5.7.3
     # via -r requirements.in
-emannotationschemas==5.8.0
+emannotationschemas==5.11.0
     # via
     #   -r requirements.in
     #   dynamicannotationdb
