@@ -67,7 +67,6 @@ def create_app(config_name: str = None):
         app.register_blueprint(views_bp)
         db.init_app(app)
         db.create_all()
-        
 
     @app.route("/health")
     def health():

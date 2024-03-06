@@ -20,7 +20,7 @@ views_bp = Blueprint("views", __name__, url_prefix="/annotation/views")
 
 
 def wkb_to_numpy(wkb, convert_to_nm=None):
-    """ Fixes single geometry column """
+    """Fixes single geometry column"""
     shp = to_shape(wkb)
     xyz_voxel = np.array([shp.xy[0][0], shp.xy[1][0], shp.z], dtype=np.int)
     if convert_to_nm is not None:
@@ -61,7 +61,6 @@ def index():
     "view", table_arg="aligned_volume_name", resource_namespace="aligned_volume"
 )
 def aligned_volume_view(aligned_volume_name):
-
     db = get_db(aligned_volume_name)
     table_names = db.database._get_existing_table_names()
     query = (
@@ -116,8 +115,8 @@ def table_view(aligned_volume_name, table_name):
     db = get_db(aligned_volume_name)
     check_read_permission(db, table_name)
     md = db.database.get_table_metadata(table_name)
-    if md['reference_table']:
-        RefModel = db.database.cached_table(md['reference_table'])
+    if md["reference_table"]:
+        RefModel = db.database.cached_table(md["reference_table"])
     Model = db.database._get_model_from_table_name(table_name)
     table_size = db.database.get_annotation_table_size(table_name)
     query = db.database.cached_session.query(Model).limit(15)
