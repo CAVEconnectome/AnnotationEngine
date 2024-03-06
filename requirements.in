@@ -1,5 +1,5 @@
 Flask<2.0
-emannotationschemas>=5.4.0
+emannotationschemas>=5.11.0
 dynamicannotationdb>=5.5.1
 caveclient>=4.20.2
 multiwrapper
