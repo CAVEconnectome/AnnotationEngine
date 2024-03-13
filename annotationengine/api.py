@@ -1,4 +1,5 @@
 import logging
+import re
 
 import requests
 from dynamicannotationdb.errors import (
@@ -115,6 +116,30 @@ def get_schema_from_service(annotation_type, endpoint):
     return r.json()
 
 
+def is_valid_table_name(table_name: str):
+    """
+    Validates the table name against the allowed naming convention.
+    Table names can include lowercase letters,Tuple underscores, and numbers,
+    but cannot consist of numbers only and cannot be empty.
+
+    Args:
+        table_name (str): target table name
+
+    Returns:
+        (bool,str): if table name is valid and error message if not
+    """
+
+    
+    if not table_name:
+        return False, "Table name cannot be empty."
+
+    # Check if table name is valid: includes at least one lowercase letter,
+    # may contain numbers and underscores, but cannot be numbers only.
+    if not re.match(r'^[a-z_]+[a-z0-9_]*$', table_name):
+        return False, "Invalid table name. Table name must include at least one letter, and can only contain lowercase letters, numbers, and underscores (_)."
+
+    return True, ""
+
 def trigger_supervoxel_lookup(
     aligned_volume_name: str, table_name: str, inserted_ids: list
 ):
@@ -178,13 +203,11 @@ class Table(Resource):
         else:
             table_name = data.get("table_name")
             headers = None
-            if not table_name.islower():
-                headers = {
-                    "Warning": f'201 - "Table name "{table_name}" needs to be lower case. Table will be posted to the database as "{table_name.lower()}"'
-                }
-                table_name = table_name.lower()
+            is_valid, error_message = is_valid_table_name(table_name)
+            if not is_valid:
+                abort(400, f"Table name error: {error_message}")
+
             schema_type = data.get("schema_type")
-            table_name = table_name.lower().replace(" ", "_")
             try:
                 table_info = db.annotation.create_table(
                     table_name, schema_type, **metadata_dict
