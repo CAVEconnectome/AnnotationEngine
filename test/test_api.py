@@ -45,7 +45,7 @@ class TestTableEndpoints:
                 follow_redirects=True,
             )
             logging.info(response)
-            assert response.json is None or response.json == {}
+            assert response.json is None
 
     def test_post_table_to_be_deleted(self, client):
         logging.info(client)
