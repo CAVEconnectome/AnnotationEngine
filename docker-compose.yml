@@ -1,7 +1,6 @@
-version: '3'
 services:
     db:
-      image: mdillon/postgis
+      image: postgis/postgis:13-master
       restart: always
       env_file:
         - ./.env-docker.dev 
@@ -21,19 +20,19 @@ services:
         - 8080:8080
       links:
         - db
-    app:
-      image: 'app:tag'
-      build:
-        context: .
-        dockerfile: dev.Dockerfile
-      ports:
-        - 80:80
-      volumes:
-        - .:/app
-      env_file:
-        - ./.env-docker.dev 
-      depends_on:
-        - db
+    # app:
+    #   image: 'app:tag'
+    #   build:
+    #     context: .
+    #     dockerfile: dev.Dockerfile
+    #   ports:
+    #     - 80:80
+    #   volumes:
+    #     - .:/app
+    #   env_file:
+    #     - ./.env-docker.dev 
+    #   depends_on:
+    #     - db
 
 volumes:
   postgres_data:
