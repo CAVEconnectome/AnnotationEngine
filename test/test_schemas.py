@@ -152,11 +152,15 @@ def test_full_metadata_schema():
         "deleted": None,
         "user_id": "1",
         "description": "Test description",
+        "notice_text": "Test notice",
         "reference_table": None,
         "flat_segmentation_source": None,
         "voxel_resolution_x": 4,
         "voxel_resolution_y": 4,
         "voxel_resolution_z": 40,
+        "write_permission": "PRIVATE",
+        "read_permission": "PRIVATE",
+        "last_modified": str(utc_time),
     }
     schema = FullMetadataSchema()
     result = schema.load(full_metadata)
@@ -170,6 +174,10 @@ def test_full_metadata_schema():
     assert result["created"] == utc_time
     assert result["deleted"] is None
     assert result["description"] == "Test description"
+    assert result["notice_text"] == "Test notice"
     assert result["voxel_resolution_x"] == 4
     assert result["voxel_resolution_y"] == 4
     assert result["voxel_resolution_z"] == 40
+    assert result["write_permission"] == "PRIVATE"
+    assert result["read_permission"] == "PRIVATE"
+    assert result["last_modified"] == utc_time

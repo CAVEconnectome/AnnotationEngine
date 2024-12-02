@@ -54,7 +54,7 @@ api_bp = Namespace(
 def unhandled_exception(e):
     status_code = 500
     user_ip = str(request.remote_addr)
-    tb = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
+    tb = traceback.format_exception(e, value=e, tb=e.__traceback__)
 
     current_app.logger.error(
         {
@@ -317,7 +317,7 @@ class Annotations(Resource):
         db = get_db(aligned_volume_name)
         check_read_permission(db, table_name)
         args = annotation_parser.parse_args()
-
+        
         annotation_ids = args["annotation_ids"]
 
         md = db.database.get_table_metadata(table_name)

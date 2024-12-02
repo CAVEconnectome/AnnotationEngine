@@ -78,6 +78,7 @@ def app_config(client):
 
 @pytest.fixture()
 def modify_g(client):
+    g.auth_user = {"id": 1}
     g.user = "test"
     g.id = 1
 
