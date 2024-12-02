@@ -65,4 +65,5 @@ jobs:
         env: 
           AUTH_DISABLED: true
         run: |
+          python -c "import os; print('AUTH_DISABLED:', os.getenv('AUTH_DISABLED'), type(os.getenv('AUTH_DISABLED')))"
           pytest
