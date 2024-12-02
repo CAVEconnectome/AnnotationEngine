@@ -8,6 +8,8 @@ sys.modules["annotationengine.api.check_aligned_volume"] = mock.MagicMock()
 
 aligned_volume_name = "test_aligned_volume"
 
+mock_dataset = mock.patch('middle_auth_client.decorators.dataset_from_table_id')
+mock_dataset.start().return_value = aligned_volume_name
 
 class TestHealthEndpoint:
     def test_health_endpoint(self, client):
