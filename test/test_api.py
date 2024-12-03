@@ -19,10 +19,6 @@ class TestHealthEndpoint:
 class TestTableEndpoints:
     def test_post_table(self, client):
         logging.info("TEST")
-        logging.info(f"client: {client}")
-        logging.info(f"client.environ_base: {client.environ_base}")
-        logging.info(f"client.application.env: {client.application.env}")
-        logging.info(f"client.application.config: {client.application.config}")
         data = {
             "table_name": "test_table",
             "schema_type": "synapse",
