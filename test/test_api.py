@@ -50,7 +50,7 @@ class TestTableEndpoints:
         '''
         These tests have to be run in sequential order, so instead of trusting
         the testing framework to run independent tests in the intended order,
-        keep them in a single function instead.
+        simply package them into a single function.
         '''
         
         # Alter the description and populate the notice_text
@@ -137,8 +137,6 @@ class TestTableEndpoints:
             "table_name": "test_table",
             "metadata": {
                 "user_id": "1",
-                "description": "Altered test description",
-                "flat_segmentation_source": "precomputed://gs://my_cloud_bucket/image",
                 "notice_text": "",
             },
         }
