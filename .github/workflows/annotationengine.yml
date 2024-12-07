@@ -11,6 +11,7 @@ on:
     paths:
       - "annotationengine/**"
       - "tests/**"
+      - ".github/workflows/annotationengine.yml"
   pull_request:
     branches: [master]
 
