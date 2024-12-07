@@ -69,7 +69,7 @@ jobs:
           AUTH_DISABLED: true
         run: |
           python -c "import os; print('AUTH_DISABLED:', os.getenv('AUTH_DISABLED'), type(os.getenv('AUTH_DISABLED')))"
-          pytest
+          pytest --cov annotationengine
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@v5
         with:
