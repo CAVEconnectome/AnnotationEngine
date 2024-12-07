@@ -5,3 +5,4 @@ pytest-env
 pytest-mock
 requests-mock
 docker
+coverage
