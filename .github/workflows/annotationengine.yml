@@ -70,4 +70,4 @@ jobs:
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@v5
         with:
-          use_oidc: true
+          token: {{ secrets.CODECOV_TOKEN }}
