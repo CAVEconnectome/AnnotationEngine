@@ -46,6 +46,115 @@ class TestTableEndpoints:
             logging.info(response)
             assert response.json is None
 
+    def test_put_table(self, client, modify_g):
+        '''
+        These tests have to be run in sequential order, so instead of trusting
+        the testing framework to run independent tests in the intended order,
+        simply package them into a single function.
+        '''
+        
+        # Alter the description and populate the notice_text
+        logging.info("TEST")
+        data = {
+            "table_name": "test_table",
+            "metadata": {
+                "user_id": "1",
+                "description": "Altered test description",
+                "flat_segmentation_source": "precomputed://gs://my_cloud_bucket/image",
+                "notice_text": "Notice",
+            },
+        }
+        url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table"
+        with mock.patch(
+            "annotationengine.api.check_aligned_volume"
+        ) as mock_aligned_volumes:
+            mock_aligned_volumes.return_value = aligned_volume_name
+
+            response = client.put(
+                url,
+                json=data,
+                content_type="application/json",
+                follow_redirects=True,
+            )
+            logging.info(response)
+            assert response.json['description'] == "Altered test description"
+            assert response.json['notice_text'] == "Notice"
+        
+        # ================================================================================
+        # Test that notice_text is erased
+        logging.info("TEST")
+        data = {
+            "table_name": "test_table",
+            "metadata": {
+                "user_id": "1",
+                "notice_text": "",
+            },
+        }
+        url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table"
+        with mock.patch(
+            "annotationengine.api.check_aligned_volume"
+        ) as mock_aligned_volumes:
+            mock_aligned_volumes.return_value = aligned_volume_name
+
+            response = client.put(
+                url,
+                json=data,
+                content_type="application/json",
+                follow_redirects=True,
+            )
+            logging.info(response)
+            assert response.json['notice_text'] is None
+
+        # ================================================================================
+        # Repopulate notice_text
+        logging.info("TEST")
+        data = {
+            "table_name": "test_table",
+            "metadata": {
+                "user_id": "1",
+                "notice_text": "Notice2",
+            },
+        }
+        url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table"
+        with mock.patch(
+            "annotationengine.api.check_aligned_volume"
+        ) as mock_aligned_volumes:
+            mock_aligned_volumes.return_value = aligned_volume_name
+
+            response = client.put(
+                url,
+                json=data,
+                content_type="application/json",
+                follow_redirects=True,
+            )
+            logging.info(response)
+            assert response.json['notice_text'] == "Notice2"
+        
+        # ================================================================================
+        # Test that notice_text is erased
+        logging.info("TEST")
+        data = {
+            "table_name": "test_table",
+            "metadata": {
+                "user_id": "1",
+                "notice_text": "",
+            },
+        }
+        url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table"
+        with mock.patch(
+            "annotationengine.api.check_aligned_volume"
+        ) as mock_aligned_volumes:
+            mock_aligned_volumes.return_value = aligned_volume_name
+
+            response = client.put(
+                url,
+                json=data,
+                content_type="application/json",
+                follow_redirects=True,
+            )
+            logging.info(response)
+            assert response.json['notice_text'] is None
+
     def test_post_table_to_be_deleted(self, client):
         logging.info(client)
         data = {
@@ -111,7 +220,7 @@ class TestAnnotationTableEndpoints:
                 "table_name": "test_table",
                 "id": 1,
                 "deleted": None,
-                "description": "Test description",
+                "description": "Altered test description",
                 "flat_segmentation_source": "precomputed://gs://my_cloud_bucket/image",
                 "voxel_resolution_y": 4.0,
                 "valid": True,

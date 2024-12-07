@@ -11,7 +11,7 @@ from annotationengine.api import is_valid_table_name
 ])
 def test_valid_table_names(table_name):
     is_valid, error_msg = is_valid_table_name(table_name)
-    assert is_valid == True
+    assert is_valid
     assert error_msg == ""
 
 @pytest.mark.parametrize("table_name", [
@@ -25,7 +25,7 @@ def test_valid_table_names(table_name):
 ])
 def test_invalid_table_names(table_name):
     is_valid, error_msg = is_valid_table_name(table_name)
-    assert is_valid == False
+    assert not is_valid
     if table_name == "":
         assert error_msg == "Table name cannot be empty."
     else:
