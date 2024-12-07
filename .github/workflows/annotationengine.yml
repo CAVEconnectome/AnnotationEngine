@@ -13,6 +13,7 @@ on:
       - "tests/**"
   pull_request:
     branches: [master]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -35,7 +36,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/test_requirements.txt') }}
@@ -70,4 +71,4 @@ jobs:
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@v5
         with:
-          use_oidc: true
+          token: {{ secrets.CODECOV_TOKEN }}

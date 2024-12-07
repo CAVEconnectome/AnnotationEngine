@@ -8,6 +8,7 @@ sys.modules["annotationengine.api.check_aligned_volume"] = mock.MagicMock()
 
 aligned_volume_name = "test_aligned_volume"
 
+
 class TestHealthEndpoint:
     def test_health_endpoint(self, client):
         url = "annotation/api/versions"
@@ -47,12 +48,12 @@ class TestTableEndpoints:
             assert response.json is None
 
     def test_put_table(self, client, modify_g):
-        '''
+        """
         These tests have to be run in sequential order, so instead of trusting
         the testing framework to run independent tests in the intended order,
         simply package them into a single function.
-        '''
-        
+        """
+
         # Alter the description and populate the notice_text
         logging.info("TEST")
         data = {
@@ -77,9 +78,9 @@ class TestTableEndpoints:
                 follow_redirects=True,
             )
             logging.info(response)
-            assert response.json['description'] == "Altered test description"
-            assert response.json['notice_text'] == "Notice"
-        
+            assert response.json["description"] == "Altered test description"
+            assert response.json["notice_text"] == "Notice"
+
         # ================================================================================
         # Test that notice_text is erased
         logging.info("TEST")
@@ -103,7 +104,7 @@ class TestTableEndpoints:
                 follow_redirects=True,
             )
             logging.info(response)
-            assert response.json['notice_text'] is None
+            assert response.json["notice_text"] is None
 
         # ================================================================================
         # Repopulate notice_text
@@ -128,8 +129,8 @@ class TestTableEndpoints:
                 follow_redirects=True,
             )
             logging.info(response)
-            assert response.json['notice_text'] == "Notice2"
-        
+            assert response.json["notice_text"] == "Notice2"
+
         # ================================================================================
         # Test that notice_text is erased
         logging.info("TEST")
@@ -153,7 +154,7 @@ class TestTableEndpoints:
                 follow_redirects=True,
             )
             logging.info(response)
-            assert response.json['notice_text'] is None
+            assert response.json["notice_text"] is None
 
     def test_post_table_to_be_deleted(self, client):
         logging.info(client)
@@ -191,17 +192,15 @@ class TestTableEndpoints:
         ) as mock_aligned_volumes:
             mock_aligned_volumes.return_value = aligned_volume_name
             response = client.get(
-                url, content_type="application/json",
-                follow_redirects=False
+                url, content_type="application/json", follow_redirects=False
             )
             logging.info(response)
-            
+
             assert response.json == ["test_table", "test_table_to_delete"]
 
 
 class TestAnnotationTableEndpoints:
     def test_get_table_metadata(self, client):
-
         url = (
             f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table/test_table"
         )
@@ -211,9 +210,7 @@ class TestAnnotationTableEndpoints:
         ) as mock_aligned_volumes:
             mock_aligned_volumes.return_value = aligned_volume_name
 
-            response = client.get(url,
-                                  follow_redirects=False
-                                  )
+            response = client.get(url, follow_redirects=False)
             logging.info(response.json)
 
             metadata = {
@@ -234,22 +231,19 @@ class TestAnnotationTableEndpoints:
                 "write_permission": "PRIVATE",
             }
             response_json = response.json
-            del response_json['created']
-            del response_json['last_modified']
+            del response_json["created"]
+            del response_json["last_modified"]
             assert response_json == metadata
 
     def test_mark_table_to_delete(self, client, modify_g):
-
         url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table/test_table_to_delete"
-        
+
         with mock.patch(
             "annotationengine.api.check_aligned_volume"
         ) as mock_aligned_volumes:
             mock_aligned_volumes.return_value = aligned_volume_name
 
-            response = client.delete(url,
-                                    follow_redirects=False
-                                    )
+            response = client.delete(url, follow_redirects=False)
             logging.info(response.json)
             assert response.json is True
 
@@ -261,16 +255,13 @@ class TestTableInfo:
             "annotationengine.api.check_aligned_volume"
         ) as mock_aligned_volumes:
             mock_aligned_volumes.return_value = aligned_volume_name
-            response = client.get(url,
-                                  follow_redirects=False
-                                  )
+            response = client.get(url, follow_redirects=False)
             logging.info(response.json)
             assert response.json == 0
 
 
 class TestAnnotationsEndpoints:
     def test_post_annotations(self, client, modify_g):
-
         url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table/test_table/annotations"
         data = {
             "annotations": [
@@ -294,7 +285,7 @@ class TestAnnotationsEndpoints:
                 "annotationengine.api.trigger_supervoxel_lookup",
             ) as mock_trigger_supervoxel_lookup:
                 mock_trigger_supervoxel_lookup.return_value = None
-                
+
                 response = client.post(
                     url,
                     data=json.dumps(data),
@@ -311,9 +302,7 @@ class TestAnnotationsEndpoints:
             "annotationengine.api.check_aligned_volume"
         ) as mock_aligned_volumes:
             mock_aligned_volumes.return_value = aligned_volume_name
-            response = client.get(url, query_string=data,
-                                  follow_redirects=False
-                                  )
+            response = client.get(url, query_string=data, follow_redirects=False)
             logging.info(response)
             logging.info(response.json)
             logging.info(response.json[0])
@@ -323,7 +312,7 @@ class TestAnnotationsEndpoints:
             assert response.json[0]["post_pt_position"] == [33, 33, 0]
             assert response.json[0]["valid"] == True
             assert response.json[0]["superceded_id"] == None
-            assert response.json[0]["deleted"] == 'None'
+            assert response.json[0]["deleted"] == "None"
 
     def test_update_annotations(self, client):
         url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table/test_table/annotations"
@@ -346,11 +335,11 @@ class TestAnnotationsEndpoints:
                 "annotationengine.api.trigger_supervoxel_lookup",
             ) as mock_trigger_supervoxel_lookup:
                 mock_trigger_supervoxel_lookup.return_value = None
-                response = client.put(url, data=json.dumps(data),
-                                   follow_redirects=False
-                                   )
+                response = client.put(
+                    url, data=json.dumps(data), follow_redirects=False
+                )
                 logging.info(response)
-                assert response.json == {'1': 2}
+                assert response.json == {"1": 2}
 
     def test_delete_annotations(self, client):
         url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table/test_table/annotations"
@@ -360,8 +349,7 @@ class TestAnnotationsEndpoints:
             "annotationengine.api.check_aligned_volume"
         ) as mock_aligned_volumes:
             mock_aligned_volumes.return_value = aligned_volume_name
-            response = client.delete(url, data=json.dumps(data),
-                                     follow_redirects=False
-                                     )
+            response = client.delete(url, data=json.dumps(data), follow_redirects=False)
             logging.info(response)
+
             assert response.json == [2]
