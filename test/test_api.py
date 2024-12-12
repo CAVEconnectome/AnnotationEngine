@@ -47,13 +47,7 @@ class TestTableEndpoints:
             logging.info(response)
             assert response.json is None
 
-    def test_put_table(self, client):
-        """
-        These tests have to be run in sequential order, so instead of trusting
-        the testing framework to run independent tests in the intended order,
-        simply package them into a single function.
-        """
-
+    def test_put_table1(self, client):
         # Alter the description and populate the notice_text
         logging.info("TEST")
         data = {
@@ -81,6 +75,7 @@ class TestTableEndpoints:
             assert response.json["description"] == "Altered test description"
             assert response.json["notice_text"] == "Notice"
 
+    def test_put_table2(self, client):
         # ================================================================================
         # Test that notice_text is erased
         logging.info("TEST")
@@ -106,6 +101,7 @@ class TestTableEndpoints:
             logging.info(response)
             assert response.json["notice_text"] is None
 
+    def test_put_table3(self, client):
         # ================================================================================
         # Repopulate notice_text
         logging.info("TEST")
@@ -131,6 +127,7 @@ class TestTableEndpoints:
             logging.info(response)
             assert response.json["notice_text"] == "Notice2"
 
+    def test_put_table4(self, client):
         # ================================================================================
         # Test that notice_text is erased
         logging.info("TEST")
