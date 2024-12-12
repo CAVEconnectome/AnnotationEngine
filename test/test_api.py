@@ -48,6 +48,7 @@ class TestTableEndpoints:
             assert response.json is None
 
     def test_put_table(self, client):
+        """
         These tests have to be run in sequential order, so instead of trusting
         the testing framework to run independent tests in the intended order,
         simply package them into a single function.
