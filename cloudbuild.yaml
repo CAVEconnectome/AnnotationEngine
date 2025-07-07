@@ -24,8 +24,6 @@ steps:
     entrypoint: "bash"
     args: ["-c", "docker push $$USERNAME/annotationengine:$TAG_NAME"]
     secretEnv: ["USERNAME"]
-images:
-  - "gcr.io/$PROJECT_ID/annotationengine:$TAG_NAME"
 availableSecrets:
   secretManager:
     - versionName: projects/$PROJECT_ID/secrets/docker-password/versions/1
