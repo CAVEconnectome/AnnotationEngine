@@ -77,13 +77,6 @@ def app_config(client):
 
 
 @pytest.fixture()
-def modify_g(client):
-    g.auth_user = {"id": 1}
-    g.user = "test"
-    g.id = 1
-
-
-@pytest.fixture()
 def mock_info_service():
     aligned_volume_url = os.path.join(INFOSERVICE_ENDPOINT, "api/aligned_volumes")
     aligned_volume_url.get(aligned_volume_url, json=[TEST_DATASET_NAME])
