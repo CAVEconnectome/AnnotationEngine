@@ -14,7 +14,7 @@ import pandas as pd
 import numpy as np
 import os
 
-__version__ = "4.25.0"
+__version__ = "4.26.0"
 
 views_bp = Blueprint("views", __name__, url_prefix="/annotation/views")
 
