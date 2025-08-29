@@ -64,7 +64,9 @@ jobs:
           bumpversion ${{ inputs.part || github.event.inputs.part }}
       - name: Commit and push with tags
         if: ${{ (inputs.dry-run == false) || (github.event.inputs.dry-run == 'false') }}
-        run: git push --follow-tags
+        run: |
+          git pull --rebase origin master
+          git push --follow-tags
       - name: Get version
         id: get-version
         run: |

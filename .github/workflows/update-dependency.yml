@@ -40,7 +40,7 @@ jobs:
           
           # Update in requirements.txt if it exists
           if [ -f "requirements.txt" ]; then
-            sed -i "s/^${{ github.event.inputs.dependency }}.*/${{ github.event.inputs.dependency }}==${{ github.event.inputs.version }}/" requirements.txt
+            sed -i "s/^${{ github.event.inputs.dependency }}==.*/${{ github.event.inputs.dependency }}==${{ github.event.inputs.version }}/" requirements.txt
             echo "Updated requirements.txt"
           fi
           
