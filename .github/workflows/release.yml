@@ -62,11 +62,6 @@ jobs:
       - name: Bump version with bumpversion
         run: |
           bumpversion ${{ inputs.part || github.event.inputs.part }}
-      - name: Commit and push with tags
-        if: ${{ (inputs.dry-run == false) || (github.event.inputs.dry-run == 'false') }}
-        run: |
-          git pull --rebase origin master
-          git push --follow-tags
       - name: Get version
         id: get-version
         run: |
@@ -82,6 +77,12 @@ jobs:
           echo "SHORT_VERSION=$short_version" >> $GITHUB_OUTPUT
       - name: Show short version
         run: echo ${{ steps.get-version.outputs.SHORT_VERSION }}
+      
+      - name: Commit and push with tags
+        if: ${{ (inputs.dry-run == false) || (github.event.inputs.dry-run == 'false') }}
+        run: |
+          git pull --rebase origin master
+          git push --follow-tags
       
       - name: Create GitHub Release
         if: ${{ (inputs.dry-run == false) || (github.event.inputs.dry-run == 'false') }}
