@@ -57,6 +57,26 @@ jobs:
             echo "Updated setup.py"
           fi
           
+      - name: Verify dependency availability
+        run: |
+          echo "Verifying ${{ github.event.inputs.dependency }}==${{ github.event.inputs.version }} is available on PyPI..."
+          # Retry pip index lookup up to 3 times with delays
+          for i in {1..3}; do
+            echo "Attempt $i/3: Checking PyPI availability..."
+            if pip index versions ${{ github.event.inputs.dependency }} | grep -q "${{ github.event.inputs.version }}"; then
+              echo "✅ Package version found on PyPI on attempt $i"
+              break
+            else
+              echo "❌ Package version not found on PyPI on attempt $i"
+              if [ $i -lt 3 ]; then
+                echo "Waiting 30 seconds before retry..."
+                sleep 30
+              else
+                echo "Package still not available after retries, continuing anyway..."
+              fi
+            fi
+          done
+          
       - name: Commit dependency update
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
