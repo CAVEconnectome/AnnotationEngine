@@ -1,0 +1,77 @@
+name: Update Dependency
+
+on:
+  workflow_dispatch:
+    inputs:
+      dependency:
+        description: "Name of the dependency to update"
+        required: true
+        type: string
+      version:
+        description: "New version of the dependency"
+        required: true
+        type: string
+      bump_type:
+        description: "Type of version bump to perform after updating dependency"
+        type: choice
+        required: true
+        default: "minor"
+        options: ["major", "minor", "patch"]
+
+jobs:
+  update-dependency:
+    name: Update ${{ github.event.inputs.dependency }} dependency
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          
+      - name: Update dependency in requirements.txt
+        run: |
+          echo "Updating ${{ github.event.inputs.dependency }} to version ${{ github.event.inputs.version }}"
+          
+          # Update in requirements.txt if it exists
+          if [ -f "requirements.txt" ]; then
+            sed -i "s/^${{ github.event.inputs.dependency }}.*/${{ github.event.inputs.dependency }}==${{ github.event.inputs.version }}/" requirements.txt
+            echo "Updated requirements.txt"
+          fi
+          
+          # Update in requirements.in if it exists  
+          if [ -f "requirements.in" ]; then
+            sed -i "s/^${{ github.event.inputs.dependency }}.*/${{ github.event.inputs.dependency }}>=${{ github.event.inputs.version }}/" requirements.in
+            echo "Updated requirements.in"
+          fi
+          
+          # Update in setup.py if it exists
+          if [ -f "setup.py" ]; then
+            sed -i "s/'${{ github.event.inputs.dependency }}[^']*'/'${{ github.event.inputs.dependency }}>=${{ github.event.inputs.version }}'/g" setup.py
+            sed -i "s/\"${{ github.event.inputs.dependency }}[^\"]*\"/\"${{ github.event.inputs.dependency }}>=${{ github.event.inputs.version }}\"/g" setup.py
+            echo "Updated setup.py"
+          fi
+          
+      - name: Commit dependency update
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          git diff --staged --quiet || git commit -m "Update ${{ github.event.inputs.dependency }} to v${{ github.event.inputs.version }}
+
+          Auto-generated dependency update triggered by ${{ github.event.inputs.dependency }} release"
+          git push
+
+  release:
+    name: Release with updated dependency
+    needs: update-dependency
+    uses: ./.github/workflows/release.yml
+    with:
+      part: ${{ github.event.inputs.bump_type }}
+      dry-run: false
+    secrets: inherit
