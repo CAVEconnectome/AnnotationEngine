@@ -254,7 +254,7 @@ class Table(Resource):
         args = query_parser.parse_args()
         timestamp_str = args.get("timestamp", None)
         if timestamp_str is None:
-            timestamp = datetime.datetime.now(datetime.timezone.utc))
+            timestamp = datetime.datetime.now(datetime.timezone.utc)
         else:
             timestamp = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S.%f')
         
