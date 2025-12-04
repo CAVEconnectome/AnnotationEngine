@@ -258,7 +258,7 @@ class Table(Resource):
         if timestamp_str is None:
             timestamp = datetime.datetime.now(datetime.timezone.utc)
         else:
-            timestamp = datetime.datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S.%f')
+            timestamp = datetime.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f')
             timestamp = pytz.utc.localize(timestamp)
         
         check_aligned_volume(aligned_volume_name)
