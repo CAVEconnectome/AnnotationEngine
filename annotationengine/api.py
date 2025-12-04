@@ -16,6 +16,7 @@ from caveclient.materializationengine import MaterializationClient
 from caveclient.auth import AuthClient
 import werkzeug
 import traceback
+import datetime
 
 from annotationengine.aligned_volume import (
     get_aligned_volumes,
@@ -256,7 +257,7 @@ class Table(Resource):
         if timestamp_str is None:
             timestamp = datetime.datetime.now(datetime.timezone.utc)
         else:
-            timestamp = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S.%f')
+            timestamp = datetime.datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S.%f')
         
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
