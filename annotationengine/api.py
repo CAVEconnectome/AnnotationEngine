@@ -17,6 +17,7 @@ from caveclient.auth import AuthClient
 import werkzeug
 import traceback
 import datetime
+import pytz
 
 from annotationengine.aligned_volume import (
     get_aligned_volumes,
@@ -258,6 +259,7 @@ class Table(Resource):
             timestamp = datetime.datetime.now(datetime.timezone.utc)
         else:
             timestamp = datetime.datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S.%f')
+            timestamp = pytz.utc.localize(timestamp)
         
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
