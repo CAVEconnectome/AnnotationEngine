@@ -261,7 +261,6 @@ class Table(Resource):
         
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        args = query_parser.parse_args()
         tables = db.database._get_existing_table_names(
             filter_valid=args.get("filter_valid", True),
             filter_timestamp=timestamp
