@@ -16,6 +16,8 @@ from caveclient.materializationengine import MaterializationClient
 from caveclient.auth import AuthClient
 import werkzeug
 import traceback
+import datetime
+import pytz
 
 from annotationengine.aligned_volume import (
     get_aligned_volumes,
@@ -99,6 +101,14 @@ query_parser.add_argument(
     default=True,
     location="args",
     help="whether to only return valid items",
+)
+query_parser.add_argument(
+    "timestamp",
+    type=str,
+    default=None,
+    location="args",
+    required=False,
+    help="timestamp for filtering results (will default to now if not required)",
 )
 
 
@@ -243,11 +253,19 @@ class Table(Resource):
     @api_bp.expect(query_parser)
     def get(self, aligned_volume_name: str):
         """Get list of annotation tables for a aligned_volume"""
+        args = query_parser.parse_args()
+        timestamp_str = args.get("timestamp", None)
+        if timestamp_str is None:
+            timestamp = datetime.datetime.now(datetime.timezone.utc)
+        else:
+            timestamp = datetime.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f')
+            timestamp = pytz.utc.localize(timestamp)
+        
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
-        args = query_parser.parse_args()
         tables = db.database._get_existing_table_names(
-            filter_valid=args.get("filter_valid", True)
+            filter_valid=args.get("filter_valid", True),
+            filter_timestamp=timestamp
         )
         return tables, 200
 
