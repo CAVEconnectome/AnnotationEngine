@@ -31,7 +31,7 @@ deprecated==1.2.13
     # via redis
 dynamicannotationdb==5.2.2
     # via -r requirements.in
-emannotationschemas==5.1.1
+emannotationschemas==5.24.12
     # via
     #   -r requirements.in
     #   dynamicannotationdb
@@ -178,7 +178,7 @@ requests==2.27.1
     #   -r requirements.in
     #   caveclient
     #   middle-auth-client
-shapely==1.8.0
+shapely==2.0.3
     # via
     #   dynamicannotationdb
     #   emannotationschemas

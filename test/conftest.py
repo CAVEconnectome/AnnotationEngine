@@ -58,7 +58,8 @@ def test_aligned_volume():
 
 @pytest.fixture(scope="module")
 def client():
-    flask_app = create_app(config_name="testing")
+    config_name = os.environ.get("FLASK_CONFIGURATION", "testing")
+    flask_app = create_app(config_name=config_name)
     test_logger.info("Starting test flask app...")
 
     # Create a test client using the Flask application configured for testing
@@ -66,8 +67,23 @@ def client():
         # Establish an application context
         with flask_app.app_context():
             db.create_all()
+            logging.info("yielding testing_client")
             yield testing_client
+            # --- Cleanup Phase ---
+            logging.info("Tearing down testing_client, committing session")
+            
+            db.session.commit()
+
+            logging.info("dropping all tables")
+            # 2. Drop the tables
             db.drop_all()
+            logging.info("removing session")
+            # 1. Remove the scoped session to prevent "ResourceBusy" errors
+            db.session.remove()
+            logging.info("disposing engine")
+            # 3. Dispose of the engine to kill the connection pool (The Fix)
+            db.engine.dispose()
+            logging.info("cleanup complete")
 
 
 @pytest.fixture(scope="module")
