@@ -66,8 +66,11 @@ def client():
         # Establish an application context
         with flask_app.app_context():
             db.create_all()
+            logging.info("yielding testing_client")
             yield testing_client
+            logging.info("yielding testing_client")
             db.drop_all()
+            logging.info("dropped all tables")
 
 
 @pytest.fixture(scope="module")
