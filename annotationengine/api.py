@@ -258,8 +258,15 @@ class Table(Resource):
         if timestamp_str is None:
             timestamp = datetime.datetime.now(datetime.timezone.utc)
         else:
-            timestamp = datetime.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f')
-            timestamp = pytz.utc.localize(timestamp)
+            # fromisoformat accepts common ISO 8601 formats with or without microseconds
+            # (e.g. 2026-02-19T10:30:00 or 2026-02-19T10:30:00.123456)
+            timestamp = datetime.datetime.fromisoformat(
+                timestamp_str.replace("Z", "+00:00")
+            )
+            if timestamp.tzinfo is None:
+                timestamp = pytz.utc.localize(timestamp)
+            else:
+                timestamp = timestamp.astimezone(pytz.utc)
         
         check_aligned_volume(aligned_volume_name)
         db = get_db(aligned_volume_name)
