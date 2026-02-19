@@ -68,9 +68,16 @@ def client():
             db.create_all()
             logging.info("yielding testing_client")
             yield testing_client
-            logging.info("yielding testing_client")
+            # --- Cleanup Phase ---
+            logging.info("Tearing down testing_client")
+            # 1. Remove the scoped session to prevent "ResourceBusy" errors
+            db.session.remove()
+            # 2. Drop the tables
             db.drop_all()
             logging.info("dropped all tables")
+            # 3. Dispose of the engine to kill the connection pool (The Fix)
+            db.engine.dispose()
+            logging.info("SQLAlchemy engine disposed")
 
 
 @pytest.fixture(scope="module")
