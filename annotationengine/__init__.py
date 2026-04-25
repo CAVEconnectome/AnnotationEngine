@@ -11,6 +11,7 @@ from annotationengine.admin import setup_admin
 from annotationengine.views import views_bp
 from flask_sqlalchemy import SQLAlchemy
 from flask_restx import Api
+from flask_cors import CORS
 import logging
 from datetime import date, datetime
 
@@ -53,6 +54,8 @@ def create_app(config_name: str = None):
         app.config.from_object(config[config_name])
     else:
         app = configure_app(app)
+
+    CORS(app)
 
     apibp = Blueprint("api", __name__, url_prefix="/annotation/api")
 
