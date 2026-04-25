@@ -55,7 +55,7 @@ def create_app(config_name: str = None):
     else:
         app = configure_app(app)
 
-    CORS(app)
+    CORS(app, expose_headers=["WWW-Authenticate"], send_wildcard=True)
 
     apibp = Blueprint("api", __name__, url_prefix="/annotation/api")
 
