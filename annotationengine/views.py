@@ -1,6 +1,7 @@
 from flask import (
     render_template,
     current_app,
+    request,
     Blueprint,
     url_for,
 )
@@ -119,15 +120,37 @@ def table_view(aligned_volume_name, table_name):
         RefModel = db.database.cached_table(md["reference_table"])
     Model = db.database._get_model_from_table_name(table_name)
     table_size = db.database.get_annotation_table_size(table_name)
-    query = db.database.cached_session.query(Model).limit(15)
-    top15_df = pd.read_sql(query.statement, db.database.engine)
-    top15_df = fix_wkb_columns(top15_df)
+
+    try:
+        limit = min(max(int(request.args.get("limit", 15)), 1), 500)
+    except (TypeError, ValueError):
+        limit = 15
+    try:
+        offset = max(int(request.args.get("offset", 0)), 0)
+    except (TypeError, ValueError):
+        offset = 0
+    order = request.args.get("order", "asc").lower()
+    if order not in ("asc", "desc"):
+        order = "asc"
+
+    order_col = Model.id.desc() if order == "desc" else Model.id.asc()
+    query = (
+        db.database.cached_session.query(Model)
+        .order_by(order_col)
+        .offset(offset)
+        .limit(limit)
+    )
+    rows_df = pd.read_sql(query.statement, db.database.engine)
+    rows_df = fix_wkb_columns(rows_df)
     return render_template(
         "table.html",
         aligned_volume_name=aligned_volume_name,
         table_name=table_name,
         table_size=table_size,
-        df_table=top15_df.to_html(escape=False),
+        df_table=rows_df.to_html(escape=False),
         table_description=md["description"],
         version=__version__,
+        limit=limit,
+        offset=offset,
+        order=order,
     )
