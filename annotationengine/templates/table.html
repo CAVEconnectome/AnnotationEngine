@@ -11,6 +11,23 @@
 Description: {{table_description}}
 </p>
 
+{% set start_row = offset + 1 if table_size > 0 else 0 %}
+{% set end_row = offset + limit if (offset + limit) < table_size else table_size %}
+{% set prev_offset = offset - limit if offset > limit else 0 %}
+{% set next_offset = offset + limit %}
+{% set toggle_order = 'desc' if order == 'asc' else 'asc' %}
+<p>Showing rows {{start_row}}&ndash;{{end_row}} of {{table_size}} ({{order}})</p>
+<p>
+  {% if offset > 0 %}
+    <a href="?limit={{limit}}&amp;offset={{prev_offset}}&amp;order={{order}}">&laquo; Prev</a>
+  {% endif %}
+  {% if next_offset < table_size %}
+    <a href="?limit={{limit}}&amp;offset={{next_offset}}&amp;order={{order}}">Next &raquo;</a>
+  {% endif %}
+  &nbsp;|&nbsp;
+  <a href="?limit={{limit}}&amp;offset=0&amp;order={{toggle_order}}">Toggle order</a>
+</p>
+
 {{df_table|safe}}
 
 {% endblock %}
