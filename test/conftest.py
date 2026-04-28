@@ -10,6 +10,7 @@ import docker
 import psycopg2
 import pytest
 from annotationengine import create_app, db
+from annotationengine.anno_database import clear_db_cache
 from flask import appcontext_pushed, g, current_app
 
 logging.basicConfig(level=logging.DEBUG)
@@ -67,6 +68,8 @@ def client():
         with flask_app.app_context():
             db.create_all()
             yield testing_client
+            clear_db_cache()
+            db.session.remove()
             db.drop_all()
 
 
