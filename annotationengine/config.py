@@ -36,9 +36,18 @@ class TestConfig(BaseConfig):
     )
 
 
+class DockerTestConfig(TestConfig):
+    """Test config for running inside docker-compose (connects to db service)."""
+
+    SQLALCHEMY_DATABASE_URI = (
+        "postgresql://postgres:postgres@db:5432/test_aligned_volume"
+    )
+
+
 config = {
     "development": "annotationengine.config.DevConfig",
     "testing": "annotationengine.config.TestConfig",
+    "docker_testing": "annotationengine.config.DockerTestConfig",
     "default": "annotationengine.config.BaseConfig",
 }
 
@@ -51,5 +60,12 @@ def configure_app(app):
         app.config.from_envvar("ANNOTATION_ENGINE_SETTINGS")
     # instance-folders configuration
     app.config.from_pyfile("config.cfg", silent=True)
+
+    # SQLAlchemy 1.4+ does not accept the legacy "postgres://" scheme.
+    db_uri = app.config.get("SQLALCHEMY_DATABASE_URI")
+    if isinstance(db_uri, str) and db_uri.startswith("postgres://"):
+        app.config["SQLALCHEMY_DATABASE_URI"] = db_uri.replace(
+            "postgres://", "postgresql://", 1
+        )
 
     return app
