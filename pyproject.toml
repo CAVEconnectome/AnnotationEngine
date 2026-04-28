@@ -29,6 +29,7 @@ dependencies = [
     "flask-admin",
     "flask-restx",
     "flask-accepts",
+    "uWSGI",
     "marshmallow-sqlalchemy",
     "requests",
     "cachetools",
