@@ -16,6 +16,7 @@ classifiers = [
 ]
 dependencies = [
     "Flask<2.0",
+    "MarkupSafe<2.1",
     "emannotationschemas>=5.26.3",
     "dynamicannotationdb>=5.15.0",
     "caveclient>=4.20.2",
