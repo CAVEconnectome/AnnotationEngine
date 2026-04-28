@@ -347,7 +347,9 @@ class Annotations(Resource):
         annotations = data.get("annotations")
 
         try:
-            inserted_ids = db.annotation.insert_annotations(table_name, annotations)
+            inserted_ids = db.annotation.insert_annotations(
+                table_name, annotations, user_id=g.auth_user["id"]
+            )
         except AnnotationInsertLimitExceeded as limit_error:
             logging.error(f"INSERT LIMIT EXCEEDED {limit_error}")
             abort(413, str(limit_error))
@@ -379,7 +381,9 @@ class Annotations(Resource):
         updated_ids_mapping = {}
         for annotation in annotations:
             try:
-                update_id_map = db.annotation.update_annotation(table_name, annotation)
+                update_id_map = db.annotation.update_annotation(
+                    table_name, annotation, user_id=g.auth_user["id"]
+                )
                 ((old_id, new_id),) = update_id_map.items()
                 new_ids.append(
                     new_id
