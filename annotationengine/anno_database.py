@@ -13,6 +13,30 @@ def get_db(aligned_volume) -> DynamicAnnotationInterface:
     return cache[aligned_volume]
 
 
+def clear_db_cache():
+    for interface in cache.values():
+        for database in (
+            getattr(interface, "_database", None),
+            getattr(getattr(interface, "_annotation", None), "db", None),
+            getattr(getattr(interface, "_segmentation", None), "db", None),
+        ):
+            if database is None:
+                continue
+            try:
+                database.close_session()
+            except Exception:
+                pass
+            try:
+                database.session.remove()
+            except Exception:
+                pass
+            try:
+                database.engine.dispose()
+            except Exception:
+                pass
+    cache.clear()
+
+
 def check_write_permission(db, table_name):
     metadata = db.database.get_table_metadata(table_name)
     if metadata["user_id"] != str(g.auth_user["id"]):
