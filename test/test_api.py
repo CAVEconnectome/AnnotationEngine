@@ -353,3 +353,91 @@ class TestAnnotationsEndpoints:
             logging.info(response)
 
             assert response.json == [2]
+
+    def test_post_annotations_auto_injects_user_id(self, client):
+        table_url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table"
+        table_data = {
+            "table_name": "test_bound_tag_user_table",
+            "schema_type": "bound_tag_user",
+            "metadata": {
+                "description": "Test description",
+                "flat_segmentation_source": "precomputed://gs://my_cloud_bucket/image",
+                "voxel_resolution_x": 4,
+                "voxel_resolution_y": 4,
+                "voxel_resolution_z": 40,
+            },
+        }
+
+        annotations_url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table/test_bound_tag_user_table/annotations"
+        annotations_data = {
+            "annotations": [
+                {
+                    "pt": {"position": [31, 31, 0]},
+                    "tag": "auto-user-id",
+                },
+            ]
+        }
+        auth_headers = {"Authorization": "Bearer test-token"}
+        auth_user = {
+            "id": 1,
+            "service_account": False,
+            "name": "test-user",
+            "email": "test-user@example.com",
+            "admin": False,
+            "groups": [],
+            "permissions": {},
+        }
+
+        with mock.patch(
+            "annotationengine.api.check_aligned_volume"
+        ) as mock_aligned_volumes:
+            mock_aligned_volumes.return_value = aligned_volume_name
+
+            with mock.patch("middle_auth_client.decorators.AUTH_DISABLED", False), mock.patch(
+                "middle_auth_client.decorators.get_user_cache",
+                return_value=auth_user,
+            ), mock.patch(
+                "middle_auth_client.decorators.dataset_from_table_id_from_request",
+                return_value=aligned_volume_name,
+            ), mock.patch(
+                "middle_auth_client.decorators.has_permission",
+                return_value=True,
+            ):
+
+                create_response = client.post(
+                    table_url,
+                    json=table_data,
+                    headers=auth_headers,
+                    content_type="application/json",
+                    follow_redirects=True,
+                )
+                logging.info(create_response)
+                assert create_response.json is None
+
+                with mock.patch(
+                    "annotationengine.api.trigger_supervoxel_lookup",
+                ) as mock_trigger_supervoxel_lookup:
+                    mock_trigger_supervoxel_lookup.return_value = None
+
+                    post_response = client.post(
+                        annotations_url,
+                        data=json.dumps(annotations_data),
+                        headers=auth_headers,
+                        content_type="application/json",
+                        follow_redirects=False,
+                    )
+                    logging.info(post_response)
+                    assert post_response.json == [1]
+
+                get_response = client.get(
+                    annotations_url,
+                    headers=auth_headers,
+                    query_string={"annotation_ids": "1"},
+                    follow_redirects=False,
+                )
+                logging.info(get_response)
+                logging.info(get_response.json)
+
+                assert get_response.json[0]["user_id"] == 1
+                assert get_response.json[0]["tag"] == "auto-user-id"
+                assert get_response.json[0]["pt_position"] == [31, 31, 0]
