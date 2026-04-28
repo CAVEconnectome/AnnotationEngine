@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling>=1.26.1"]
+build-backend = "hatchling.build"
+
+[project]
+name = "annotationengine"
+dynamic = ["version"]
+description = "A service for storing arbitrary annotation data on EM volumes stored in a cloud volume"
+readme = "README.md"
+requires-python = ">=3.9,<3.10"
+authors = [
+    { name = "Forrest Collman", email = "forrestc@alleninstitute.org" }
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "Flask<2.0",
+    "emannotationschemas>=5.26.3",
+    "dynamicannotationdb>=5.15.0",
+    "caveclient>=4.20.2",
+    "multiwrapper",
+    "jsonschema<4.0",
+    "middle-auth-client>=3.11.1",
+    "flask_sqlalchemy",
+    "flask_cors",
+    "flask-marshmallow==0.14.0",
+    "flask-admin",
+    "flask-restx",
+    "flask-accepts",
+    "marshmallow-sqlalchemy",
+    "requests",
+    "cachetools",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=3.0.5",
+    "pytest-cov>=2.2.1",
+    "pytest-postgresql",
+    "pytest-env",
+    "pytest-mock",
+    "requests-mock",
+    "docker",
+    "coverage",
+]
+
+[tool.hatch.version]
+path = "annotationengine/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["annotationengine"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/annotationengine",
+    "/test",
+    "/README.md",
+    "/LICENSE",
+    "/requirements.txt",
+    "/requirements.in",
+    "/test_requirements.txt",
+]
