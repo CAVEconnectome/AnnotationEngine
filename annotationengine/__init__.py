@@ -15,7 +15,7 @@ from flask_cors import CORS
 import logging
 from datetime import date, datetime
 
-__version__ = "4.39.0"
+__version__ = "4.40.0"
 
 
 db = SQLAlchemy(model_class=Base)
