@@ -59,7 +59,8 @@ def test_aligned_volume():
 
 @pytest.fixture(scope="module")
 def client():
-    flask_app = create_app(config_name="testing")
+    config_name = os.environ.get("FLASK_CONFIGURATION", "testing")
+    flask_app = create_app(config_name=config_name)
     test_logger.info("Starting test flask app...")
 
     # Create a test client using the Flask application configured for testing
