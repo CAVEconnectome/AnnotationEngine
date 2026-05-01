@@ -22,7 +22,7 @@ views_bp = Blueprint("views", __name__, url_prefix="/annotation/views")
 def wkb_to_numpy(wkb, convert_to_nm=None):
     """Fixes single geometry column"""
     shp = to_shape(wkb)
-    xyz_voxel = np.array([shp.xy[0][0], shp.xy[1][0], shp.z], dtype=np.int)
+    xyz_voxel = np.array([shp.xy[0][0], shp.xy[1][0], shp.z], dtype=int)
     if convert_to_nm is not None:
         return xyz_voxel * convert_to_nm
     else:
@@ -68,7 +68,13 @@ def aligned_volume_view(aligned_volume_name):
         .filter(Metadata.deleted == None)
         .filter(Metadata.valid == True)
     )
-    df = pd.read_sql(query.statement, db.database.engine)
+    statement = str(
+        query.statement.compile(
+            db.database.engine, compile_kwargs={"literal_binds": True}
+        )
+    )
+    with db.database.engine.connect() as conn:
+        df = pd.read_sql(statement, conn.connection)
     base_user_url = "https://{auth_uri}/api/v1/user/{user_id}"
     auth_uri = os.environ["AUTH_URI"]
     base_schema_url = (
@@ -120,7 +126,13 @@ def table_view(aligned_volume_name, table_name):
     Model = db.database._get_model_from_table_name(table_name)
     table_size = db.database.get_annotation_table_size(table_name)
     query = db.database.cached_session.query(Model).limit(15)
-    top15_df = pd.read_sql(query.statement, db.database.engine)
+    statement = str(
+        query.statement.compile(
+            db.database.engine, compile_kwargs={"literal_binds": True}
+        )
+    )
+    with db.database.engine.connect() as conn:
+        top15_df = pd.read_sql(statement, conn.connection)
     top15_df = fix_wkb_columns(top15_df)
     return render_template(
         "table.html",

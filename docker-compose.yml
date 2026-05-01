@@ -33,6 +33,24 @@ services:
     depends_on:
       - db
 
+  test:
+    image: "app:tag"
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    env_file:
+      - ./.env-docker.dev
+    environment:
+      FLASK_CONFIGURATION: docker_testing
+      AUTH_DISABLED: "true"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: []
+    command: ["python", "-m", "pytest"]
+
 volumes:
   postgres_data:
     driver: local
