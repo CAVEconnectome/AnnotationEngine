@@ -46,7 +46,7 @@ def pytest_configure(config):
 @pytest.fixture(scope="session")
 def database_metadata() -> dict:
     yield {
-        "postgis_docker_image": "postgis/postgis:13-master",
+        "postgis_docker_image": "postgis/postgis:18-3.6",
         "db_host": "localhost",
         "sql_uri": "postgresql://postgres:postgres@localhost:5432/test_aligned_volume",
     }

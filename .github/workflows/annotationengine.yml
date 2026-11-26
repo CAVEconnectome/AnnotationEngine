@@ -39,10 +39,9 @@ jobs:
         with:
           version: "latest"
           enable-cache: true
-      # Python 3.9 is what the Dockerfile's base image runs. actions/setup-python has no
-      # 3.9 build for the Ubuntu 26.04 runner, so uv installs it.
-      - name: Set up Python 3.9
-        run: uv python install 3.9
+      # Keep in step with the Dockerfile's base image and requires-python.
+      - name: Set up Python 3.12
+        run: uv python install 3.12
       - name: Validate lockfile
         run: |
           uv lock --check
