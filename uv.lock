@@ -66,7 +66,7 @@ dev = [
 requires-dist = [
     { name = "cachetools" },
     { name = "caveclient", specifier = ">=4.20.2" },
-    { name = "dynamicannotationdb", specifier = ">=5.15.0" },
+    { name = "dynamicannotationdb", specifier = ">=5.15.1" },
     { name = "emannotationschemas", specifier = ">=5.26.3" },
     { name = "flask", specifier = "<2.0" },
     { name = "flask-accepts" },
@@ -248,7 +248,7 @@ wheels = [
 
 [[package]]
 name = "dynamicannotationdb"
-version = "5.15.0"
+version = "5.15.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "alembic" },
@@ -261,7 +261,7 @@ dependencies = [
     { name = "shapely" },
     { name = "sqlalchemy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1b/29/35f06b4d7786127c24d9777645516609613c39f8eb719ae227cf10ac450d/dynamicannotationdb-5.15.0.tar.gz", hash = "sha256:31aebc7d820d0a184551cef833fd79830ccfd890a4d8301b7a3de0112db8f222", size = 32395, upload-time = "2026-04-28T18:25:38.357Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/26/5d/b740c79aaa3ca70e421660e6d1ea4f2a36f2cbf1fe0199f52e30587e60ae/dynamicannotationdb-5.15.1.tar.gz", hash = "sha256:5e41bdc0a9f8057c83c242a02d9e730bcc6a9115b11b85fe782dd67ca989d303", size = 32779, upload-time = "2026-11-26T06:29:52.453Z" }
 
 [[package]]
 name = "emannotationschemas"

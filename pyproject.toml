@@ -18,7 +18,7 @@ dependencies = [
     "Flask<2.0",
     "MarkupSafe<2.1",
     "emannotationschemas>=5.26.3",
-    "dynamicannotationdb>=5.15.0",
+    "dynamicannotationdb>=5.15.1",
     "caveclient>=4.20.2",
     "multiwrapper",
     "jsonschema<4.0",
