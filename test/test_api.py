@@ -24,7 +24,7 @@ class TestTableEndpoints:
             "table_name": "test_table",
             "schema_type": "synapse",
             "metadata": {
-                "user_id": "1",
+                "user_id": "0",
                 "description": "Test description",
                 "flat_segmentation_source": "precomputed://gs://my_cloud_bucket/image",
                 "voxel_resolution_x": 4,
@@ -47,19 +47,13 @@ class TestTableEndpoints:
             logging.info(response)
             assert response.json is None
 
-    def test_put_table(self, client, modify_g):
-        """
-        These tests have to be run in sequential order, so instead of trusting
-        the testing framework to run independent tests in the intended order,
-        simply package them into a single function.
-        """
-
+    def test_put_table1(self, client):
         # Alter the description and populate the notice_text
         logging.info("TEST")
         data = {
             "table_name": "test_table",
             "metadata": {
-                "user_id": "1",
+                "user_id": "0",
                 "description": "Altered test description",
                 "flat_segmentation_source": "precomputed://gs://my_cloud_bucket/image",
                 "notice_text": "Notice",
@@ -81,13 +75,14 @@ class TestTableEndpoints:
             assert response.json["description"] == "Altered test description"
             assert response.json["notice_text"] == "Notice"
 
+    def test_put_table2(self, client):
         # ================================================================================
         # Test that notice_text is erased
         logging.info("TEST")
         data = {
             "table_name": "test_table",
             "metadata": {
-                "user_id": "1",
+                "user_id": "0",
                 "notice_text": "",
             },
         }
@@ -106,13 +101,14 @@ class TestTableEndpoints:
             logging.info(response)
             assert response.json["notice_text"] is None
 
+    def test_put_table3(self, client):
         # ================================================================================
         # Repopulate notice_text
         logging.info("TEST")
         data = {
             "table_name": "test_table",
             "metadata": {
-                "user_id": "1",
+                "user_id": "0",
                 "notice_text": "Notice2",
             },
         }
@@ -131,13 +127,14 @@ class TestTableEndpoints:
             logging.info(response)
             assert response.json["notice_text"] == "Notice2"
 
+    def test_put_table4(self, client):
         # ================================================================================
         # Test that notice_text is erased
         logging.info("TEST")
         data = {
             "table_name": "test_table",
             "metadata": {
-                "user_id": "1",
+                "user_id": "0",
                 "notice_text": "",
             },
         }
@@ -162,7 +159,7 @@ class TestTableEndpoints:
             "table_name": "test_table_to_delete",
             "schema_type": "synapse",
             "metadata": {
-                "user_id": "1",
+                "user_id": "0",
                 "description": "Test description",
                 "flat_segmentation_source": "precomputed://gs://my_cloud_bucket/image",
                 "voxel_resolution_x": 4,
@@ -222,7 +219,7 @@ class TestAnnotationTableEndpoints:
                 "voxel_resolution_y": 4.0,
                 "valid": True,
                 "schema_type": "synapse",
-                "user_id": "1",
+                "user_id": "0",
                 "notice_text": None,
                 "reference_table": None,
                 "voxel_resolution_x": 4.0,
@@ -235,7 +232,7 @@ class TestAnnotationTableEndpoints:
             del response_json["last_modified"]
             assert response_json == metadata
 
-    def test_mark_table_to_delete(self, client, modify_g):
+    def test_mark_table_to_delete(self, client):
         url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table/test_table_to_delete"
 
         with mock.patch(
@@ -261,7 +258,7 @@ class TestTableInfo:
 
 
 class TestAnnotationsEndpoints:
-    def test_post_annotations(self, client, modify_g):
+    def test_post_annotations(self, client):
         url = f"/annotation/api/v2/aligned_volume/{aligned_volume_name}/table/test_table/annotations"
         data = {
             "annotations": [
