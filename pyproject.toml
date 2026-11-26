@@ -7,7 +7,7 @@ name = "annotationengine"
 dynamic = ["version"]
 description = "A service for storing arbitrary annotation data on EM volumes stored in a cloud volume"
 readme = "README.md"
-requires-python = ">=3.9,<3.10"
+requires-python = "==3.12.*"
 authors = [
     { name = "Forrest Collman", email = "forrestc@alleninstitute.org" }
 ]
@@ -15,10 +15,9 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
-    "Flask<2.0",
-    "MarkupSafe<2.1",
+    "Flask>=2.3,<3.0",
     "emannotationschemas>=5.26.3",
-    "dynamicannotationdb>=5.15.0",
+    "dynamicannotationdb>=5.15.1",
     "caveclient>=4.20.2",
     "multiwrapper",
     "jsonschema<4.0",

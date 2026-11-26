@@ -10,6 +10,8 @@ class BaseConfig(object):
     proj_dir = os.path.split(get_app_base_path())[0]
     SQLALCHEMY_DATABASE_URI = "postgresql://postgres:postgres@localhost:5432/annotation"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Flask 2 stopped caching static files by default; keep the 12 hours Flask 1 gave them.
+    SEND_FILE_MAX_AGE_DEFAULT = 43200
     NEUROGLANCER_URL = "https://neuroglancer-demo.appspot.com"
     GLOBAL_SERVER = "https://global.daf-apis.com"
     INFOSERVICE_ENDPOINT = f"{GLOBAL_SERVER}/info"

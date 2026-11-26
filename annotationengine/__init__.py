@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, url_for, redirect, Blueprint
+from flask.json.provider import DefaultJSONProvider
 import json
 from flask_marshmallow import Marshmallow
 from marshmallow.utils import _Missing
@@ -21,17 +22,40 @@ __version__ = "4.41.6"
 db = SQLAlchemy(model_class=Base)
 
 
+def _encode_extra(obj):
+    """Types the app returns that the standard JSON encoder does not handle."""
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, np.uint64):
+        return int(obj)
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    if isinstance(obj, _Missing):
+        return None
+    raise TypeError
+
+
 class AEEncoder(json.JSONEncoder):
+    """Used by flask-restx (RESTX_JSON), which serialises the API responses."""
+
     def default(self, obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        if isinstance(obj, np.uint64):
-            return int(obj)
-        if isinstance(obj, (datetime, date)):
-            return obj.isoformat()
-        if isinstance(obj, _Missing):
-            return None
-        return json.JSONEncoder.default(self, obj)
+        try:
+            return _encode_extra(obj)
+        except TypeError:
+            return json.JSONEncoder.default(self, obj)
+
+
+def _provider_default(obj):
+    try:
+        return _encode_extra(obj)
+    except TypeError:
+        return DefaultJSONProvider.default(obj)
+
+
+class AEJSONProvider(DefaultJSONProvider):
+    """Used by flask.jsonify. Flask 2.3 removed app.json_encoder in favour of this."""
+
+    default = staticmethod(_provider_default)
 
 
 def create_app(config_name: str = None):
@@ -46,7 +70,7 @@ def create_app(config_name: str = None):
 
     ma.init_app(app)
 
-    app.json_encoder = AEEncoder
+    app.json = AEJSONProvider(app)
     app.config["RESTX_JSON"] = {"cls": AEEncoder}
     logging.basicConfig(level=logging.DEBUG)
 

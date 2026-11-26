@@ -1,4 +1,4 @@
-FROM tiangolo/uwsgi-nginx-flask:python3.9
+FROM tiangolo/uwsgi-nginx-flask:python3.12
 
 RUN apt-get update && apt-get install -y gcc curl ca-certificates \
      && rm -rf /var/lib/apt/lists/*
